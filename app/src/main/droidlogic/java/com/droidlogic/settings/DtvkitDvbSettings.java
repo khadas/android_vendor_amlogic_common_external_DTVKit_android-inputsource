@@ -607,6 +607,7 @@ public class DtvkitDvbSettings extends Activity {
                 sendMessageToHandler(MSG_REFRESH_UI, 0, 0, null, PERIOD_RIGHT_NOW);
             }
         });
+
         alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         alert.setView(dialogView);
         alert.show();
@@ -899,7 +900,8 @@ public class DtvkitDvbSettings extends Activity {
             }
         });
 
-        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        //it happened anr, input dispatch timeout, no have a focus window, so don't set window type
+        //alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
         alert.setView(dialogView);
         alert.show();
         WindowManager.LayoutParams params = alert.getWindow().getAttributes();
