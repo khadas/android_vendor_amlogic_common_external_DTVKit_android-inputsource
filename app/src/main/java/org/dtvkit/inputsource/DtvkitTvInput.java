@@ -32,6 +32,8 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
@@ -971,8 +973,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mTuningImage.setImageDrawable(colorDrawable);
                 mTuningImage.setVisibility(View.GONE);
 
-                mRelativeLayout.addView(mText, textLayoutParams);
                 mRelativeLayout.addView(mTuningImage, imageLayoutParams);
+                mRelativeLayout.addView(mText, textLayoutParams);
                 this.addView(mRelativeLayout);
             } else {
                 Log.d(TAG, "initRelativeLayout already");
@@ -1003,6 +1005,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (mText.getVisibility() != View.VISIBLE) {
                     mText.setVisibility(View.VISIBLE);
                 }
+                //display black background
+                showTuningImage(null);
             }
         }
 
@@ -1013,6 +1017,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (mText.getVisibility() != View.GONE) {
                     mText.setVisibility(View.GONE);
                 }
+                //hide black background
+                hideTuningImage();
             }
         }
 
@@ -2703,7 +2709,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     mSurfaceSent = true;
                     mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
                     mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
-                    DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
+                    if (isSdkAfterAndroidQ()) {
+                        mHardware.setSurface(mSurface, mConfigs[0]);
+                    } else {
+                        DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
+                    }
                     playerSetRectangle(0, 0, mWinWidth, mWinHeight);
                 }
                 removeScheduleTimeshiftRecordingTask();
@@ -2719,7 +2729,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             } else {
                 if (!mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
-                    DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_PIP, mSurface);
+                    if (isSdkAfterAndroidQ()) {
+                        mHardware.setSurface(mSurface, mConfigs[0]);
+                    } else {
+                        DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_PIP, mSurface);
+                    }
                     playerPipSetRectangle(0, 0, mWinWidth, mWinHeight);
                 }
                 Log.i(TAG, "onTuneByHandlerThreadHandle pip tune");
@@ -4993,7 +5007,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     mSurfaceSent = true;
                     mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
                     mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
-                    DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
+                    if (isSdkAfterAndroidQ()) {
+                        mHardware.setSurface(mSurface, mConfigs[0]);
+                    } else {
+                        DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
+                    }
                     playerSetRectangle(0, 0, mWinWidth, mWinHeight);
                 }
                 playerState = PlayerState.PLAYING;
@@ -7351,6 +7369,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         @Override
         public void onStreamConfigChanged(TvStreamConfig[] configs) {
             Log.d(TAG, "onStreamConfigChanged");
+            if (configs != null) {
+                Log.d(TAG, "onStreamConfigChanged configs length = " + configs.length);
+            } else {
+                Log.d(TAG, "onStreamConfigChanged null");
+            }
             mConfigs = configs;
         }
     };
@@ -7434,7 +7457,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private boolean getFeatureSupportNewTvApp() {
-        return PropSettingManager.getBoolean(PropSettingManager.MATCH_NEW_TVAPP_ENABLE, true);
+        return isSdkAfterAndroidQ() && PropSettingManager.getBoolean(PropSettingManager.MATCH_NEW_TVAPP_ENABLE, true);
     }
 
     private boolean getFeatureSupportCaptioningManager() {
@@ -7443,6 +7466,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     private boolean getFeatureSupportManualTimeshift() {
         return getFeatureSupportNewTvApp() || PropSettingManager.getBoolean(PropSettingManager.MANUAL_TIMESHIFT_ENABLE, false);
+    }
+
+    private boolean isSdkAfterAndroidQ() {
+        return VERSION.SDK_INT > VERSION_CODES.Q;
     }
 
     /*
