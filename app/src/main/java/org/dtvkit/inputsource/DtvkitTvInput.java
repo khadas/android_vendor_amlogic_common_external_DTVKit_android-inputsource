@@ -161,9 +161,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private static final int TTX_MODE_SEPARATE = 2;
 
     protected TvInputInfo mTvInputInfo = null;
+    protected TvInputInfo mPipTvInputInfo = null;
     protected Hardware mHardware;
+    protected Hardware mPipHardware;
     private TvInputHardwareInfo mTvInputHardwareInfo = null;
+    private TvInputHardwareInfo mPipTvInputHardwareInfo = null;
     protected TvStreamConfig[] mConfigs;
+    protected TvStreamConfig[] mPipConfigs;
     private TvInputManager mTvInputManager;
     private SysSettingManager mSysSettingManager = null;
     //private DtvkitTvInputSession mSession;
@@ -724,9 +728,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             extras.putBoolean(PropSettingManager.ENABLE_FCC_SUPPORT, getFeatureSupportFcc());
             extras.putBoolean(PropSettingManager.ENABLE_MULTI_FREQUENCY_SUPPORT, multiFrequencySupport);
             extras.putInt(PropSettingManager.ENABLE_TUNER_NUMBER, realNumTuners);
-            mTvInputInfo = buildTvInputInfo(numTuners, extras);
+            mTvInputInfo = buildTvInputInfo(mTvInputHardwareInfo, numTuners, extras);
         } else {
-            mTvInputInfo = buildTvInputInfo(1, null);
+            mTvInputInfo = buildTvInputInfo(mTvInputHardwareInfo, 1, null);
         }
         mTvInputManager.updateTvInputInfo(mTvInputInfo);
         Log.d(TAG, "updateTunerNumber end");
@@ -2452,6 +2456,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 //support multi surface and save it only here, then set it when tuned according to pip or main
                 if (surface == null && (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip)) {
                     //stop play when set surface null
+                    //android r use hal to set tunnel id for each surface
+                    if (isSdkAfterAndroidQ()) {
+                        if (!mIsPip) {
+                            sendSetSurfaceMessage(null, mConfigs[1]);
+                        } else {
+                            sendSetSurfaceMessage(null, mPipConfigs[0]);
+                        }
+                    }
                     sendDoReleaseMessage();
                 }
                 if (mSurface != surface) {
@@ -2472,7 +2484,16 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 Surface surface = (Surface)surfaceInfo.get(ConstantManager.KEY_SURFACE);
                 TvStreamConfig config = (TvStreamConfig)surfaceInfo.get(ConstantManager.KEY_TV_STREAM_CONFIG);
                 Log.d(TAG, "doSetSurface surface = " + surface + ", config = " + config);
-                mHardware.setSurface(surface, config);
+                boolean isPipConfig = false;
+                if (config != null) {
+                    //pip stream config has been set to 3
+                    isPipConfig = config.getStreamId() == 3;
+                }
+                if (isPipConfig) {
+                    mPipHardware.setSurface(surface, config);
+                } else {
+                    mHardware.setSurface(surface, config);
+                }
             }
         }
 
@@ -2681,7 +2702,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
                     mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
-                        mHardware.setSurface(mSurface, mConfigs[0]);
+                        mHardware.setSurface(mSurface, mConfigs[1]);
+                        setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
                     } else {
                         DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
                     }
@@ -2701,7 +2723,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (!mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
                     if (isSdkAfterAndroidQ()) {
-                        mHardware.setSurface(mSurface, mConfigs[0]);
+                        mPipHardware.setSurface(mSurface, mPipConfigs[0]);
+                        setSurfaceTunnelId(INDEX_FOR_PIP, 2);
                     } else {
                         DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_PIP, mSurface);
                     }
@@ -4979,7 +5002,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
                     mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
-                        mHardware.setSurface(mSurface, mConfigs[0]);
+                        mHardware.setSurface(mSurface, mConfigs[1]);
+                        setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
                     } else {
                         DtvkitGlueClient.getInstance().setMutilSurface(INDEX_FOR_MAIN, mSurface);
                     }
@@ -5414,6 +5438,21 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 Log.e(TAG, "playerPlay = " + e.getMessage());
                 return "unknown error";
             }
+        }
+    }
+
+    private void setSurfaceTunnelId(int index, int tunnelId) {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(index);
+            args.put(tunnelId);
+            JSONObject resp = DtvkitGlueClient.getInstance().request("Player.setSurface", args);
+            boolean ok = resp.optBoolean("data");
+            if (!resp.optBoolean("data")) {
+                Log.d(TAG, "setSurfaceTunnelId resp: " + resp);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "setSurfaceTunnelId = " + e.getMessage());
         }
     }
 
@@ -7349,11 +7388,30 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
     };
 
-    private TvInputInfo buildTvInputInfo(int tunerCount, Bundle extras) {
+    private HardwareCallback mPipHardwareCallback = new HardwareCallback(){
+        @Override
+        public void onReleased() {
+            Log.d(TAG, "mPipHardwareCallback onReleased");
+            mPipHardware = null;
+        }
+
+        @Override
+        public void onStreamConfigChanged(TvStreamConfig[] configs) {
+            Log.d(TAG, "mPipHardwareCallback onStreamConfigChanged");
+            if (configs != null) {
+                Log.d(TAG, "mPipHardwareCallback onStreamConfigChanged configs length = " + configs.length);
+            } else {
+                Log.d(TAG, "mPipHardwareCallback onStreamConfigChanged null");
+            }
+            mPipConfigs = configs;
+        }
+    };
+
+    private TvInputInfo buildTvInputInfo(TvInputHardwareInfo hardwareInfo, int tunerCount, Bundle extras) {
         TvInputInfo result = null;
         try {
             result = new TvInputInfo.Builder(getApplicationContext(), new ComponentName(getApplicationContext(), DtvkitTvInput.class))
-                    .setTvInputHardwareInfo(mTvInputHardwareInfo)
+                    .setTvInputHardwareInfo(hardwareInfo)
                     .setLabel(null)
                     .setTunerCount(tunerCount)//will update it in code
                     .setExtras(extras)
@@ -7366,25 +7424,62 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     public TvInputInfo onHardwareAdded(TvInputHardwareInfo hardwareInfo) {
         Log.d(TAG, "onHardwareAdded ," + "DeviceId :" + hardwareInfo.getDeviceId());
-        if (hardwareInfo.getDeviceId() != 19)
-            return null;
-        if (null != mHardware)
-            return null;
-        mTvInputHardwareInfo = hardwareInfo;
-        mTvInputInfo = buildTvInputInfo(2, null);
-        setInputId(mTvInputInfo.getId());
-        mHardware = mTvInputManager.acquireTvInputHardware(19, mTvInputInfo, mHardwareCallback);
-        return mTvInputInfo;
+        TvInputInfo result = null;
+        switch (hardwareInfo.getDeviceId()) {
+            case 19:
+                if (mTvInputInfo != null) {
+                    return result;
+                } else {
+                    mTvInputHardwareInfo = hardwareInfo;
+                    mTvInputInfo = buildTvInputInfo(hardwareInfo, 2, null);
+                    setInputId(mTvInputInfo.getId());
+                    mHardware = mTvInputManager.acquireTvInputHardware(19, mTvInputInfo, mHardwareCallback);
+                    result = mTvInputInfo;
+                }
+                break;
+            case 19 + 100:
+                if (mTvInputHardwareInfo == null || mTvInputInfo == null) {
+                    Log.d(TAG, "onHardwareAdded pip hardware need to copy main hardware info, but main is not ready");
+                    return result;
+                }
+                if (mPipTvInputInfo != null) {
+                    return result;
+                } else {
+                    mPipTvInputHardwareInfo = hardwareInfo;
+                    mPipTvInputInfo = buildTvInputInfo(hardwareInfo, 2, null);
+                    mPipHardware = mTvInputManager.acquireTvInputHardware(19 + 100, mTvInputInfo, mPipHardwareCallback);
+                }
+                //force set it to mTvInputInfo as only one source is needed
+                result = mTvInputInfo;
+                break;
+            default:
+                break;
+        }
+        return result;
     }
 
     public String onHardwareRemoved(TvInputHardwareInfo hardwareInfo) {
-        Log.d(TAG, "onHardwareRemoved");
-        if (hardwareInfo.getDeviceId() != 19)
-            return null;
+        Log.d(TAG, "onHardwareRemoved ," + "DeviceId :" + hardwareInfo.getDeviceId());
         String id = null;
-        if (mTvInputInfo != null) {
-            id = mTvInputInfo.getId();
-            mTvInputInfo = null;
+        switch (hardwareInfo.getDeviceId()) {
+            case 19:
+                if (mTvInputInfo != null) {
+                    id = mTvInputInfo.getId();
+                    mTvInputInfo = null;
+                    mTvInputHardwareInfo = null;
+                    mConfigs = null;
+                }
+                break;
+            case 19 + 100:
+                if (mPipTvInputInfo != null) {
+                    id = mInputId;
+                    mPipTvInputInfo = null;
+                    mPipTvInputHardwareInfo = null;
+                    mPipConfigs = null;
+                }
+                break;
+            default:
+                break;
         }
         return id;
     }
