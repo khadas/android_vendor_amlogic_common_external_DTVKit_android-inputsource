@@ -3530,11 +3530,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 long length = e_t_l[2];
                 long diff = PropSettingManager.getStreamTimeDiff();
 
-                if ((length - elapsed) < 1000)
+                if ((length - elapsed) < 1000 && playSpeed < 0.0)
                    currentPosition = PropSettingManager.getCurrentStreamTime(true);
                 else
                    currentPosition = elapsed + originalStartPosition + diff;
-                Log.i(TAG, "timeshifting. current position: " + currentPosition + ", (elapsed:" + elapsed + ", diff:" + diff + ")ms");
+                Log.i(TAG, "timeshifting. current position: " + currentPosition + ", (elapsed:" + elapsed+ ", (length:" + length +  ", (playSpeed:" + playSpeed +  ", diff:" + diff + ")ms");
             } else if (startPosition == TvInputManager.TIME_SHIFT_INVALID_TIME) {
                 currentPosition = TvInputManager.TIME_SHIFT_INVALID_TIME;
                 Log.i(TAG, "Invalid time. Current position: " + currentPosition);
