@@ -2429,8 +2429,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         //isMain status may be set to true by livetv after switch to luncher
                         if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain) {
                             setOverlayViewEnabled(false);
-                            //mHardware.setSurface(null, null);
-                            sendSetSurfaceMessage(null, null);
+                            mHardware.setSurface(null, null);
+                            //sendSetSurfaceMessage(null, null);
                             Log.d(TAG, "onSetSurface null");
                             mSurface = null;
                             sendDoReleaseMessage();
@@ -2440,13 +2440,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         if (mSurface != null && mSurface != surface) {
                             Log.d(TAG, "TvView swithed,  onSetSurface null first");
                             sendDoReleaseMessage();
-                            //mHardware.setSurface(null, null);
-                            sendSetSurfaceMessage(null, null);
+                            mHardware.setSurface(null, null);
+                            //sendSetSurfaceMessage(null, null);
                         }
-                        //mHardware.setSurface(surface, mConfigs[0]);
+                        mHardware.setSurface(surface, mConfigs[0]);
                         //createDecoder();
                         //decoderRelease();
-                        sendSetSurfaceMessage(surface, mConfigs[0]);
+                        //sendSetSurfaceMessage(surface, mConfigs[0]);
                         mSurface = surface;
                     }
                 }
