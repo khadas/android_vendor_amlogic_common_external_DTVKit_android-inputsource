@@ -36,6 +36,8 @@ import android.util.LongSparseArray;
 import android.util.SparseArray;
 import android.content.ContentProviderOperation;
 import android.content.OperationApplicationException;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 
 import org.dtvkit.companionlibrary.model.Channel;
 import org.dtvkit.companionlibrary.model.Program;
@@ -364,6 +366,10 @@ public class TvContractUtils {
             SharedPreferences.Editor editor = context.getSharedPreferences(
                     PREFERENCES_FILE_KEY, Context.MODE_PRIVATE).edit();
             editor.apply();
+        }
+        //notify immediately as livetv may be in background and android r sends such contentprovider notification after 10s in ContentService
+        if (VERSION.SDK_INT > VERSION_CODES.P + 1) {
+            context.getContentResolver().notifyChange(Channels.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
         }
     }
 

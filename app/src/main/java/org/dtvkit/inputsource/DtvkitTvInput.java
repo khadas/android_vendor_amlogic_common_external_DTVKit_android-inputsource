@@ -7469,7 +7469,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private boolean isSdkAfterAndroidQ() {
-        return VERSION.SDK_INT > VERSION_CODES.Q;
+        return VERSION.SDK_INT > VERSION_CODES.P + 1;
     }
 
     /*
