@@ -104,7 +104,7 @@ public class ScanDishSetupFragment extends Fragment {
     private final int MSG_START_TUNE_ACTION = 0;
     private final int MSG_STOP_TUNE_ACTION = 1;
     private final int MSG_STOP_RELEAS_ACTION = 2;
-    private final int VALUE_START_TUNE_DELAY = 200;
+    private final int VALUE_START_TUNE_DELAY = 1200;
     private boolean mIsStarted = false;
     private boolean mIsReleasing = false;
 
