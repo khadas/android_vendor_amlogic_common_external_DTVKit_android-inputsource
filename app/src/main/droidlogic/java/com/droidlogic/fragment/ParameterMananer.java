@@ -3313,7 +3313,7 @@ public class ParameterMananer {
         final String ENG_ISO3_NAME = "gbr";
         String currentCountryName = getCurrentCountryIso3Name();
         if (ENG_ISO3_NAME.equalsIgnoreCase(currentCountryName)) {
-            if (array != null && array.length() > 0) {
+            if (array != null && array.length() > 1) {
                 result = true;
             }
         }
