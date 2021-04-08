@@ -873,6 +873,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         private int h;
 
         private boolean mhegTookKey = false;
+        private KeyEvent lastMhegKey = null;
+        final private static int MHEG_KEY_INTERVAL = 65;
 
         public DtvkitOverlayView(Context context,       Handler mainHandler) {
             super(context);
@@ -1062,15 +1064,26 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
         }
 
+        public boolean checkMhegKeyLimit(KeyEvent event) {
+            if (lastMhegKey == null)
+                return false;
+            if (lastMhegKey.getKeyCode() != event.getKeyCode())
+                return false;
+            if (event.getEventTime() - lastMhegKey.getEventTime() > MHEG_KEY_INTERVAL)
+                return false;
+            return true;
+        }
+
         public boolean handleKeyDown(int keyCode, KeyEvent event) {
             boolean result;
             if (ciOverlayView.handleKeyDown(keyCode, event)) {
                 mhegTookKey = false;
                 result = true;
             }
-            else if (mhegKeypress(keyCode)){
+            else if (!(checkMhegKeyLimit(event)) && mhegKeypress(keyCode)){
                 mhegTookKey = true;
                 result = true;
+                lastMhegKey = event;
             }
             else {
                 mhegTookKey = false;
@@ -1088,6 +1101,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 result = false;
             }
             mhegTookKey = false;
+            lastMhegKey = null;
 
             return result;
         }
@@ -1440,40 +1454,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     class NativeOverlayView extends View
     {
         Bitmap overlay1 = null;
-        Bitmap overlay2 = null;
-        Bitmap overlay_update = null;
-        Bitmap overlay_draw = null;
-        Bitmap region = null;
-        int region_width = 0;
-        int region_height = 0;
-        int left = 0;
-        int top = 0;
-        int width = 0;
-        int height = 0;
         Rect src, dst;
-
-        int mPauseExDraw = 0;
-        static final int SUBTITLE_SUB_TYPE_DVB  = 5;
-        static final int SUBTITLE_SUB_TYPE_TTX  = 9;
-        static final int SUBTITLE_SUB_TYPE_SCTE = 11;
-        static final int TTX_BOTTOM_MARGIN = 50;
 
         Semaphore sem = new Semaphore(1);
 
         private final DtvkitGlueClient.OverlayTarget mTarget = new DtvkitGlueClient.OverlayTarget() {
             @Override
-            public void draw(int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, byte[] data) {
+            public void draw(int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, int[] data) {
                 if (overlay1 == null) {
                     /* TODO The overlay size should come from the tif (and be updated on onOverlayViewSizeChanged) */
-                    /* Create 2 layers for double buffering */
                     overlay1 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-                    overlay2 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-
-                    overlay_draw = overlay1;
-                    overlay_update = overlay2;
-
                     /* Clear the overlay that will be drawn initially */
-                    Canvas canvas = new Canvas(overlay_draw);
+                    Canvas canvas = new Canvas(overlay1);
                     canvas.drawColor(0, PorterDuff.Mode.CLEAR);
                 }
 
@@ -1481,66 +1473,45 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (src_width == 0 || src_height == 0) {
                     if (dst_width == 9999) {
                         /* 9999 dst_width indicates the overlay should be cleared */
-                        Canvas canvas = new Canvas(overlay_update);
-                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                    }
-                    else if (dst_height == 9999) {
-                        /* 9999 dst_height indicates the drawn regions should be displayed on the overlay */
-                        /* The update layer is now ready to be displayed so switch the overlays
-                         * and use the other one for the next update */
                         sem.acquireUninterruptibly();
-                        Bitmap temp = overlay_draw;
-                        overlay_draw = overlay_update;
-                        src = new Rect(0, 0, overlay_draw.getWidth(), overlay_draw.getHeight());
-                        overlay_update = temp;
+                        Canvas canvas = new Canvas(overlay1);
+                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
                         sem.release();
-                        postInvalidate();
-                        return;
                     }
-                    else {
-                        /* 0 dst_width and 0 dst_height indicates to add the region to overlay */
-                        if (region != null) {
-                            Canvas canvas = new Canvas(overlay_update);
-                            Rect src = new Rect(0, 0, region_width, region_height);
-                            Rect dst = new Rect(left, top, left + width, top + height);
-                            Paint paint = new Paint();
-                            paint.setAntiAlias(true);
-                            paint.setFilterBitmap(true);
-                            paint.setDither(true);
-                            canvas.drawBitmap(region, src, dst, paint);
-                            region.recycle();
-                            region = null;
+                } else {
+                    if (data.length == 0)
+                        return;
+                    /* Build an array of ARGB_8888 pixels as signed ints and add this part to the region */
+                    Rect overlay_dst = new Rect(0, 0, overlay1.getWidth(), overlay1.getHeight());
+                    Bitmap region = Bitmap.createBitmap(data, 0, src_width, src_width, src_height, Bitmap.Config.ARGB_8888);
+                    if ((dst_width == 0)
+                        || (dst_width == 0)
+                        || (dst_width < (src_width + dst_x))
+                        || (dst_height < (src_height + dst_y))) {
+                        overlay_dst.left = dst_x;
+                        overlay_dst.top = dst_y;
+                        overlay_dst.right = overlay1.getWidth() - overlay_dst.left;
+                        overlay_dst.bottom = overlay1.getHeight() - overlay_dst.top;
+                    } else {
+                        if (dst_x > 0) {
+                            float scaleX = (float)(overlay1.getWidth())/(float)(dst_width);
+                            overlay_dst.left = (int)(scaleX*dst_x);
+                            overlay_dst.right = (int)(scaleX*(src_width + dst_x));
+                        }
+                        if (dst_y > 0) {
+                            float scaleY = (float)(overlay1.getHeight())/(float)(dst_height);
+                            overlay_dst.top = (int)(scaleY*dst_y);
+                            overlay_dst.bottom = (int)(scaleY*(src_height + dst_y));
                         }
                     }
-                    return;
+                    sem.acquireUninterruptibly();
+                    Canvas canvas = new Canvas(overlay1);
+                    canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                    canvas.drawBitmap(region, null, overlay_dst, null);
+                    sem.release();
+                    region.recycle();
+                    postInvalidate();
                 }
-
-                int part_bottom = 0;
-                if (region == null) {
-                    /* TODO Create temporary region buffer using region_width and overlay height */
-                    region_width = src_width;
-                    region_height = src_height;
-                    region = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-                    left = dst_x;
-                    top = dst_y;
-                    width = dst_width;
-                    height = dst_height;
-                }
-                else {
-                    part_bottom = region_height;
-                    region_height += src_height;
-                }
-
-                /* Build an array of ARGB_8888 pixels as signed ints and add this part to the region */
-                int[] colors = new int[src_width * src_height];
-                for (int i = 0, j = 0; i < src_width * src_height; i++, j += 4) {
-                   colors[i] = (((int)data[j]&0xFF) << 24) | (((int)data[j+1]&0xFF) << 16) |
-                      (((int)data[j+2]&0xFF) << 8) | ((int)data[j+3]&0xFF);
-                }
-                Bitmap part = Bitmap.createBitmap(colors, 0, src_width, src_width, src_height, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(region);
-                canvas.drawBitmap(part, 0, part_bottom, null);
-                part.recycle();
             }
         };
 
@@ -1570,8 +1541,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         {
             super.onDraw(canvas);
             sem.acquireUninterruptibly();
-            if (overlay_draw != null) {
-                canvas.drawBitmap(overlay_draw, src, dst, null);
+            if (overlay1 != null) {
+                canvas.drawBitmap(overlay1, src, dst, null);
             }
             sem.release();
         }

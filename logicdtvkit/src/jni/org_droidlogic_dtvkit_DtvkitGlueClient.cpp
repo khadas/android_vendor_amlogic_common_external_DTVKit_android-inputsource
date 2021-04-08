@@ -138,8 +138,8 @@ static void postSubtitleData(int width, int height, int dst_x, int dst_y, int ds
     if (env != NULL) {
         if (width != 0 || height != 0) {
             //ScopedLocalRef<jbyteArray> array (env, env->NewByteArray(width * height * 4));
-            jbyteArray array = env->NewByteArray(width * height * 4);
-            env->SetByteArrayRegion(array, 0, width * height * 4, (jbyte*)data);
+            jintArray array = env->NewIntArray(width * height);
+            env->SetIntArrayRegion(array, 0, width * height, (jint*)data);
             env->CallVoidMethod(DtvkitObject, notifySubtitleCallback, width, height, dst_x, dst_y, dst_width, dst_height, array);
             env->DeleteLocalRef(array);
         } else {
@@ -705,7 +705,7 @@ int register_org_droidlogic_dtvkit_DtvkitGlueClient(JNIEnv *env)
     }
 
     GET_METHOD_ID(notifyDvbCallback, clazz, "notifyDvbCallback", "(Ljava/lang/String;Ljava/lang/String;I)V");
-    GET_METHOD_ID(notifySubtitleCallback, clazz, "notifySubtitleCallback", "(IIIIII[B)V");
+    GET_METHOD_ID(notifySubtitleCallback, clazz, "notifySubtitleCallback", "(IIIIII[I)V");
     GET_METHOD_ID(notifySubtitleCallbackEx, clazz, "notifySubtitleCallbackEx", "(IIIIIII[I)V");
     GET_METHOD_ID(notifySubtitleCbCtlEx, clazz, "notifySubtitleCbCtlEx", "(I)V");
     GET_METHOD_ID(notifyCCSubtitleCallbackEx, clazz, "notifyCCSubtitleCallbackEx", "(ZLjava/lang/String;)V");

@@ -52,7 +52,7 @@ public class DtvkitGlueClient {
     }
 
         //native callback
-    public void notifySubtitleCallback(int width, int height, int dstx, int dsty, int dstwidth, int dstheight, byte[] data)
+    public void notifySubtitleCallback(int width, int height, int dstx, int dsty, int dstwidth, int dstheight, int[] data)
     {
          Log.d(TAG, "notifySubtitleCallBack received!!! width = " + width + ", heigth = " + height);
          if (mTarget != null) {
@@ -202,7 +202,7 @@ public class DtvkitGlueClient {
     }
 
     public interface OverlayTarget {
-        void draw(int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, byte[] data);
+        void draw(int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, int[] data);
     }
 
     public interface SubtitleListener {
