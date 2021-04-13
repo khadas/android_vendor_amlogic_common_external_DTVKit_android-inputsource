@@ -217,7 +217,7 @@ public class DtvkitGlueClient {
         nativeconnectdtvkit(this);
     }
 
-    public static DtvkitGlueClient getInstance() {
+    public synchronized static DtvkitGlueClient getInstance() {
         if (mSingleton == null) {
             mSingleton = new DtvkitGlueClient();
         }
