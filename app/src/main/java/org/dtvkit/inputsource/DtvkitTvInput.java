@@ -2742,13 +2742,24 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mainMuteStatus = playerGetMute();
                 if (tunedChannel != null) {
                     String previousCiNumber = null;
+                    String previousCiProfileVersion = null;
+                    String previousProfileName = null;
                     if (mPreviousTunedChannel != null) {
                         previousCiNumber = TvContractUtils.getStringFromChannelInternalProviderData(mPreviousTunedChannel, Channel.KEY_CHANNEL_CI_NUMBER, null);
+                        previousProfileName = TvContractUtils.getStringFromChannelInternalProviderData(mPreviousTunedChannel, Channel.KEY_CHANNEL_PROFILE, null);
+                        previousCiProfileVersion = TvContractUtils.getStringFromChannelInternalProviderData(mPreviousTunedChannel, Channel.KEY_CHANNEL_CI_PROFILE_VERSION, null);
                     }
                     String ciNumber = TvContractUtils.getStringFromChannelInternalProviderData(tunedChannel, Channel.KEY_CHANNEL_CI_NUMBER, null);
+                    String profileName = TvContractUtils.getStringFromChannelInternalProviderData(tunedChannel, Channel.KEY_CHANNEL_PROFILE, null);
+                    String ciProfileVersion = TvContractUtils.getStringFromChannelInternalProviderData(tunedChannel, Channel.KEY_CHANNEL_CI_PROFILE_VERSION, null);
                     if (!TextUtils.equals(previousCiNumber, ciNumber)) {
                         Log.i(TAG, "onTuneByHandlerThreadHandle ci changed = " + ciNumber + "(" + (ciNumber == null ? "not ci channel" : "ci channel)"));
-                        playerNotifyCiProfileEvent(ciNumber);
+                        if ("v2".equalsIgnoreCase(previousCiProfileVersion)) {
+                            playerNotifyCiProfileEvent("leave", previousCiNumber, previousProfileName, "v2");
+                        }
+                        if ("v2".equalsIgnoreCase(ciProfileVersion)) {
+                            playerNotifyCiProfileEvent("enter", ciNumber, profileName, "v2");
+                        }
                     } else {
                         Log.i(TAG, "onTuneByHandlerThreadHandle ci (" + (ciNumber == null ? "not ci channel" : "same ciNumber") + ")");
                     }
@@ -3429,8 +3440,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             } else if (TextUtils.equals("focus_info", action)) {
                 boolean isProfile = data.getBoolean("is_profile");
                 String ciNumber = data.getString("ci_number");
-                Log.d(TAG, "do private cmd:"+ "focus_info" + ", isProfile:" + isProfile + ", ciNumber:" + ciNumber);
-                playerNotifyCiProfileEvent(ciNumber);
+                String profileName = data.getString("profile_name");
+                String ciEnterStatus = data.getString("status");
+                Log.d(TAG, "do private cmd:"+ "focus_info" + ", isProfile:" + isProfile + ", ciNumber:" + ciNumber + ", profileName:" + profileName + ", ciEnterStatus = " + ciEnterStatus);
+                playerNotifyCiProfileEvent(ciEnterStatus, ciNumber, profileName, "v1");
             } else if (TextUtils.equals(ConstantManager.ACTION_CI_PLUS_INFO, action)) {
                 String command = data.getString(ConstantManager.CI_PLUS_COMMAND);
                 if (ConstantManager.VALUE_CI_PLUS_COMMAND_SEARCH_REQUEST.equals(command)) {
@@ -6328,11 +6341,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         return true;
     }
 
-    private boolean playerNotifyCiProfileEvent(String ciNumber) {
+    //status has four value: enter exit play
+    private boolean playerNotifyCiProfileEvent(String action, String ciNumber, String profileName, String profileVersion) {
         boolean result = false;
         try {
             JSONArray args = new JSONArray();
+            args.put(action);
             args.put(ciNumber);
+            args.put(profileName);
+            args.put(profileVersion);
             DtvkitGlueClient.getInstance().request("Player.notifyCiProfileEvent", args);
             result = true;
         } catch (Exception e) {

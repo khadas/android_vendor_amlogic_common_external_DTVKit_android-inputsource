@@ -71,11 +71,19 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                     data.put("profile_name", "profile_name" + countFlag);
                     data.put("profile_selectable", "");
                     data.put("slot_id", "slot_id" + countFlag);
+                    data.put("tune_quietly", 0);
+                    if (countFlag == 1) {
+                        data.put("profile_ver", "v1");
+                    } else if (countFlag == 2) {
+                        data.put("profile_ver", "v2");
+                    }
                 } else {
                     tryToPutStringToInternalProviderData(data, "ci_number", service, "ci_number");
                     tryToPutStringToInternalProviderData(data, "profile_name", service, "profile_name");
                     tryToPutStringToInternalProviderData(data, "profile_selectable", service, "profile_selectable");
                     tryToPutStringToInternalProviderData(data, "slot_id", service, "slot_id");
+                    tryToPutIntToInternalProviderData(data, "tune_quietly", service, "tune_quietly");
+                    tryToPutStringToInternalProviderData(data, "profile_ver", service, "profile_ver");
                 }
                 channels.add(new Channel.Builder()
                         .setDisplayName(service.getString("name"))

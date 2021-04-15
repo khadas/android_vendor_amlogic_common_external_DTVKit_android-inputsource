@@ -114,6 +114,7 @@ public class TvContractUtils {
                 displayNumber = cursor.getString(5);
                 int type = cursor.getType(6);//InternalProviderData type
                 int frequency = 0;
+                String ciNumber = null;
                 setFavFlag = "0";
                 setSkipFlag = "0";
                 favValue = "0";
@@ -136,6 +137,7 @@ public class TvContractUtils {
                         setDisplayNameFlag = (String)internalProviderData.get(Channel.KEY_SET_DISPLAYNAME);
                         setDisplayNumberFlag = (String)internalProviderData.get(Channel.KEY_SET_DISPLAYNUMBER);
                         frequency = Integer.valueOf((String)internalProviderData.get(Channel.KEY_FREQUENCY));
+                        ciNumber = (String)internalProviderData.get(Channel.KEY_CHANNEL_CI_NUMBER);
                         if (setSkipFlag == null) {
                             setSkipFlag = "0";
                         }
@@ -163,7 +165,7 @@ public class TvContractUtils {
                 } else {
                     if (DEBUG) Log.i(TAG, "COLUMN_INTERNAL_PROVIDER_DATA other type");
                 }
-                String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency);
+                String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber);
                 if (uniqueStr == null) {
                     continue;
                 }
@@ -214,17 +216,23 @@ public class TvContractUtils {
             int serviceId = channel.getServiceId();
             InternalProviderData internalProviderData = channel.getInternalProviderData();
             int frequency = 0;
+            String ciNumber = null;
             if (internalProviderData != null) {
                 try {
                     frequency = Integer.valueOf((String)internalProviderData.get(Channel.KEY_FREQUENCY));
                 } catch (Exception e) {
                     Log.d(TAG, "updateChannels no frequency info Exception = " + e.getMessage());
                 }
+                try {
+                    ciNumber = (String)internalProviderData.get(Channel.KEY_CHANNEL_CI_NUMBER);
+                } catch (Exception e) {
+                    //Log.d(TAG, "updateChannels no ciNumber info Exception = " + e.getMessage());
+                }
             } else {
                 Log.d(TAG, "updateChannels no frequency info");
                 continue;
             }
-            String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency);
+            String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber);
             if (uniqueStr == null) {
                 continue;
             }
@@ -373,10 +381,10 @@ public class TvContractUtils {
         }
     }
 
-    public static String getUniqueStrForChannel(int originalNetworkId, int transportStreamId, int serviceId, int frequency) {
+    public static String getUniqueStrForChannel(int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber) {
         String result = null;
         try {
-            result = String.valueOf(frequency / 1000000) + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId);
+            result = String.valueOf(frequency / 1000000) + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
         } catch (Exception e) {
             Log.d(TAG, "getUniqueStrForChannel Exception = " + e.getMessage());
         }

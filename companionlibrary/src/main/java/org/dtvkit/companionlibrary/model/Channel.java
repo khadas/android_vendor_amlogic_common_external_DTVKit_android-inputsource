@@ -82,6 +82,8 @@ public final class Channel {
     public static final String KEY_CHANNEL_CI_NUMBER = "ci_number";
     public static final String KEY_CHANNEL_PROFILE = "profile_name";
     public static final String KEY_CHANNEL_PROFILE_SELECTABLE = "profile_selectable";
+    public static final String KEY_CHANNEL_CI_TUNE_QUIETLY = "tune_quietly";
+    public static final String KEY_CHANNEL_CI_PROFILE_VERSION = "profile_ver";
 
     private String mVideoCodec;
 
