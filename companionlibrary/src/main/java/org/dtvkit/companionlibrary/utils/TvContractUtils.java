@@ -165,7 +165,7 @@ public class TvContractUtils {
                 } else {
                     if (DEBUG) Log.i(TAG, "COLUMN_INTERNAL_PROVIDER_DATA other type");
                 }
-                String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber);
+                String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, displayNumber);
                 if (uniqueStr == null) {
                     continue;
                 }
@@ -232,7 +232,7 @@ public class TvContractUtils {
                 Log.d(TAG, "updateChannels no frequency info");
                 continue;
             }
-            String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber);
+            String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, channel.getDisplayNumber());
             if (uniqueStr == null) {
                 continue;
             }
@@ -381,10 +381,10 @@ public class TvContractUtils {
         }
     }
 
-    public static String getUniqueStrForChannel(int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber) {
+    public static String getUniqueStrForChannel(int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String displayNumber) {
         String result = null;
         try {
-            result = String.valueOf(frequency / 1000000) + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
+            result = String.valueOf(frequency / 1000000) + "-" + displayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
         } catch (Exception e) {
             Log.d(TAG, "getUniqueStrForChannel Exception = " + e.getMessage());
         }
