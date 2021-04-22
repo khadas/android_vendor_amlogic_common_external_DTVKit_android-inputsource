@@ -8007,7 +8007,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 boolean bIsDvbt = false;
                 signalType = mParameterMananer.getStringParameters(mParameterMananer.AUTO_SEARCHING_SIGNALTYPE);
                 Log.d(TAG, "signalType = " + signalType);
-                bIsDvbt = signalType.equals("DVB-T") ? true : false;
+                switch(signalType) {
+                    case "DVB-T":
+                    case "DVB-T2":
+                        bIsDvbt = true;
+                    break;
+                    case "DVB-C":
+                        bIsDvbt = false;
+                    break;
+                    default:
+                        bIsDvbt = true;
+                    break;
+                }
                 DtvkitBackGroundSearch dtvkitBgSearch = new DtvkitBackGroundSearch(context, bIsDvbt, mInputId, bgcallback);
                 dtvkitBgSearch.startBackGroundAutoSearch();
             }
