@@ -124,5 +124,11 @@
     <string name="strSettingsAutoSearching">Automatic Searching:</string>
     <string name="strSettingsAutoSearchingSetting">Setting</string>
     <string name="strSettingsAutoSearchingHourFormat">(24-hour format)</string>
+    <string name="strSatlliteExportImport">Satellites Export/Import</string>
+    <string name="strChannelsExportImport">Channels Export/Import</string>
+    <string name="strExport">Export</string>
+    <string name="strImport">Import</string>
+    <string name="strFactorySettings">Factory Settings</string>
+    <string name="strRestoreToDefault">Restore to Default</string>
 
 </resources>

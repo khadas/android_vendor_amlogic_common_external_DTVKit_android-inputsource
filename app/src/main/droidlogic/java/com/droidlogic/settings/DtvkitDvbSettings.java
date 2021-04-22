@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Calendar;
 import java.util.Date;
 
+import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.fragment.ParameterMananer;
 
 import org.droidlogic.dtvkit.DtvkitGlueClient;
@@ -66,6 +67,7 @@ public class DtvkitDvbSettings extends Activity {
     private static final boolean DEBUG = true;
 
     private DtvkitGlueClient mDtvkitGlueClient = DtvkitGlueClient.getInstance();
+    private SystemControlManager mSysControlManager = SystemControlManager.getInstance();
     private ParameterMananer mParameterMananer = null;
     private SysSettingManager mSysSettingManager = null;
     private List<String> mStoragePathList = new ArrayList<String>();
@@ -190,6 +192,8 @@ public class DtvkitDvbSettings extends Activity {
         Button networkUpdate = (Button)findViewById(R.id.network_update_button);
         CheckBox auto_ordering = (CheckBox)findViewById(R.id.auto_ordering_checkbox);
         Button auto_searching = (Button)findViewById(R.id.auto_searching_button);
+        Button factory_settings = (Button)findViewById(R.id.factory_settings_button);
+        LinearLayout factorySettings = (LinearLayout)findViewById(R.id.factory_settings);
         initSpinnerParameter();
         if (update) {
             Log.d(TAG, "initLayout update");
@@ -398,6 +402,24 @@ public class DtvkitDvbSettings extends Activity {
                 showAutomaticSearchingSettingDialog(DtvkitDvbSettings.this);
             }
         });
+
+        Boolean enableFactoryUI = mSysControlManager.getPropertyBoolean("vendor.tv.dtvkit.debugmenu", false);
+        if (enableFactoryUI) {
+            factorySettings.setVisibility(View.VISIBLE);
+            FactorySettings.FactorySettingsCallback factoryCallback = new FactorySettings.FactorySettingsCallback() {
+                @Override
+                    public void onDismiss() {
+                        sendMessageToHandler(MSG_REFRESH_UI, 0, 0, null, 100);
+                    }
+            };
+            factory_settings.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String inputId = DtvkitDvbSettings.this.getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
+                    new FactorySettings(DtvkitDvbSettings.this, mParameterMananer, inputId, factoryCallback).start();
+                }
+            });
+        }
     }
 
     private void initSpinnerParameter() {

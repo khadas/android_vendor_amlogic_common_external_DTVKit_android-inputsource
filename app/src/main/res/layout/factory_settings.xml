@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:layout_margin="@dimen/factory_settings_margin_size"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="@string/strFactorySettings"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/factory_settings_container_margin_size"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/strChannelsExportImport" />
+
+            <Button
+                android:id="@+id/btn_export_db"
+                android:layout_width="@dimen/factory_sub_settings_item_width"
+                android:layout_height="@dimen/factory_settings_item_height"
+                android:layout_marginStart="@dimen/factory_settings_margin_size"
+                android:layout_marginLeft="@dimen/factory_settings_margin_size"
+                android:drawableEnd="@android:drawable/ic_media_play"
+                android:drawableRight="@android:drawable/ic_media_play"
+                android:gravity="center_vertical"
+                android:textAllCaps="false"
+                android:text="@string/strExport" />
+
+            <Button
+                android:id="@+id/btn_import_db"
+                android:layout_width="@dimen/factory_sub_settings_item_width"
+                android:layout_height="@dimen/factory_settings_item_height"
+                android:layout_marginStart="@dimen/factory_settings_margin_size"
+                android:layout_marginLeft="@dimen/factory_settings_margin_size"
+                android:drawableEnd="@android:drawable/ic_media_play"
+                android:drawableRight="@android:drawable/ic_media_play"
+                android:gravity="center_vertical"
+                android:textAllCaps="false"
+                android:text="@string/strImport" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/strSatlliteExportImport" />
+
+            <Button
+                android:id="@+id/btn_export_sat"
+                android:layout_width="@dimen/factory_sub_settings_item_width"
+                android:layout_height="@dimen/factory_settings_item_height"
+                android:layout_marginStart="@dimen/factory_settings_margin_size"
+                android:layout_marginLeft="@dimen/factory_settings_margin_size"
+                android:drawableEnd="@android:drawable/ic_media_play"
+                android:drawableRight="@android:drawable/ic_media_play"
+                android:gravity="center_vertical"
+                android:textAllCaps="false"
+                android:text="@string/strExport" />
+
+            <Button
+                android:id="@+id/btn_import_sat"
+                android:layout_width="@dimen/factory_sub_settings_item_width"
+                android:layout_height="@dimen/factory_settings_item_height"
+                android:layout_marginStart="@dimen/factory_settings_margin_size"
+                android:layout_marginLeft="@dimen/factory_settings_margin_size"
+                android:drawableEnd="@android:drawable/ic_media_play"
+                android:drawableRight="@android:drawable/ic_media_play"
+                android:gravity="center_vertical"
+                android:textAllCaps="false"
+                android:text="@string/strImport" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_rest_default"
+            android:layout_width="@dimen/factory_settings_item_width"
+            android:layout_height="@dimen/factory_settings_item_height"
+            android:drawableEnd="@android:drawable/ic_media_play"
+            android:drawableRight="@android:drawable/ic_media_play"
+            android:textAllCaps="false"
+            android:text="@string/strRestoreToDefault" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
+    </LinearLayout>
+
+</LinearLayout>

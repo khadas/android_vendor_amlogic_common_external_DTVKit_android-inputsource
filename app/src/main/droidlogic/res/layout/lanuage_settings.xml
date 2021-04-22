@@ -322,5 +322,30 @@
                 android:textAllCaps="false"
                 android:text="@string/strSettingsAutoSearchingSetting" />
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/factory_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:visibility="gone"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/factory_settings_text"
+                android:layout_width="@dimen/dvb_language_text_width"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="@string/strFactorySettings" />
+
+            <Button
+                android:id="@+id/factory_settings_button"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:gravity="center_vertical"
+                android:textAllCaps="false"
+                android:text="@string/strSettingsAutoSearchingSetting" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

@@ -122,4 +122,10 @@
     <string name="strSettingsAutoOrdering_enable">开</string>
     <string name="strSettingsAutoSearching">自动搜索:</string>
     <string name="strSettingsAutoSearchingSetting">设置</string>
+    <string name="strSatlliteExportImport">卫星设置导出/导入</string>
+    <string name="strChannelsExportImport">频道数据导出/导入</string>
+    <string name="strExport">导出</string>
+    <string name="strImport">导入</string>
+    <string name="strFactorySettings">工厂设置</string>
+    <string name="strRestoreToDefault">恢复默认</string>
 </resources>

@@ -27,6 +27,7 @@ import org.dtvkit.inputsource.ISO639Data;
 import org.dtvkit.inputsource.TargetRegionManager;
 
 import com.droidlogic.app.DataProviderManager;
+import com.droidlogic.settings.ConstantManager;
 
 public class ParameterMananer {
 
@@ -3450,4 +3451,86 @@ public class ParameterMananer {
         }
         return result;
     }
+
+    public boolean restoreToDefault() {
+        boolean result = false;
+        String defaultCountry = "deu"; //todo: not defined in trunk, so use german here
+        try {
+            result = DtvkitGlueClient.getInstance().request("Dvb.resetoreDefault", new JSONArray()).getBoolean("data");
+            if (result) {
+                JSONArray args = new JSONArray();
+                args.put(ConstantManager.DTVKIT_SATELLITE_DATA);
+                result = DtvkitGlueClient.getInstance().request("Dvbs.resetSatellites", args).getBoolean("data");
+                mDataMananer.saveIntParameters(DataMananer.DTVKIT_IMPORT_SATELLITE_FLAG, 0);
+            }
+            if (result) {
+                JSONArray args = new JSONArray();
+                int countryCode = ((int)(defaultCountry.charAt(0))<<16)
+                                + ((int)(defaultCountry.charAt(1))<<8)
+                                + (int)(defaultCountry.charAt(2));
+                args.put(countryCode);
+                result = DtvkitGlueClient.getInstance().request("Dvb.setCountry", args).getBoolean("data");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "restoreToDefault = " + e.getMessage());
+        }
+        if (result) {
+            if (!DataMananer.PVR_DEFAULT_PATH.equals(getStringParameters(KEY_PVR_RECORD_PATH)))
+                saveStringParameters(KEY_PVR_RECORD_PATH, DataMananer.PVR_DEFAULT_PATH);
+            if (getIntParameters(AUTO_SEARCHING_MODE) != 0)
+                saveIntParameters(AUTO_SEARCHING_MODE, 0);
+            saveStringParameters(DataMananer.KEY_SATALLITE, DataMananer.KEY_SATALLITE_DEFAULT_VALUE);
+        }
+
+        return result;
+    }
+
+    public boolean exportChannels(String path) {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(path);
+            result = DtvkitGlueClient.getInstance().request("Dvb.exportChannels", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "exportChannels = " + e.getMessage());
+        }
+        return result;
+    }
+
+    public boolean importChannels(String path) {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(path);
+            result = DtvkitGlueClient.getInstance().request("Dvb.importChannels", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "importChannels = " + e.getMessage());
+        }
+        return result;
+    }
+
+    public boolean exportSatellites(String path) {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(path);
+            result = DtvkitGlueClient.getInstance().request("Dvbs.exportSatellites", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "exportSatellites = " + e.getMessage());
+        }
+        return result;
+    }
+
+    public boolean importSatellites(String path) {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(path);
+            result = DtvkitGlueClient.getInstance().request("Dvbs.resetSatellites", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "importSatellites = " + e.getMessage());
+        }
+        return result;
+    }
+
 }
