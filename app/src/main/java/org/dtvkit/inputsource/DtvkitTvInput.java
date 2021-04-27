@@ -1767,6 +1767,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
 
             boolean available = false;
+            boolean tunerUsing = mParameterMananer.isTunerInputConflictwithDtvKit();
+            if (tunerUsing) {
+                Log.i(TAG, "doTune Stop record due to tuner resource busy");
+                Bundle event = new Bundle();
+                event.putString(ConstantManager.KEY_INFO, "Stop record due to tuner resource busy");
+                notifySessionEvent(ConstantManager.EVENT_RESOURCE_BUSY, event);
+                notifyError(TvInputManager.RECORDING_ERROR_RESOURCE_BUSY);
+                return;
+            }
 
             mChannel = uri;
             Channel channel = getChannel(uri);
@@ -2297,6 +2306,17 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 } else if (signal.equals("RecordingDiskFull")) {
                     //tell application to deal current running pvr
                     notifyError(TvInputManager.RECORDING_ERROR_INSUFFICIENT_SPACE);
+                } else if (signal.equals("RecordingsDiskRm")) {
+                    //tell application current pvr disk remove now
+                    Bundle event = new Bundle();
+                    event.putString(ConstantManager.KEY_INFO, "Stop record due to disk remove");
+                    notifySessionEvent(ConstantManager.EVENT_RESOURCE_BUSY, event);
+                } else if (signal.equals("TuneResourceBusy")) {
+                    //tell application TuneResourceBusy and need to stop
+                    Bundle event = new Bundle();
+                    event.putString(ConstantManager.KEY_INFO, "Stop record due to tuner resource busy");
+                    notifySessionEvent(ConstantManager.EVENT_RESOURCE_BUSY, event);
+                    doStopRecording();
                 }
             }
         };

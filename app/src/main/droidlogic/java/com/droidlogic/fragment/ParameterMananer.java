@@ -20,6 +20,7 @@ import android.content.SharedPreferences;
 //import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.Build.VERSION;
 
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 import org.dtvkit.inputsource.DataMananer;
@@ -176,6 +177,12 @@ public class ParameterMananer {
     public static final String AUTO_SEARCHING_MINUTE     = "auto_searching_minute";
     public static final String AUTO_SEARCHING_REPTITION  = "auto_searching_reptition";
     public static final String AUTO_SEARCHING_SIGNALTYPE = "channel_signal_type";
+
+    //defines related to LiveTv
+    public static final String TV_CURRENT_INPUTID = "tv_current_inputid";
+    public static final String TV_ADTV_KEY = "ADTVInputService";
+    public static final String TV_AV1_KEY = "AV1InputService";
+    public static final String TV_AV2_KEY = "AV2InputService";
 
     public ParameterMananer(Context context, DtvkitGlueClient client) {
         this.mContext = context;
@@ -3533,4 +3540,15 @@ public class ParameterMananer {
         return result;
     }
 
+    //currently dtvkit can't with atv and av as they need to use same adc module in android r
+    public boolean isTunerInputConflictwithDtvKit() {
+        String currentPlayingInput = getStringParameters(TV_CURRENT_INPUTID);
+        if (currentPlayingInput != null && VERSION.SDK_INT == 30 &&
+                (currentPlayingInput.contains(TV_ADTV_KEY) ||
+                currentPlayingInput.contains(TV_AV1_KEY) ||
+                currentPlayingInput.contains(TV_AV2_KEY))) {
+            return true;
+        }
+        return false;
+    }
 }
