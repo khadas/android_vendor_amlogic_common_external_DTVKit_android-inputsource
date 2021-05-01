@@ -149,6 +149,8 @@ public class ConstantManager {
 
     //add dtvkit satellite
     public static final String DTVKIT_SATELLITE_DATA = "/mnt/vendor/odm_ext/etc/tvconfig/dtvkit/satellite.json";
+    public static final String DTVKIT_LNBS_DATA = "/mnt/vendor/odm_ext/etc/tvconfig/dtvkit/lnb.json";
+    public static final String DTVKIT_LOCATION_DATA = "/mnt/vendor/odm_ext/etc/tvconfig/dtvkit/location.json";
 
     public static void ascendTrackInfoOderByPid(List<TvTrackInfo> list) {
         if (list != null) {

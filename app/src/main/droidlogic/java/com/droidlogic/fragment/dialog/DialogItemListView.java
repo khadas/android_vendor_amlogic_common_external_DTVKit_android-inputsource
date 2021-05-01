@@ -68,16 +68,19 @@ public class DialogItemListView extends ListView implements OnItemSelectedListen
                     break;
                 case KeyEvent.KEYCODE_DPAD_LEFT:
                 case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    //if (ParameterMananer.KEY_UNICABLE.equals(getKey())) {
+                    if (mDialogCallBack != null) {
+                        int position = getSelectedItemPosition();
                         Bundle bundle1 = new Bundle();
                         bundle1.putString("action", event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT ? "left" : "right");
                         bundle1.putInt("position", getSelectedItemPosition());
                         bundle1.putString("title", mTitle);
                         bundle1.putString("key", mKey);
+                        DialogItemAdapter.DialogItemDetail item =
+                                (DialogItemAdapter.DialogItemDetail)(getAdapter().getItem(position));
+                        bundle1.putString("itemTitle", item.getTitleText());
                         mDialogCallBack.onStatusChange(getSelectedView(), mKey, bundle1);
-                        return true;
-                    //}
-                    //return super.dispatchKeyEvent(event);
+                    }
+                    return true;
                 case KeyEvent.KEYCODE_DPAD_CENTER:
                 case KeyEvent.KEYCODE_NUMPAD_ENTER:
                     if (mDialogCallBack != null) {
@@ -91,6 +94,9 @@ public class DialogItemListView extends ListView implements OnItemSelectedListen
                         bundle2.putInt("position", position);
                         bundle2.putString("title", mTitle);
                         bundle2.putString("key", mKey);
+                        DialogItemAdapter.DialogItemDetail item =
+                                (DialogItemAdapter.DialogItemDetail)(getAdapter().getItem(position));
+                        bundle2.putString("itemTitle", item.getTitleText());
                         mDialogCallBack.onStatusChange(getSelectedView(), mKey, bundle2);
                     }
                     return true;

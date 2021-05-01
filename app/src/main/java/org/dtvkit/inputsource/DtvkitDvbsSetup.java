@@ -36,7 +36,9 @@ import org.droidlogic.dtvkit.DtvkitGlueClient;
 
 import com.droidlogic.settings.ConstantManager;
 import com.droidlogic.fragment.ParameterMananer;
+import com.droidlogic.fragment.DvbsParameterManager;
 
+import java.util.List;
 import java.util.Locale;
 
 public class DtvkitDvbsSetup extends Activity {
@@ -362,54 +364,24 @@ public class DtvkitDvbsSetup extends Activity {
 
     private JSONArray initSearchParameter() {
         JSONArray args = new JSONArray();
-        JSONObject obj = initLbnData();
-        if (obj == null) {
-            return null;
-        }
-        args.put(obj.toString());//arg1
-        //needclear not needed
-        //boolean needclear = mDataMananer.getIntParameters(DataMananer.KEY_CLEAR) == 1 ? true : false;
-        //args.put(needclear);
+        /*[scanmode, network, {lnblist: [{lnb:1},{lnb:2},..]}]*/
         String searchmode = DataMananer.KEY_SEARCH_MODE_LIST[mDataMananer.getIntParameters(DataMananer.KEY_SEARCH_MODE)];
-        args.put(mDataMananer.getIntParameters(DataMananer.KEY_DVBS2) == 1);//arg2
-        args.put(DataMananer.KEY_MODULATION_ARRAY_VALUE[mDataMananer.getIntParameters(DataMananer.KEY_MODULATION_MODE)]);//arg3
-        args.put(searchmode);//arg4
-        switch (searchmode) {
-            case "blind":
-                Log.d(TAG, "initSearchParameter blind");
-                args = initBlindSearch(args);
-                break;
-            case "satellite":
-                Log.d(TAG, "initSearchParameter satellite");
-                args = initSatelliteSearch(args);
-                break;
-            case "transponder":
-                Log.d(TAG, "initSearchParameter transponder");
-                args = initTransponderSearch(args);
-                break;
-            default:
-                Log.d(TAG, "initSearchParameter not surported mode!");
-                break;
-        }
-        return args;
-    }
-
-    private JSONArray initBlindSearch(JSONArray args) {
+        args.put(searchmode);//arg1
+        args.put(mDataMananer.getIntParameters(DataMananer.KEY_DVBS_NIT) == 1 ? true : false);//arg2
+        List<String> lnbList = DvbsParameterManager.getInstance(DtvkitDvbsSetup.this).getLnbWrap().getLnbIdList();
+        JSONObject lnbArgs = new JSONObject();
+        JSONArray lnbArgs_array = new JSONArray();
         try {
-            //int[] result = getBlindFrequency();
-            String satellite = mDataMananer.getStringParameters(DataMananer.KEY_SATALLITE);
-            if (/*result[0] < 0 || result[1] < 0 || result[0] > result[1] || */TextUtils.isEmpty(satellite)) {
-                return null;
+            for (String id : lnbList) {
+                JSONObject obj = new JSONObject();
+                obj.put("lnb", id);
+                lnbArgs_array.put(obj);
             }
-            //no need to add limits now
-            //args.put(result[0]);// "start_freq" khz //arg5
-            //args.put(result[1]);//"end_freq" khz //arg6
-            args.put(satellite);//arg7
+            lnbArgs.put("lnblist", lnbArgs_array);
         } catch (Exception e) {
-            args = null;
-            Toast.makeText(this, R.string.dialog_parameter_set_blind, Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "initBlindSearch Exception " + e.getMessage());
         }
+        args.put(lnbArgs.toString());//arg3
+
         return args;
     }
 
@@ -432,141 +404,6 @@ public class DtvkitDvbsSetup extends Activity {
             }
         }
         return result;
-    }
-
-    private JSONArray initSatelliteSearch(JSONArray args) {
-        try {
-            args.put(mDataMananer.getIntParameters(DataMananer.KEY_DVBS_NIT) == 1 ? true : false);//arg5
-            args.put(mDataMananer.getStringParameters(DataMananer.KEY_SATALLITE));//arg6
-        } catch (Exception e) {
-            args = null;
-            Toast.makeText(this, R.string.dialog_parameter_select_satellite, Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "initSatelliteSearch Exception " + e.getMessage());
-        }
-        return args;
-    }
-
-    private JSONArray initTransponderSearch(JSONArray args) {
-        try {
-            args.put(mDataMananer.getIntParameters(DataMananer.KEY_DVBS_NIT) == 1);//arg5
-            args.put(mDataMananer.getStringParameters(DataMananer.KEY_SATALLITE));//arg6
-            String[] singleParameter = null;
-            String parameter = mDataMananer.getStringParameters(DataMananer.KEY_TRANSPONDER);
-            if (parameter != null) {
-                singleParameter = parameter.split("/");
-                if (singleParameter != null && singleParameter.length == 3) {
-                    args.put(Integer.valueOf(singleParameter[0]));//arg7
-                    args.put(singleParameter[1]);//arg8
-                    args.put(Integer.valueOf(singleParameter[2]));//arg9
-                } else {
-                    Toast.makeText(this, R.string.dialog_parameter_select_transponer, Toast.LENGTH_SHORT).show();
-                    return null;
-                }
-            } else {
-                Toast.makeText(this, R.string.dialog_parameter_select_transponer, Toast.LENGTH_SHORT).show();
-                return null;
-            }
-            args.put(DataMananer.KEY_FEC_ARRAY_VALUE[mDataMananer.getIntParameters(DataMananer.KEY_FEC_MODE)]);//arg10
-        } catch (Exception e) {
-            args = null;
-            Log.d(TAG, "initTransponderSearch Exception " + e.getMessage());
-        }
-        return args;
-    }
-
-    private JSONObject initLbnData() {
-        JSONObject obj = null;
-        try {
-            obj = new JSONObject();
-            boolean unicable_switch = (mDataMananer.getIntParameters(DataMananer.KEY_UNICABLE_SWITCH) == 1);
-            obj.put("unicable", unicable_switch);
-            obj.put("unicable_chan", mDataMananer.getIntParameters(DataMananer.KEY_USER_BAND));
-            obj.put("unicable_if", mDataMananer.getIntParameters(DataMananer.KEY_UB_FREQUENCY) * 1000);//mhz to khz
-            obj.put("unicable_position_b", mDataMananer.getIntParameters(DataMananer.KEY_POSITION) == 1);
-            obj.put("tone_burst", DataMananer.DIALOG_SET_SELECT_SINGLE_ITEM_TONE_BURST_LIST[mDataMananer.getIntParameters(DataMananer.KEY_TONE_BURST)]);
-            obj.put("c_switch", mDataMananer.getIntParameters(DataMananer.KEY_DISEQC1_0));
-            obj.put("u_switch", mDataMananer.getIntParameters(DataMananer.KEY_DISEQC1_1));
-            obj.put("dish_pos", mDataMananer.getIntParameters(DataMananer.KEY_DISEQC1_2_DISH_CURRENT_POSITION));
-            int lnb_type = mDataMananer.getIntParameters(DataMananer.KEY_LNB_TYPE);
-            //saved lnbtype: 0:single, 1:universal, 2:user define
-            //needed lnbtype: 0:single, 1:universal, 2:unicable, 3:user define
-            if (unicable_switch) {
-                lnb_type = 2;//unicable
-            } else if (lnb_type == 2) {//
-                lnb_type = 3;//user define
-            }
-            obj.put("lnb_type", lnb_type);
-
-            JSONObject lnbobj = new JSONObject();
-            JSONObject lowband_obj = new JSONObject();
-            JSONObject highband_obj = new JSONObject();
-            int lnbtype = mDataMananer.getIntParameters(DataMananer.KEY_LNB_TYPE);
-            int lowlnb = 0;
-            int highlnb = 0;
-            int lowMin = 0;
-            int lowMax = 11750;
-            int highMin = 0;
-            int highMax = 11750;
-            switch (lnbtype) {
-                case 0:
-                    lowlnb = 5150;
-                    break;
-                case 1:
-                    lowlnb = 9750;
-                    highlnb = 10600;
-                    break;
-                case 2:
-                    String customlnb = mDataMananer.getStringParameters(DataMananer.KEY_LNB_CUSTOM);
-                    if (TextUtils.isEmpty(customlnb)) {
-                        Log.d(TAG, "customlnb null!");
-                        Toast.makeText(this, R.string.dialog_parameter_set_lnb, Toast.LENGTH_SHORT).show();
-                        return null;
-                    }
-                    String[] customlnbvalue = null;
-                    if (customlnb != null) {
-                        customlnbvalue = customlnb.split(",");
-                    }
-                    if (customlnbvalue != null && customlnbvalue.length == 1) {
-                        lowlnb = Integer.valueOf(customlnbvalue[0]);
-                        lowMin = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_LOW_MIN);
-                        lowMax = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_LOW_MAX);
-                    } else if (customlnbvalue != null && customlnbvalue.length == 2) {
-                        lowlnb = Integer.valueOf(customlnbvalue[0]);
-                        highlnb = Integer.valueOf(customlnbvalue[1]);
-                        lowMin = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_LOW_MIN);
-                        lowMax = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_LOW_MAX);
-                        highMin = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_HIGH_MIN);
-                        highMax = mDataMananer.getIntParameters(DataMananer.KEY_LNB_CUSTOM_HIGH_MAX);
-                    } else {
-                        Log.d(TAG, "null lnb customized data!");
-                        Toast.makeText(this, R.string.dialog_parameter_set_lnb, Toast.LENGTH_SHORT).show();
-                        return null;
-                    }
-                    break;
-            }
-            lowband_obj.put("min_freq", lowMin);
-            lowband_obj.put("max_freq", lowMax);
-            lowband_obj.put("local_oscillator_frequency", lowlnb);
-            lowband_obj.put("lnb_voltage", DataMananer.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER_LIST[mDataMananer.getIntParameters(DataMananer.KEY_LNB_POWER)]);
-            lowband_obj.put("tone_22k", mDataMananer.getIntParameters(DataMananer.KEY_22_KHZ) == 1);
-            highband_obj.put("min_freq", highMin);
-            highband_obj.put("max_freq", highMax);
-            highband_obj.put("local_oscillator_frequency", highlnb);
-            highband_obj.put("lnb_voltage", DataMananer.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER_LIST[mDataMananer.getIntParameters(DataMananer.KEY_LNB_POWER)]);
-            highband_obj.put("tone_22k", mDataMananer.getIntParameters(DataMananer.KEY_22_KHZ) == 1);
-
-            lnbobj.put("low_band", lowband_obj);
-            if (highlnb > 0) {
-                lnbobj.put("high_band", highband_obj);
-            }
-            obj.put("lnb", lnbobj);
-        } catch (Exception e) {
-            obj = null;
-            Toast.makeText(this, R.string.dialog_parameter_set_lnb, Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "initLbnData Exception " + e.getMessage());
-            e.printStackTrace();
-        }
-        return obj;
     }
 
      private void testAddSatallite() {
@@ -693,7 +530,7 @@ public class DtvkitDvbsSetup extends Activity {
             public void run() {
                 try {
                     mSearchDvbsType = DtvkitDvbScanSelect.SEARCH_TYPE_DVBS;
-                    DtvkitGlueClient.getInstance().request("Dvbs.startSearch", args);
+                    DtvkitGlueClient.getInstance().request("Dvbs.startSearchEx", args);
                     mStartSearch = true;
                     mFoundServiceNumber = 0;
                     mServiceList = null;

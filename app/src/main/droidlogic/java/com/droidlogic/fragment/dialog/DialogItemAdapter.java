@@ -41,7 +41,7 @@ public class DialogItemAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return null;
+        return (Object)(mData.get(position));
     }
 
     @Override

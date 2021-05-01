@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import java.util.List;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -20,9 +22,12 @@ import android.widget.TextView;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.droidlogic.fragment.ItemAdapter.ItemDetail;
 import com.droidlogic.fragment.ParameterMananer;
 //import com.droidlogic.fragment.R;
 import com.droidlogic.fragment.ScanMainActivity;
+import com.droidlogic.fragment.LnbWrap;
+import com.droidlogic.fragment.SatelliteWrap;
 
 import java.util.LinkedList;
 import java.util.Timer;
@@ -63,19 +68,6 @@ public class CustomDialog/* extends AlertDialog*/ {
     public static final String DIALOG_SET_EDIT_ITEM = "edit_item";
     public static final String DIALOG_SET_PROGRESS_ITEM = "progress_item";
 
-    /*public static final String DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE = "Satallite";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER = "Transponder";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE = "LNB Type";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE = "Unicable";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER = "LNB Power";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ = "22KHz";
-    public static final String DIALOG_SET_SELECT_SINGLE_TONE_BURST = "ToneBurst";
-    public static final String DIALOG_SET_SELECT_SINGLE_DISEQC1_0 = "DiSEqC1.0";
-    public static final String DIALOG_SET_SELECT_SINGLE_DISEQC1_1 = "DiSEqC1.1";
-    public static final String DIALOG_SET_SELECT_SINGLE_MOTOR = "Motor";
-    public static final String[] ID_DIALOG_TITLE_COLLECTOR = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE,
-            DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER, DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
-            DIALOG_SET_SELECT_SINGLE_DISEQC1_1, DIALOG_SET_SELECT_SINGLE_MOTOR};*/
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE = R.string.list_type_satellite;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER = R.string.list_type_transponder;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE = R.string.parameter_lnb_type;
@@ -86,8 +78,8 @@ public class CustomDialog/* extends AlertDialog*/ {
     public static final int DIALOG_SET_SELECT_SINGLE_DISEQC1_0 = R.string.parameter_diseqc1_0;
     public static final int DIALOG_SET_SELECT_SINGLE_DISEQC1_1 = R.string.parameter_diseqc1_1;
     public static final int DIALOG_SET_SELECT_SINGLE_MOTOR = R.string.parameter_motor;
-    public static final int[] ID_DIALOG_TITLE_COLLECTOR = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE,
-            DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER, DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
+    public static final int[] ID_DIALOG_TITLE_COLLECTOR = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE, DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE,
+            DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER, DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
             DIALOG_SET_SELECT_SINGLE_DISEQC1_1, DIALOG_SET_SELECT_SINGLE_MOTOR};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {"5150", "9750/10600", "Customize"};
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {R.string.parameter_lnb_type_5150, R.string.parameter_lnb_type_9750, R.string.parameter_lnb_custom};
@@ -98,30 +90,14 @@ public class CustomDialog/* extends AlertDialog*/ {
     public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_BAND = {"0", "1", "2", "3", "4", "5", "6", "7"};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_POSITION = {"disable", "enable"};
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_POSITION = {R.string.parameter_position_disable, R.string.parameter_position_enable};
-    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER_LIST = {/*"13V", "18V",*/"on", "off"/*, "13/18V"*/};
+    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER_LIST = {/*"13V", "18V",*/"off", "on"/*, "13/18V"*/};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ_LIST = {"on", "off"/*, "auto"*/};
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ_LIST = {R.string.parameter_unicable_switch_off, R.string.parameter_unicable_switch_on};
     public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_TONE_BURST_LIST = {"none", "a", "b"};
     public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_0_LIST = {"none", "1/4", "2/4", "3/4", "4/4"};
     public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_1_LIST = {"none", "1/16", "2/16", "3/16", "4/16", "5/16", "6/16", "7/16", "8/16", "9/16", "10/16", "11/16", "12/16", "13/16", "14/16", "15/16", "16/16"};
-    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST = {"none", "DiSEqc1.2"};
+    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST = {"none", "DiSEqc1.2", "DiSEqc1.3"};
 
-    /*public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS = "Dish Limits Status";
-    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS_LIST = {"off", "on"};
-    //public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_DISH_LIMITS = "Set Dish Limits East";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_EAST_DISH_LIMITS = "Set Dish Limits East";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_WEST_DISH_LIMITS = "Set Dish Limits West";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION = "Move Directtion";
-    public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION_LIST = {"East", "West", "Center"};
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STEP = "Move Step";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE = "Move";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_POSITION = "Current Position";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SAVE_TO_POSITION = "Save To Position";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE_TO_POSITION = "Move To Position";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STRENGTH = "Strength";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_QUALITY = "Quality";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SAVE = "Save";
-    public static final String DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SCAN= "Scan";*/
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS = R.string.parameter_diseqc1_2_dish_limits_status;
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS_LIST = {R.string.parameter_unicable_switch_off, R.string.parameter_unicable_switch_on};
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_EAST_DISH_LIMITS = R.string.parameter_diseqc1_2_dish_limits_east;
@@ -138,7 +114,6 @@ public class CustomDialog/* extends AlertDialog*/ {
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SAVE = R.string.dialog_save;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SCAN= R.string.dialog_scan;
 
-
     public static final /*String*/int[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS,
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_EAST_DISH_LIMITS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_WEST_DISH_LIMITS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION,
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STEP, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_POSITION,
@@ -146,16 +121,6 @@ public class CustomDialog/* extends AlertDialog*/ {
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_QUALITY, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SAVE, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SCAN
     };
 
-    /*public static final String DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE = "Unicable";
-    public static final String DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_SWITCH = "Unicable Switch";
-    public static final String DIALOG_SET_EDIT_SWITCH_ITEM_USER_BAND = "User Band";
-    public static final String DIALOG_SET_EDIT_SWITCH_ITEM_UB_FREQUENCY = "UB Frequency";
-    public static final String DIALOG_SET_EDIT_SWITCH_ITEM_POSITION = "Position";
-    public static final String[] DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST = {DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_SWITCH, DIALOG_SET_EDIT_SWITCH_ITEM_USER_BAND, DIALOG_SET_EDIT_SWITCH_ITEM_UB_FREQUENCY, DIALOG_SET_EDIT_SWITCH_ITEM_POSITION};
-    public static final String[] DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_SWITCH_LIST = {"off", "on"};
-    public static final String[] DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_LIST = {"0", "1", "2", "3", "4", "5", "6", "7"};
-    public static final String[] DIALOG_SET_EDIT_ITEM_UNICABLE_UB_FREQUENCY_LIST = {"22KHz"};
-    public static final String[] DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_POSITION_LIST = {"off", "on"};*/
     public static final int DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE = R.string.parameter_unicable;
     public static final int DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_SWITCH = R.string.parameter_unicable_switch;
     public static final int DIALOG_SET_EDIT_SWITCH_ITEM_USER_BAND = R.string.parameter_unicable_user_band;
@@ -174,36 +139,6 @@ public class CustomDialog/* extends AlertDialog*/ {
         this.mDialogCallBack = callback;
         this.mParameterMananer = mananer;
     }
-
-    /*public void initDialogWithButton(Context context, final String key, String positive, String negative) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        mAlertDialog = builder.create();
-        /*mAlertDialog = builder.setPositiveButton(positive, new OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Bundle bundle = new Bundle();
-                bundle.putInt("which", which);
-                bundle.putString("key", key);
-                if (mDialogCallBack != null) {
-                    mDialogCallBack.onStatusChange(null, mDialogType, bundle);
-                }
-            }
-        })
-                .setNegativeButton(negative, new OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("which", which);
-                        bundle.putString("key", key);
-                        if (mDialogCallBack != null) {
-                            mDialogCallBack.onStatusChange(null, mDialogType, bundle);
-                        }
-                    }
-                }).create();*/
-       /* mDialogView = View.inflate(mContext, R.layout.select_single_item_dialog, null);
-        mDialogTitle = (TextView) mDialogView.findViewById(R.id.dialog_title);
-        mListView = (DialogItemListView) mDialogView.findViewById(R.id.select_single_item_listview);
-    }*/
 
     public interface DialogUiCallBack {
         void onStatusChange(View view, String dialogtype, Bundle data);
@@ -240,20 +175,35 @@ public class CustomDialog/* extends AlertDialog*/ {
     private LinkedList<DialogItemAdapter.DialogItemDetail> buildUnicableItem() {
         LinkedList<DialogItemAdapter.DialogItemDetail> items = new LinkedList<DialogItemAdapter.DialogItemDetail>();
         DialogItemAdapter.DialogItemDetail item = null;
+        int channel = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable_chan");
+        if (channel > (DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST.length - 1)) {
+            channel = 0;
+        }
         for (int i = 0; i < DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST.length; i++) {
             switch (i) {
-                case 0:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[mParameterMananer.getIntParameters(ParameterMananer.DIALOG_SET_ITEM_UNICABLE_KEY_LIST[i])]), false);
+                case 0: {
+                    int unicable = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable");
+                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
+                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]),
+                            mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[unicable]), false);
                     break;
+                }
                 case 1:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), mParameterMananer.getIntParameters(ParameterMananer.DIALOG_SET_ITEM_UNICABLE_KEY_LIST[i]) + "", false);
+                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
+                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), channel + "", false);
                     break;
                 case 2://need to type in frequency
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), mParameterMananer.getIntParameters(ParameterMananer.DIALOG_SET_ITEM_UNICABLE_KEY_LIST[i]) + "MHz", false);
+                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY,
+                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]),
+                            DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST[channel] + "MHz", false);
                     break;
-                case 3:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_POSITION[mParameterMananer.getIntParameters(ParameterMananer.DIALOG_SET_ITEM_UNICABLE_KEY_LIST[i])]), false);
+                case 3: {
+                    int position = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable_position_b");
+                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
+                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]),
+                            mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_POSITION[position]), false);
                     break;
+                }
                 default:
                     break;
             }
@@ -414,39 +364,6 @@ public class CustomDialog/* extends AlertDialog*/ {
         }
     }
 
-    /*public AlertDialog creatSelectSingleItemDialog(final String title, String key, int select) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        AlertDialog dialog = builder.create();
-        View dialogView = View.inflate(mContext, R.layout.select_single_item_dialog, null);
-        TextView dialogTtile = (TextView) dialogView.findViewById(R.id.dialog_title);
-        dialogTtile.setText(title);
-        DialogItemListView listView = (DialogItemListView) dialogView.findViewById(R.id.select_single_item_listview);
-        LinkedList<DialogItemAdapter.DialogItemDetail> itemlist = getSelectSingleItemsByKey(title, key, select);
-        DialogItemAdapter itemAdapter = new DialogItemAdapter(itemlist, mContext);
-        listView.setAdapter(itemAdapter);
-        if (select >= 0 && select < itemlist.size()) {
-            listView.setSelection(select);
-        } else {
-            listView.setSelection(0);
-        }
-        listView.setTitle(title);
-        listView.setKey(key);
-        listView.setDialogCallBack(mDialogCallBack);
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("title", title);
-                    bundle.putInt("position", position);
-                    mDialogCallBack.onStatusChange(title, bundle);
-                }
-            }
-        });*/
-        /*dialog.setView(dialogView);
-        return dialog;
-    }*/
-
     public void initLnbCustomedItemDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         mAlertDialog = builder.create();
@@ -463,88 +380,43 @@ public class CustomDialog/* extends AlertDialog*/ {
         final LinearLayout lowBandContainer = (LinearLayout)mDialogView.findViewById(R.id.low_band_container);
         final LinearLayout highBandContainer = (LinearLayout)mDialogView.findViewById(R.id.high_band_container);
         final Spinner lowHighBandSpinner = (Spinner)mDialogView.findViewById(R.id.spinner_band_type);
-        String customlnb = mParameterMananer.getStringParameters(ParameterMananer.KEY_LNB_CUSTOM);
-        boolean customSingle = mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_SINGLE_DOUBLE) == ParameterMananer.DEFAULT_LNB_CUSTOM_SINGLE_DOUBLE;
-        int customLowBandMin = mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN);
-        int customLowBandMax = mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX);
-        int customHighBandMin = mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MIN);
-        int customHighBandMax = mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MAX);
-        String[] customlnbvalue = null;
-        int lowlnb = 0;
-        int highlnb = 0;
-        if (customlnb != null) {
-            customlnbvalue = customlnb.split(",");
-        }
-        if (customlnbvalue != null && customlnbvalue.length == 1) {
-            lowlnb = !TextUtils.isEmpty(customlnbvalue[0]) ? Integer.valueOf(customlnbvalue[0]) : 0;
-        } else if (customlnbvalue != null && customlnbvalue.length == 2) {
-            lowlnb = !TextUtils.isEmpty(customlnbvalue[0]) ? Integer.valueOf(customlnbvalue[0]) : 0;
-            highlnb = !TextUtils.isEmpty(customlnbvalue[1]) ? Integer.valueOf(customlnbvalue[1]) : 0;
-        } else {
-            Log.d(TAG, "null lnb customized data!");
-        }
-        if (lowlnb >= 0) {
-            editText1.setText(lowlnb + "");
-        } else {
-            editText1.setText("");
-        }
-        if (highlnb >= 0) {
-            editText2.setText(highlnb + "");
-        } else {
-            editText2.setText("");
-        }
-        if (customLowBandMin >= 0) {
-            lowMineditText.setText(customLowBandMin + "");
-        } else {
-            lowMineditText.setText("");
-        }
-        if (customLowBandMax >= 0) {
-            lowMaxeditText.setText(customLowBandMax + "");
-        } else {
-            lowMaxeditText.setText("");
-        }
-        if (customHighBandMin >= 0) {
-            highMineditText.setText(customHighBandMin + "");
-        } else {
-            highMineditText.setText("");
-        }
-        if (customHighBandMax >= 0) {
-            highMaxeditText.setText(customHighBandMax + "");
-        } else {
-            highMaxeditText.setText("");
-        }
+
+        String lnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
+        int lowBandMin = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowMin();
+        int lowBandMax = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowMax();
+        int highBandMin = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highMin();
+        int highBandMax = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highMax();
+        int lowLocalIf = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowLocalFreq();
+        int highLocalIf = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highLocalFreq();
+        boolean customSingle = (lowLocalIf == 0 || highLocalIf == 0);
+        int selection = customSingle ? 0 : 1;
+
+        editText1.setText("" + lowLocalIf);
+        editText2.setText("" + highLocalIf);
+        lowMineditText.setText("" + lowBandMin);
+        lowMaxeditText.setText("" + lowBandMax);
+        highMineditText.setText("" + highBandMin);
+        highMaxeditText.setText("" + highBandMax);
 
         if (customSingle) {
             highBandContainer.setVisibility(View.GONE);
         } else {
             highBandContainer.setVisibility(View.VISIBLE);
         }
-        lowHighBandSpinner.setSelection(mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_SINGLE_DOUBLE));
+
+        lowHighBandSpinner.setSelection(selection);
         lowHighBandSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_SINGLE_DOUBLE)) {
-                    Log.d(TAG, "lowHighBandSpinner onItemSelected same position = " + position);
-                    return;
-                }
-                Log.d(TAG, "lowHighBandSpinner onItemSelected position = " + position);
-                mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_SINGLE_DOUBLE, position);
                 if (position == ParameterMananer.DEFAULT_LNB_CUSTOM_SINGLE_DOUBLE) {
                     highBandContainer.setVisibility(View.GONE);
-                    //mParameterMananer.saveStringParameters(ParameterMananer.KEY_LNB_CUSTOM, ParameterMananer.KEY_LNB_TYPE_DEFAULT_SINGLE_VALUE);
                 } else {
                     highBandContainer.setVisibility(View.VISIBLE);
-                    //mParameterMananer.saveStringParameters(ParameterMananer.KEY_LNB_CUSTOM, ParameterMananer.KEY_LNB_TYPE_DEFAULT_VALUE);
                 }
-                /*mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN, ParameterMananer.VALUE_LNB_CUSTOM_MIN);
-                mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX, ParameterMananer.VALUE_LNB_CUSTOM_MAX);
-                mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MIN, ParameterMananer.VALUE_LNB_CUSTOM_MIN);
-                mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MAX, ParameterMananer.VALUE_LNB_CUSTOM_MAX);*/
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // TODO Auto-generated method stub
             }
         });
 
@@ -559,44 +431,27 @@ public class CustomDialog/* extends AlertDialog*/ {
                     bundle.putString("action", "onClick");
                     bundle.putString("key", ParameterMananer.KEY_LNB_CUSTOM);
                     bundle.putString("button", "ok");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    boolean isSingle = (mParameterMananer.getIntParameters(ParameterMananer.KEY_LNB_CUSTOM_SINGLE_DOUBLE) == ParameterMananer.DEFAULT_LNB_CUSTOM_SINGLE_DOUBLE);
-                    String lowMinstr = (!TextUtils.isEmpty(lowMineditText.getText()) ? lowMineditText.getText().toString() : "");
-                    String lowMaxstr = (!TextUtils.isEmpty(lowMaxeditText.getText()) ? lowMaxeditText.getText().toString() : "");
-                    String highMaxstr = (!TextUtils.isEmpty(highMaxeditText.getText()) ? highMaxeditText.getText().toString() : "");
-                    String highMinstr = (!TextUtils.isEmpty(highMineditText.getText()) ? highMineditText.getText().toString() : "");
+                    String lowLocal = (!TextUtils.isEmpty(editText1.getText()) ? editText1.getText().toString() : "0");
+                    String highLocal = (!TextUtils.isEmpty(editText2.getText()) ? editText2.getText().toString() : "0");
+                    String lowMinstr = (!TextUtils.isEmpty(lowMineditText.getText()) ? lowMineditText.getText().toString() : "0");
+                    String lowMaxstr = (!TextUtils.isEmpty(lowMaxeditText.getText()) ? lowMaxeditText.getText().toString() : "0");
+                    String highMaxstr = (!TextUtils.isEmpty(highMaxeditText.getText()) ? highMaxeditText.getText().toString() : "0");
+                    String highMinstr = (!TextUtils.isEmpty(highMineditText.getText()) ? highMineditText.getText().toString() : "0");
                     Log.d(TAG, "initLnbCustomedItemDialog lowMinstr = " + lowMinstr + ", lowMaxstr = " + lowMaxstr + ",highMinstr = " + highMinstr + ", highMaxstr = " + highMaxstr);
-                    /*bundle.putBoolean("isSingle", isSingle);
-                    bundle.putInt("value1_min", Integer.valueOf(lowMinstr));
-                    bundle.putInt("value1_max", Integer.valueOf(lowMaxstr));
-                    bundle.putInt("value2_min", Integer.valueOf(highMinstr));
-                    bundle.putInt("value2_max", Integer.valueOf(highMaxstr));*/
                     if ((TextUtils.isEmpty(editText1.getText()) || TextUtils.isEmpty(lowMineditText.getText()) || TextUtils.isEmpty(lowMaxeditText.getText())) ||
-                            (!isSingle && (TextUtils.isEmpty(editText2.getText()) || TextUtils.isEmpty(highMineditText.getText()) || TextUtils.isEmpty(highMaxeditText.getText())))) {
+                            (!customSingle && (TextUtils.isEmpty(editText2.getText()) || TextUtils.isEmpty(highMineditText.getText()) || TextUtils.isEmpty(highMaxeditText.getText())))) {
                         Toast.makeText(mContext, R.string.dialog_parameter_not_complete, Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if (!isSingle) {
-                        bundle.putString("value2", editText2.getText() != null ? editText2.getText().toString() : "");
-                        if (!TextUtils.isEmpty(lowMaxstr) && !TextUtils.isEmpty(lowMinstr) &&
-                                !TextUtils.isEmpty(highMaxstr) && !TextUtils.isEmpty(highMinstr)) {
-                            /*mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN, Integer.valueOf(lowMinstr));
-                            mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX, Integer.valueOf(lowMaxstr));
-                            mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MIN, Integer.valueOf(highMinstr));
-                            mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MAX, Integer.valueOf(highMaxstr));*/
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN, Integer.valueOf(lowMinstr));
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX, Integer.valueOf(lowMaxstr));
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MIN, Integer.valueOf(highMinstr));
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_HIGH_MAX, Integer.valueOf(highMaxstr));
-                        }
+                    bundle.putInt("lowmin", Integer.parseInt(lowMinstr));
+                    bundle.putInt("lowmax", Integer.parseInt(lowMaxstr));
+                    bundle.putInt("lowlocal", Integer.parseInt(lowLocal));
+                    if (lowHighBandSpinner.getSelectedItemPosition() > 0 ) {
+                        bundle.putInt("highmin", Integer.parseInt(highMinstr));
+                        bundle.putInt("highmax", Integer.parseInt(highMaxstr));
+                        bundle.putInt("highlocal", Integer.parseInt(highLocal));
                     } else {
-                        bundle.putString("value2", "");
-                        if (!TextUtils.isEmpty(lowMaxstr) && !TextUtils.isEmpty(lowMinstr)) {
-                            /*mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN, Integer.valueOf(lowMinstr));
-                            mParameterMananer.saveIntParameters(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX, Integer.valueOf(lowMaxstr));*/
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_LOW_MIN, Integer.valueOf(lowMinstr));
-                            mParameterMananer.updateCurrentSingleSatelliteParameter(ParameterMananer.KEY_LNB_CUSTOM_LOW_MAX, Integer.valueOf(lowMaxstr));
-                        }
+                        bundle.putInt("highlocal", 0);
                     }
                     mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_LNB_CUSTOM, bundle);
                     if (mAlertDialog != null) {
@@ -608,31 +463,8 @@ public class CustomDialog/* extends AlertDialog*/ {
         cancel.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_LNB_CUSTOM);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    bundle.putString("value2", editText2.getText() != null ? editText2.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_LNB_CUSTOM, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_LNB_CUSTOM);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    bundle.putString("value2", editText2.getText() != null ? editText2.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_LNB_CUSTOM, bundle);
+                if (mAlertDialog != null) {
+                    mAlertDialog.dismiss();
                 }
             }
         });
@@ -652,120 +484,13 @@ public class CustomDialog/* extends AlertDialog*/ {
         editText2.setHint(resultValue[1]);
         mAlertDialog.setView(mDialogView);
         mAlertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
-        /*LinkedList<DialogItemAdapter.DialogItemDetail> itemlist = new LinkedList<DialogItemAdapter.DialogItemDetail>();
-        DialogItemAdapter.DialogItemDetail item = null;
-        String value = mParameterMananer.getStringParameters(ParameterMananer.KEY_LNB_CUSTOM);
-        String[] resultValue = new String[DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST.length];
-        LinearLayout layout0 = new LinearLayout(mContext);
-        LinearLayout.LayoutParams paras = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        layout0.setOrientation(LinearLayout.VERTICAL);
-        layout0.setLayoutParams(paras);
-
-        LinearLayout layout1 = new LinearLayout(mContext);
-        layout1.setOrientation(LinearLayout.HORIZONTAL);
-        layout1.setLayoutParams(paras);
-        TextView itemname = new TextView(mContext);
-        itemname.setText("itemname1");
-        itemname.setLayoutParams(paras);
-
-
-        layout0.addView(layout1, paras);
-        if (value != null) {
-            String[] allvalue = value.split(",");
-            if (allvalue != null && allvalue.length > 0 && allvalue.length <= DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST.length) {
-                for (int i = 0; i < allvalue.length; i++) {
-                    resultValue[i] = allvalue[i];
-                }
-            }
-        }
-        for (int i = 0; i < DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST.length; i++) {
-            item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST[i], resultValue[i], false);
-            itemlist.add(item);
-        }
-        mItemAdapter = new DialogItemAdapter(itemlist, mContext);
-        mListView.setAdapter(mItemAdapter);
-        mDialogTitle.setText(DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[2]);
-        mDialogTitleText = DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[2];
-        mListView.setKey(ParameterMananer.KEY_LNB_CUSTOM);
-        mDialogKeyText = ParameterMananer.KEY_LNB_CUSTOM;
-        mListView.setDialogCallBack(mDialogCallBack);
-        mAlertDialog.setView(mDialogView);*/
     }
 
-    /*public void initUnicableCustomedItemDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        mAlertDialog = builder.create();
-        mDialogView = View.inflate(mContext, R.layout.set_custom_lnb, null);
-        mDialogTitle = (TextView) mDialogView.findViewById(R.id.dialog_title);
-
-        mDialogTitle.setText(DIALOG_SET_EDIT_SWITCH_ITEM_UB_FREQUENCY);
-        final TextView text1 = (TextView)mDialogView.findViewById(R.id.text_frequency1);
-        final TextView text2 = (TextView)mDialogView.findViewById(R.id.text_frequency2);
-        final EditText editText1 = (EditText)mDialogView.findViewById(R.id.edittext_frequency1);
-        final EditText editText2 = (EditText)mDialogView.findViewById(R.id.edittext_frequency2);
-        text1.setText(DIALOG_SET_EDIT_SWITCH_ITEM_UB_FREQUENCY);
-        text2.setVisibility(View.GONE);
-        editText2.setVisibility(View.GONE);
-        final Button ok = (Button) mDialogView.findViewById(R.id.button1);
-        final Button cancel = (Button) mDialogView.findViewById(R.id.button2);
-
-        ok.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_UB_FREQUENCY);
-                    bundle.putString("button", "ok");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_UB_FREQUENCY, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        cancel.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_UB_FREQUENCY);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_UB_FREQUENCY, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_UB_FREQUENCY);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", editText1.getText() != null ? editText1.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_UB_FREQUENCY, bundle);
-                }
-            }
-        });
-
-        int value = mParameterMananer.getIntParameters(ParameterMananer.KEY_UB_FREQUENCY);
-        editText1.setHint(value + "MHz");
-        mAlertDialog.setView(mDialogView);
-    }*/
-
-    public void initDiseqc1_2_ItemDialog() {
-        initDiseqc1_2_ItemDialog(true);
+    public void initDiseqc1_2_ItemDialog(boolean isDiseqc1_3) {
+        initDiseqc1_2_ItemDialog(isDiseqc1_3, true);
     }
 
-    public void initDiseqc1_2_ItemDialog(boolean init) {
+    public void initDiseqc1_2_ItemDialog(boolean isDiseqc1_3, boolean init) {
         if (init) {
             AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             mAlertDialog = builder.create();
@@ -776,6 +501,22 @@ public class CustomDialog/* extends AlertDialog*/ {
             mQualityProgressBar = (ProgressBar)mDialogView.findViewById(R.id.quality_progressbar);
             mStrengthTextView = (TextView)mDialogView.findViewById(R.id.strength_percent);
             mQualityTextView = (TextView)mDialogView.findViewById(R.id.quality_percent);
+            //update diseqc caches
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("sate_index", 0);
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("tp_index", 0);
+            int limitStats = mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2_DISH_LIMITS_STATUS);
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dishlimit_state", limitStats);
+            int dishDirection = mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2_DISH_MOVE_DIRECTION);
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_dir", dishDirection);
+            int dishStep = mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2_DISH_MOVE_STEP);
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_step", dishStep);
+            List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
+            String sateName = satelist.get(0);
+            int dish_Pos = mParameterMananer.getDvbsParaManager().getSatelliteWrap().getSatelliteByName(sateName).getDishPos();
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_pos", dish_Pos);
+            String diseqcLocation = mParameterMananer.getStringParameters(ParameterMananer.KEY_DISEQC1_3_LOCATION_STRING);
+            int diseqcLocationIndex = mParameterMananer.getDvbsParaManager().getDisEqcLocationIndex(diseqcLocation);
+            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("diseqc_location", diseqcLocationIndex);
         }
         final TimerTask task = new TimerTask() {
             public void run() {
@@ -802,59 +543,123 @@ public class CustomDialog/* extends AlertDialog*/ {
         mQualityProgressBar.setProgress(mParameterMananer.getQualityStatus());
         mStrengthTextView.setText(mParameterMananer.getStrengthStatus() + "%");
         mQualityTextView.setText(mParameterMananer.getQualityStatus() + "%");
-        mListView.setSelection(mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2));
+        //mListView.setSelection(mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2));
 
         LinkedList<DialogItemAdapter.DialogItemDetail> itemlist = new LinkedList<DialogItemAdapter.DialogItemDetail>();
-        DialogItemAdapter.DialogItemDetail item = null;
+
         for (int i = 0; i < DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST.length; i++) {
-            item = null;
+            int type = DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH;
+            String title = "";
+            String value = "";
+            boolean isSelect = false;
             switch (i) {
-                case 0:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mParameterMananer.getStringParameters(mParameterMananer.KEY_SATALLITE), false);
+                case 0: {
+                    List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
+                    int pos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
+                    if (pos > satelist.size() -1) {
+                        pos = 0;
+                        mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("sate_index", pos);
+                    }
+                    value = satelist.get(pos);
                     break;
-                case 1:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mParameterMananer.getStringParameters(mParameterMananer.KEY_TRANSPONDER), false);
+                }
+                case 1: {
+                    List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
+                    int satePos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
+                    String sateName = satelist.get(satePos);
+                    LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList(sateName);
+                    int tpPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("tp_index");
+                    if (tpPos > tps.size() -1) {
+                        tpPos = 0;
+                        mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("tp_index", tpPos);
+                    }
+                    value = tps.get(tpPos).getFirstText();
                     break;
-                case 2:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS_LIST[mParameterMananer.getIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_LIMITS_STATUS)]), false);
+                }
+                case 2: {
+                    int dishLimitStat = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dishlimit_state");
+                    value = mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS_LIST[dishLimitStat]);
                     break;
-                case 3:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(R.string.parameter_diseqc1_2_press_to_limit_east), false);
+                }
+                case 3: {
+                    type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
+                    value = mContext.getString(R.string.parameter_diseqc1_2_press_to_limit_east);
                     break;
-                case 4:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(R.string.parameter_diseqc1_2_press_to_limit_west), false);
+                }
+                case 4: {
+                    type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
+                    value = mContext.getString(R.string.parameter_diseqc1_2_press_to_limit_west);
                     break;
-                case 5:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION_LIST[mParameterMananer.getIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_MOVE_DIRECTION)]), false);
+                }
+                case 5: {
+                    int dishMoveDir = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_dir");
+                    value = mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION_LIST[dishMoveDir]);
                     break;
-                case 6:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), String.valueOf(mParameterMananer.getIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_MOVE_STEP)), false);
+                }
+                case 6: {
+                    int dishMoveStep = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_step");
+                    value = String.valueOf(dishMoveStep);
                     break;
-                case 7:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(R.string.parameter_diseqc1_2_press_to_move), false);
+                }
+                case 7: {
+                    type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
+                    value = mContext.getString(R.string.parameter_diseqc1_2_press_to_move);
                     break;
-                case 8:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), String.valueOf(mParameterMananer.getIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_CURRENT_POSITION)), false);
+                }
+                case 8: {
+                    int dish_Pos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
+                    value = String.valueOf(dish_Pos);
                     break;
-                case 9:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(R.string.parameter_diseqc1_2_press_to_save), false);
+                }
+                case 9: {
+                    value = mContext.getString(R.string.parameter_diseqc1_2_press_to_save);
+                    type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
                     break;
-                case 10:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY, mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), mContext.getString(R.string.parameter_diseqc1_2_press_to_move), false);
+                }
+                case 10: {
+                    type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
+                    value = mContext.getString(R.string.parameter_diseqc1_2_press_to_move);
                     break;
-                /*case 11:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_PROGRESS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i], mParameterMananer.getStrengthStatus() + "%", false);
-                    break;
-                case 12:
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_PROGRESS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i], mParameterMananer.getQualityStatus() + "%", false);
-                    break;*/
+                }
                 default:
                     Log.d(TAG, "initDiseqc1_2_ItemDialog unkown key");
                     break;
             }
-            if (item != null) {
+            if (!TextUtils.isEmpty(value)) {
+                DialogItemAdapter.DialogItemDetail item =
+                        new DialogItemAdapter.DialogItemDetail(type,
+                                mContext.getString(DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST[i]), value, false);
                 itemlist.add(item);
             }
+        }
+        //add location info for diseqc1.3
+        if (isDiseqc1_3) {
+            int locationIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
+            List<String> locations = mParameterMananer.getDvbsParaManager().getLnbWrap().getDiseqcLocationNames();
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
+                    "Location", locations.get(locationIndex), false));
+            int locationParamType = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
+            if ("manual".equals(locations.get(locationIndex))) {
+                locationParamType = DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH;
+            }
+            boolean isEast = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                    .getLocationInfoByIndex(locationIndex).isLongitudeEast();
+            int longitude = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                    .getLocationInfoByIndex(locationIndex).getLongitude();
+            boolean isNorth = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                    .getLocationInfoByIndex(locationIndex).isLatitudeNorth();
+            int latitude = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                    .getLocationInfoByIndex(locationIndex).getLatitude();
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(locationParamType,
+                    "Longitude Direction", isEast ? "East" : "West", false));
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(locationParamType,
+                    "Longitude Angle", "" + longitude, false));
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(locationParamType,
+                    "Latitude Direction", isNorth ? "North" : "South", false));
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(locationParamType,
+                    "Latitude Angle", "" + latitude, false));
+            itemlist.add(new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY,
+                    "Action for Location", "Press to take action", false));
         }
 
         if (init) {
@@ -868,54 +673,30 @@ public class CustomDialog/* extends AlertDialog*/ {
             return;
         }
 
-        mDialogTitle.setText(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[1]);
-        mDialogTitleText = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[1];
+        if (isDiseqc1_3) {
+            mDialogTitle.setText(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[2]);
+            mDialogTitleText = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[2];
+        } else {
+            mDialogTitle.setText(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[1]);
+            mDialogTitleText = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST[1];
+        }
         mListView.setKey(ParameterMananer.KEY_DISEQC1_2);
         mDialogKeyText = ParameterMananer.KEY_DISEQC1_2;
         mListView.setDialogCallBack(mDialogCallBack);
 
-        /*final TextView save = (TextView) mDialogView.findViewById(R.id.status_save);
-        final TextView scan = (TextView) mDialogView.findViewById(R.id.status_scan);
-
-        save.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_LNB_CUSTOM);
-                    bundle.putString("button", "save");
-                    mDialogCallBack.onStatusChange(save, ParameterMananer.KEY_DISEQC1_2, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        scan.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_LNB_CUSTOM);
-                    bundle.putString("button", "scan");
-                    mDialogCallBack.onStatusChange(scan, ParameterMananer.KEY_DISEQC1_2, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });*/
         mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_DISEQC1_2);
-                    mDialogCallBack.onStatusChange(null, ParameterMananer.KEY_DISEQC1_2, bundle);
-                }
+                mParameterMananer.saveIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_LIMITS_STATUS,
+                        mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dishlimit_state"));
+                mParameterMananer.saveIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_MOVE_DIRECTION,
+                        mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_dir"));
+                mParameterMananer.saveIntParameters(mParameterMananer.KEY_DISEQC1_2_DISH_MOVE_STEP,
+                        mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_step"));
+                int locationIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
+                String locationName = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                        .getLocationInfoByIndex(locationIndex).getName();
+                mParameterMananer.saveStringParameters(ParameterMananer.KEY_DISEQC1_3_LOCATION_STRING, locationName);
                 timer.cancel();
             }
         });
@@ -923,29 +704,9 @@ public class CustomDialog/* extends AlertDialog*/ {
         mAlertDialog.setView(mDialogView);
     }
 
-    public void updateDiseqc1_2_Dialog() {
-        initDiseqc1_2_ItemDialog(false);
+    public void updateDiseqc1_2_Dialog(boolean isDiseqc1_3) {
+        initDiseqc1_2_ItemDialog(isDiseqc1_3, false);
     }
-
-    /*public CustomDialog getDialog(String type) {
-        switch (type) {
-            case DIALOG_SAVING:
-                return creatSavingDialog();
-            case DIALOG_ADD_TRANSPONDER:
-                return initAddTransponderDialog();
-            case DIALOG_EDIT_TRANSPONDER:
-                return creatEditTransponderDialog();
-            case DIALOG_ADD_SATELLITE:
-                return creatAddSatelliteDialog();
-            case DIALOG_EDIT_SATELLITE:
-                return creatEditSatelliteDialog();
-            case DIALOG_CONFIRM:
-                //return creatConfirmDialog();
-            default:
-                Log.w(TAG, "getCustomDialog not exist!");
-                return null;
-        }
-    }*/
 
     public CustomDialog creatSavingDialog() {
         //setContentView(R.layout.saving);
@@ -968,13 +729,12 @@ public class CustomDialog/* extends AlertDialog*/ {
         final Spinner spinner = (Spinner)mDialogView.findViewById(R.id.spinner_direction);
         final EditText longitude = (EditText)mDialogView.findViewById(R.id.edittext_longitude);
         if (name != null) {
-            String satellitename1 = mParameterMananer.getSatelliteName(name);
-            String direction1 = mParameterMananer.getSatelliteDirection(name);
-            String longitude1 = mParameterMananer.getSatelliteLongitude(name);
-            satellite.setHint(satellitename1);
+            boolean isEast = mParameterMananer.getDvbsParaManager().getSatelliteWrap().getSatelliteByName(name).getDrirection();
+            String longitude1 = mParameterMananer.getDvbsParaManager().getSatelliteWrap().getSatelliteByName(name).getLongitude() + "";
+            satellite.setHint(name);
             longitude.setHint(longitude1);
-            mSpinnerValue = direction1;
-            spinner.setSelection("east".equals(direction1) ? 0 : 1);
+            mSpinnerValue = isEast ? "east" : "west";
+            spinner.setSelection(isEast ? 0 : 1);
             longitude.setHint(longitude1);
         }
         final Button ok = (Button) mDialogView.findViewById(R.id.button1);
@@ -988,7 +748,6 @@ public class CustomDialog/* extends AlertDialog*/ {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
 
@@ -1026,33 +785,8 @@ public class CustomDialog/* extends AlertDialog*/ {
         cancel.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_ADD_SATELLITE);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", satellite.getText() != null ? satellite.getText().toString() : (satellite.getHint() != null ? satellite.getHint().toString() : ""));
-                    bundle.putString("value2", mSpinnerValue != null ? mSpinnerValue : "");
-                    bundle.putString("value3", longitude.getText() != null ? longitude.getText().toString() : (longitude.getHint() != null ? longitude.getHint().toString() : ""));
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_ADD_SATELLITE, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_ADD_SATELLITE);
-                    bundle.putString("button", "unkown");
-                    bundle.putString("value1", satellite.getText() != null ? satellite.getText().toString() : "");
-                    bundle.putString("value2", mSpinnerValue != null ? mSpinnerValue : "");
-                    bundle.putString("value3", longitude.getText() != null ? longitude.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_ADD_SATELLITE, bundle);
+                if (mAlertDialog != null) {
+                    mAlertDialog.dismiss();
                 }
             }
         });
@@ -1089,34 +823,27 @@ public class CustomDialog/* extends AlertDialog*/ {
         cancel.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_REMOVE_SATELLITE);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", name != null ? name : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_REMOVE_SATELLITE, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_REMOVE_SATELLITE);
-                    bundle.putString("button", "unkown");
-                    bundle.putString("value1", name != null ? name : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_REMOVE_SATELLITE, bundle);
+                if (mAlertDialog != null) {
+                    mAlertDialog.dismiss();
                 }
             }
         });
 
         mAlertDialog.setView(mDialogView);
+    }
+
+    private int getSpinnerIndex(Spinner spinner, String value) {
+        int index = 0;
+        if (spinner == null) {
+            return index;
+        }
+        for (int i = 0; i < spinner.getCount(); i ++) {
+            if (spinner.getItemAtPosition(i).equals(value)){
+                index = i;
+                break;
+            }
+        }
+        return index;
     }
 
     public void initAddTransponderDialog(final String parameter) {
@@ -1129,46 +856,41 @@ public class CustomDialog/* extends AlertDialog*/ {
         } else {
             mDialogTitle.setText(R.string.dialog_add_transponder);
         }
-        final EditText satellite = (EditText)mDialogView.findViewById(R.id.edittext_satellite);
+        final TextView satellite = (TextView)mDialogView.findViewById(R.id.edittext_satellite);
+        CheckBox dvbs2 = (CheckBox)mDialogView.findViewById(R.id.dvbs2);
         final EditText frequency = (EditText)mDialogView.findViewById(R.id.edittext_frequency);
         final Spinner spinner = (Spinner)mDialogView.findViewById(R.id.spinner_polarity);
         final EditText symbol = (EditText)mDialogView.findViewById(R.id.edittext_symbol);
+        Spinner fecmode = (Spinner)mDialogView.findViewById(R.id.fec_mode);
+        Spinner modulationmode = (Spinner)mDialogView.findViewById(R.id.modulation_mode);
         final Button ok = (Button) mDialogView.findViewById(R.id.button1);
         final Button cancel = (Button) mDialogView.findViewById(R.id.button2);
         final String[] SPINNER_VALUES = {"H", "V"};
 
+        String satellitename1 = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
         if (parameter != null) {
-            String satellitename1 = "";
-            String frequency1 = "";
-            String polarity1 = "";
-            String symbolrate1 = "";
-            String[] list = parameter.split("/");
-            if (list != null && list.length == 3) {
-                satellitename1 = mParameterMananer.getCurrentSatellite();
-                for (int i = 0; i < list.length; i++) {
-                    switch (i) {
-                        case 0:
-                            frequency1 = list[0];
-                            break;
-                        case 1:
-                            polarity1 = list[1];
-                            break;
-                        case 2:
-                            symbolrate1 = list[2];
-                            break;
-                        default:
-                            Log.d(TAG, "erro part");
-                            break;
-                    }
-                }
-            }
-
-            satellite.setHint(satellitename1);
-            frequency.setHint(frequency1);
-            mSpinnerValue = polarity1;
-            spinner.setSelection("H".equals(polarity1) ? 0 : 1);
-            symbol.setHint(symbolrate1);
+            String dvbsystem = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getSystem();
+            boolean isDvbs2 = ("DVBS2".equals(dvbsystem)) ? true:false;
+            dvbs2.setChecked(isDvbs2);
+            int freq = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getFreq();
+            frequency.setHint("" + freq);
+            String polarity = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getPolarity();
+            mSpinnerValue = polarity;
+            spinner.setSelection("H".equals(polarity) ? 0 : 1);
+            int symbol_rate = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getSymbol();
+            symbol.setHint("" + symbol_rate);
+            String fec_mode = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getFecMode();
+            fecmode.setSelection(getSpinnerIndex(fecmode, fec_mode));
+            String modulation = mParameterMananer.getDvbsParaManager().
+                    getSatelliteWrap().getTransponderByName(satellitename1, parameter).getModulation();
+            modulationmode.setSelection(getSpinnerIndex(modulationmode, modulation));
         }
+        satellite.setText(satellitename1);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -1188,35 +910,37 @@ public class CustomDialog/* extends AlertDialog*/ {
                 if (mDialogCallBack != null) {
                     Bundle bundle = new Bundle();
                     bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_ADD_TRANSPONDER);
+                    bundle.putString("key", ParameterMananer.KEY_EDIT_TRANSPONDER);
                     bundle.putString("button", "ok");
-                    String value1 = !TextUtils.isEmpty(satellite.getText()) ? satellite.getText().toString() : (satellite.getHint() != null ? satellite.getHint().toString() : "");
-                    String value2 = !TextUtils.isEmpty(frequency.getText()) ? frequency.getText().toString() : (frequency.getHint() != null ? frequency.getHint().toString() : "");
-                    String value4 = !TextUtils.isEmpty(symbol.getText()) ? symbol.getText().toString() : (symbol.getHint() != null ? symbol.getHint().toString() : "");
-                    if (TextUtils.isEmpty(value1) || TextUtils.isEmpty(value2) || TextUtils.isEmpty(value4)) {
+                    String sate_name = !TextUtils.isEmpty(satellite.getText()) ? satellite.getText().toString() : (satellite.getHint() != null ? satellite.getHint().toString() : "");
+                    String freq_edit_str = !TextUtils.isEmpty(frequency.getText()) ? frequency.getText().toString() : (frequency.getHint() != null ? frequency.getHint().toString() : "0");
+                    String symbol_edit_str = !TextUtils.isEmpty(symbol.getText()) ? symbol.getText().toString() : (symbol.getHint() != null ? symbol.getHint().toString() : "0");
+                    if (TextUtils.isEmpty(sate_name) || TextUtils.isEmpty(freq_edit_str) || TextUtils.isEmpty(symbol_edit_str)) {
                         Toast.makeText(mContext, R.string.dialog_parameter_not_complete, Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    bundle.putString("value1", value1);
-                    bundle.putString("value2", value2);
-                    bundle.putString("value3", mSpinnerValue != null ? mSpinnerValue : "");
-                    bundle.putString("value4", value4);
-
-                    String[] singleParameter = null;
-                    boolean needEdit = false;
-                    if (parameter != null) {
-                        singleParameter = parameter.split("/");
-                        if (singleParameter != null && singleParameter.length == 3) {
-                            needEdit = true;
-                        } else {
-                            Log.d(TAG, "initAddTransponderDialog delete fail as wrong format");
-                            return;
-                        }
+                    int freq_edit = 0;
+                    int symbol_edit = 0;
+                    try {
+                        freq_edit = Integer.parseInt(freq_edit_str);
+                        symbol_edit = Integer.parseInt(symbol_edit_str);
+                    } catch (Exception e) {
                     }
-                    if (needEdit) {
-                        bundle.putString("value5", singleParameter[0]);
-                        bundle.putString("value6", singleParameter[1]);
-                        bundle.putString("value7", singleParameter[2]);
+                    boolean isDvbs2 = dvbs2.isChecked();
+                    final String[] fecModes = mContext.getResources().getStringArray(R.array.fec_mode_entries);
+                    String fecMode = fecModes[fecmode.getSelectedItemPosition()];
+                    final String[] modulations = mContext.getResources().getStringArray(R.array.modulation_mode_entries);
+                    String modulation = modulations[fecmode.getSelectedItemPosition()];
+                    bundle.putString("satellite", sate_name);
+                    bundle.putString("oldName", parameter);
+                    bundle.putBoolean("system", isDvbs2);
+                    bundle.putInt("frequency", freq_edit);
+                    bundle.putString("polarity", mSpinnerValue != null ? mSpinnerValue : "");
+                    bundle.putInt("symbol", symbol_edit);
+                    bundle.putString("fec", fecMode);
+                    bundle.putString("modulation", modulation);
+
+                    if (parameter != null) {
                         mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_EDIT_TRANSPONDER, bundle);
                     } else {
                         mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_ADD_TRANSPONDER, bundle);
@@ -1230,35 +954,8 @@ public class CustomDialog/* extends AlertDialog*/ {
         cancel.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_ADD_TRANSPONDER);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", satellite.getText() != null ? satellite.getText().toString() : (satellite.getHint() != null ? satellite.getHint().toString() : ""));
-                    bundle.putString("value2", frequency.getText() != null ? frequency.getText().toString() : (frequency.getHint() != null ? frequency.getHint().toString() : ""));
-                    bundle.putString("value3", mSpinnerValue != null ? mSpinnerValue : "");
-                    bundle.putString("value4", symbol.getText() != null ? symbol.getText().toString() : (symbol.getHint() != null ? symbol.getHint().toString() : ""));
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_ADD_TRANSPONDER, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_ADD_TRANSPONDER);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", satellite.getText() != null ? satellite.getText().toString() : "");
-                    bundle.putString("value2", frequency.getText() != null ? frequency.getText().toString() : "");
-                    bundle.putString("value3", mSpinnerValue != null ? mSpinnerValue : "");
-                    bundle.putString("value4", symbol.getText() != null ? symbol.getText().toString() : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_ADD_TRANSPONDER, bundle);
+                if (mAlertDialog != null) {
+                    mAlertDialog.dismiss();
                 }
             }
         });
@@ -1284,21 +981,8 @@ public class CustomDialog/* extends AlertDialog*/ {
                     bundle.putString("action", "onClick");
                     bundle.putString("key", ParameterMananer.KEY_REMOVE_TRANSPONDER);
                     bundle.putString("button", "ok");
-                    //bundle.putString("value1", parameter != null ? parameter : "");
-                    String[] singleParameter = null;
-                    if (parameter != null) {
-                        singleParameter = parameter.split("/");
-                        if (singleParameter != null && singleParameter.length == 3) {
-                            bundle.putString("value2", singleParameter[0]);
-                            bundle.putString("value3", singleParameter[1]);
-                            bundle.putString("value4", singleParameter[2]);
-                        } else {
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                    bundle.putString("value1", mParameterMananer.getCurrentSatellite());
+                    bundle.putString("satellite", mParameterMananer.getDvbsParaManager().getCurrentSatellite());
+                    bundle.putString("transponder", parameter);
                     mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_REMOVE_TRANSPONDER, bundle);
                     if (mAlertDialog != null) {
                         mAlertDialog.dismiss();
@@ -1309,29 +993,8 @@ public class CustomDialog/* extends AlertDialog*/ {
         cancel.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onClick");
-                    bundle.putString("key", ParameterMananer.KEY_REMOVE_TRANSPONDER);
-                    bundle.putString("button", "cancel");
-                    bundle.putString("value1", parameter != null ? parameter : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_REMOVE_TRANSPONDER, bundle);
-                    if (mAlertDialog != null) {
-                        mAlertDialog.dismiss();
-                    }
-                }
-            }
-        });
-        mAlertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                if (mDialogCallBack != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("action", "onDismiss");
-                    bundle.putString("key", ParameterMananer.KEY_REMOVE_TRANSPONDER);
-                    bundle.putString("button", "unkown");
-                    bundle.putString("value1", parameter != null ? parameter : "");
-                    mDialogCallBack.onStatusChange(ok, ParameterMananer.KEY_REMOVE_TRANSPONDER, bundle);
+                if (mAlertDialog != null) {
+                    mAlertDialog.dismiss();
                 }
             }
         });

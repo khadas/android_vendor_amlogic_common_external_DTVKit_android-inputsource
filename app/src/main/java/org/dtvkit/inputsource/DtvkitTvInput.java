@@ -741,7 +741,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (mDataMananer.getIntParameters(DataMananer.DTVKIT_IMPORT_SATELLITE_FLAG) > 0) {
                 Log.d(TAG, "checkDtvkitSatelliteUpdateStatus has imported already");
             } else {
-                if (mParameterMananer.importDatabase(ConstantManager.DTVKIT_SATELLITE_DATA)) {
+                if (mParameterMananer.importSatellitesAndLnbs()) {
                     mDataMananer.saveIntParameters(DataMananer.DTVKIT_IMPORT_SATELLITE_FLAG, 1);
                 }
             }

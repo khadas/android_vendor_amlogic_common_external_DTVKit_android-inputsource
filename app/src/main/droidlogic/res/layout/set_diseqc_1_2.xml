@@ -22,7 +22,7 @@
     <com.droidlogic.fragment.dialog.DialogItemListView
         android:id="@+id/switch_edit_item_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="450dp" />
 
     <LinearLayout
         android:id="@+id/strength_container"

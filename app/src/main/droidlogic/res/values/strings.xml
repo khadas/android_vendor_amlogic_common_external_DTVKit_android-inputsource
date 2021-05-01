@@ -6,6 +6,7 @@
     <string name="title_dish_setup">DISH SETUP</string>
     <string name="list_type_satellite">Satellite</string>
     <string name="list_type_transponder">Transponder</string>
+    <string name="list_type_lnb">LNB</string>
     <string name="list_type_parameter">Parameters</string>
     <string name="dialog_saving">Saving</string>
     <string name="dialog_saving_wait">Please wait...</string>

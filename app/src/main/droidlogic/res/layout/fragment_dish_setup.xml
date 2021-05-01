@@ -180,6 +180,7 @@
             android:layout_marginBottom="10dp"
             android:orientation="horizontal"
             android:layout_weight="1"
+            android:visibility="invisible"
             android:weightSum="5">
 
             <TextView
@@ -218,6 +219,7 @@
             android:layout_marginBottom="10dp"
             android:orientation="horizontal"
             android:layout_weight="1"
+            android:visibility="invisible"
             android:weightSum="5">
 
             <TextView

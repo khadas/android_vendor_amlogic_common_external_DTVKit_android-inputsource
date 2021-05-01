@@ -37,18 +37,26 @@
             android:textColor="#B3EEEEEE"
             android:textSize="14sp" />
 
-        <EditText
+        <TextView
             android:id="@+id/edittext_satellite"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ems="10"
-            android:inputType="text"
             android:shadowColor="@android:color/white"
-            android:text=""
+            android:focusable="false"
             android:textColor="@android:color/black"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/dvbs2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:weightSum="2"
+        android:nextFocusDown="@+id/text_frequency"
+        android:text="@string/strDVBS2" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -133,6 +141,57 @@
             android:text=""
             android:textColor="@android:color/black"
             android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <TextView
+            android:id="@+id/fec_mode_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/strFecMode"
+            android:textColor="#B3EEEEEE"
+            android:textSize="14sp" />
+
+        <Spinner
+            android:id="@+id/fec_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/black"
+            android:entries="@array/fec_mode_entries"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/modulation_mode_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <TextView
+            android:id="@+id/modulation_mode_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/strModulationMode"
+            android:textColor="#B3EEEEEE"
+            android:textSize="14sp" />
+
+        <Spinner
+            android:id="@+id/modulation_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/black"
+            android:entries="@array/modulation_mode_entries"/>
     </LinearLayout>
 
     <LinearLayout

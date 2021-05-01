@@ -44,6 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:nextFocusDown="@+id/search_mode"
+        android:visibility="gone"
         android:text="@string/strDVBS2" />
 
     <LinearLayout
@@ -147,6 +148,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="left|center_vertical"
+        android:visibility="gone"
         android:orientation="horizontal" >
 
         <TextView
@@ -168,6 +170,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="left|center_vertical"
+        android:visibility="gone"
         android:orientation="horizontal" >
 
         <TextView

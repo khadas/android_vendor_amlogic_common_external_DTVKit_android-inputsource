@@ -2,11 +2,13 @@ package com.droidlogic.fragment.dialog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import java.util.List;
 import android.util.Log;
 import android.widget.AdapterView;
 import android.text.TextUtils;
 
 import com.droidlogic.fragment.ParameterMananer;
+import com.droidlogic.fragment.LnbWrap;
 
 public class DialogManager {
 
@@ -33,10 +35,11 @@ public class DialogManager {
         if (id > CustomDialog.ID_DIALOG_TITLE_COLLECTOR.length - 1 || id > ParameterMananer.ID_DIALOG_KEY_COLLECTOR.length - 1) {
             return null;
         }
+        List<Integer> lnbParaValues = mParameterMananer.getDvbsParaManager().getLnbParamsIntValue();
         if (TextUtils.equals(ParameterMananer.ID_DIALOG_KEY_COLLECTOR[id], ParameterMananer.KEY_UNICABLE_SWITCH)) {
-            customDialog.initListView(mContext.getString(CustomDialog.ID_DIALOG_TITLE_COLLECTOR[id]), ParameterMananer.KEY_UNICABLE, mParameterMananer.getIntParameters(ParameterMananer.ID_DIALOG_KEY_COLLECTOR[id]));
+            customDialog.initListView(mContext.getString(CustomDialog.ID_DIALOG_TITLE_COLLECTOR[id]), ParameterMananer.KEY_UNICABLE, lnbParaValues.get(id));
         } else {
-            customDialog.initListView(mContext.getString(CustomDialog.ID_DIALOG_TITLE_COLLECTOR[id]), ParameterMananer.ID_DIALOG_KEY_COLLECTOR[id], mParameterMananer.getIntParameters(ParameterMananer.ID_DIALOG_KEY_COLLECTOR[id]));
+            customDialog.initListView(mContext.getString(CustomDialog.ID_DIALOG_TITLE_COLLECTOR[id]), ParameterMananer.ID_DIALOG_KEY_COLLECTOR[id], lnbParaValues.get(id));
         }
         return customDialog;
     }
@@ -53,9 +56,9 @@ public class DialogManager {
         return customDialog;
     }*/
 
-    public CustomDialog buildDiseqc1_2_ItemDialog(DialogCallBack callBack) {
+    public CustomDialog buildDiseqc1_2_ItemDialog(boolean isDiseqc1_3, DialogCallBack callBack) {
         CustomDialog customDialog = new CustomDialog(mContext, CustomDialog.DIALOG_SET_EDIT_SWITCH_ITEM, callBack, mParameterMananer);
-        customDialog.initDiseqc1_2_ItemDialog();
+        customDialog.initDiseqc1_2_ItemDialog(isDiseqc1_3);
         return customDialog;
     }
 
