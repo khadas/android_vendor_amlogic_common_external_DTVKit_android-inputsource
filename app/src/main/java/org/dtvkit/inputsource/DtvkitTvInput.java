@@ -798,7 +798,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         mDtvkitTvInputSessionCount++;
         DtvkitTvInputSession session = new DtvkitTvInputSession(this);
         addTunerSession(session);
-        mSystemControlManager.SetDtvKitSourceEnable(1);
+        //mSystemControlManager.SetDtvKitSourceEnable(1);
         return session;
     }
 
@@ -2459,6 +2459,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             mSurface = null;
                             sendDoReleaseMessage();
                             writeSysFs("/sys/class/video/video_inuse", "0");
+                            mSystemControlManager.SetDtvKitSourceEnable(0);
                         }
                     } else {
                         if (mSurface != null && mSurface != surface) {
@@ -2472,6 +2473,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         //decoderRelease();
                         //sendSetSurfaceMessage(surface, mConfigs[0]);
                         mSurface = surface;
+                        mSystemControlManager.SetDtvKitSourceEnable(1);
                     }
                 }
                 //set surface to mediaplayer
@@ -2907,7 +2909,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             //creat ciMenuView,so we need destory and
             //unregist handle.
             //if (!getFeatureSupportFullPipFccArchitecture()) {
-                mSystemControlManager.SetDtvKitSourceEnable(0);
+                //mSystemControlManager.SetDtvKitSourceEnable(0);
                 releaseSignalHandler();
                 if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip) {
                     //release by message queue for current session
