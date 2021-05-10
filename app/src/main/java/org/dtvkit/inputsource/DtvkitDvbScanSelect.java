@@ -125,10 +125,11 @@ public class DtvkitDvbScanSelect extends Activity {
         dvbc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /*
                 if (mParameterMananer.checkIsGermanyCountry()) {
                     JSONArray operTypeList = mParameterMananer.getOperatorsTypeList(ParameterMananer.SIGNAL_QAM);
                     showOperatorTypeConfirmDialog(ParameterMananer.SIGNAL_QAM, mContext, operTypeList);
-                }
+                }*/
                 String pvrFlag = PvrStatusConfirmManager.read(DtvkitDvbScanSelect.this, PvrStatusConfirmManager.KEY_PVR_CLEAR_FLAG);
                 if (pvrStatus != null && PvrStatusConfirmManager.KEY_PVR_CLEAR_FLAG_FIRST.equals(pvrFlag)) {
                     intent.putExtra(ConstantManager.KEY_LIVETV_PVR_STATUS, pvrStatus);

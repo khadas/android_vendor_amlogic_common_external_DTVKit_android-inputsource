@@ -1868,7 +1868,7 @@ public class ParameterMananer {
     public boolean getAutomaticOrderingEnabled() {
         boolean result = false;
         try {
-            JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getGetAutomaticOrderingEnabled", new JSONArray());
+            JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.GetAutomaticOrderingEnabled", new JSONArray());
             if (obj != null) {
                 result = obj.getBoolean("data");
             } else {

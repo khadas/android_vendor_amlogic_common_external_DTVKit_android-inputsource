@@ -46,10 +46,37 @@
         android:layout_weight="5">
 
         <CheckBox
-            android:id="@+id/network"
+        android:id="@+id/network"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/strNetworkSearch" />
+
+        <CheckBox
+            android:id="@+id/lcnonoff"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/strNetworkSearch" />
+            android:visibility="gone"
+            android:text="@string/strLcnOnOff" />
+
+        <LinearLayout
+            android:id="@+id/public_search_mode_containner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/public_search_mode_text"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="@string/public_search_mode" />
+
+            <Spinner
+                android:id="@+id/public_search_mode_spinner"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:entries="@array/public_search_mode_entries" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/frequency_channel_container"
@@ -132,6 +159,45 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/dvbc_operator_containner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="@string/strOperator" />
+
+            <Spinner
+                android:id="@+id/dvbc_operator_spinner"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/dvbc_autoscantype_containner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="@string/strDvbcAutoScanType" />
+
+            <Spinner
+                android:id="@+id/dvbc_autoscantype_spinner"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:entries="@array/dvbc_scantype_entries" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/dvbc_mode_containner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -149,6 +215,48 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:entries="@array/dvbc_mode_entries" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/dvbc_newtworkid_containner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="@string/strDvbcNetworkId" />
+
+            <EditText
+                android:id="@+id/dvbc_networkid_edit"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:gravity="center"
+                android:inputType="number" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/dvbc_freqency_containner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:text="@string/search_frequency" />
+
+            <EditText
+                android:id="@+id/dvbc_freqency_edit"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:ems="10"
+                android:gravity="center" />
         </LinearLayout>
 
         <LinearLayout
@@ -170,26 +278,6 @@
                 android:ems="10"
                 android:gravity="center"
                 android:inputType="number" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/public_search_mode_containner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/public_search_mode_text"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:text="@string/public_search_mode" />
-
-            <Spinner
-                android:id="@+id/public_search_mode_spinner"
-                android:layout_width="300dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:entries="@array/public_search_mode_entries" />
         </LinearLayout>
 
         <LinearLayout

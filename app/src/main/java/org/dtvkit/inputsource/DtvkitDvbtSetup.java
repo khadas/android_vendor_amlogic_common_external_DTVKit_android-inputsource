@@ -66,6 +66,11 @@ public class DtvkitDvbtSetup extends Activity {
     private int mSearchDvbcDvbtType = -1;
     private PvrStatusConfirmManager mPvrStatusConfirmManager = null;
 
+    private AutoNumberEditText mDvbcNitAutoEdit = null;
+    private AutoNumberEditText mDvbcSymAutoEdit = null;
+    private AutoNumberEditText mDvbcFreqAutoEdit = null;
+    private String[] DVBC_AUTO_SCANTYPE = {"network", "quick", "full", "blind"};
+
     protected HandlerThread mHandlerThread = null;
     protected Handler mThreadHandler = null;
 
@@ -339,6 +344,15 @@ public class DtvkitDvbtSetup extends Activity {
         Spinner public_search_channel_name_spinner = (Spinner)findViewById(R.id.public_search_channel_spinner);
         Button search = (Button)findViewById(R.id.terrestrialstartsearch);
         CheckBox nit = (CheckBox)findViewById(R.id.network);
+        CheckBox checkBoxLcn = (CheckBox)findViewById(R.id.lcnonoff);
+        LinearLayout dvbc_operator_containner = (LinearLayout)findViewById(R.id.dvbc_operator_containner);
+        LinearLayout dvbc_autoscantype_containner = (LinearLayout)findViewById(R.id.dvbc_autoscantype_containner);
+        LinearLayout dvbc_networkid_containner = (LinearLayout)findViewById(R.id.dvbc_newtworkid_containner);
+        LinearLayout dvbc_frequency_containner = (LinearLayout) findViewById(R.id.dvbc_freqency_containner);
+        Spinner operator_spinner = (Spinner) findViewById(R.id.dvbc_operator_spinner);
+        Spinner dvbc_autoscantype_spinner = (Spinner) findViewById(R.id.dvbc_autoscantype_spinner);
+        EditText dvbc_networkid_editText = (EditText) findViewById(R.id.dvbc_networkid_edit);
+        EditText dvbc_frequency_editText = (EditText) findViewById(R.id.dvbc_freqency_edit);
 
         int isFrequencyMode = mDataMananer.getIntParameters(DataMananer.KEY_IS_FREQUENCY);
         if (isFrequencyMode == DataMananer.VALUE_FREQUENCY_MODE) {
@@ -358,15 +372,36 @@ public class DtvkitDvbtSetup extends Activity {
         public_search_mode_spinner.setSelection(value);
         nit.setChecked(mDataMananer.getIntParameters(DataMananer.KEY_NIT) == 1 ? true : false);
         if (DataMananer.VALUE_PUBLIC_SEARCH_MODE_AUTO == value) {
-            public_typein_containner.setVisibility(View.GONE);
+            if (mIsDvbt) {
+                dvbc_mode_containner.setVisibility(View.GONE);
+                dvbc_symbol_containner.setVisibility(View.GONE);
+                frequency_channel_container.setVisibility(View.GONE);
+                public_search_channel_name_containner.setVisibility(View.GONE);
+                nit.setVisibility(View.VISIBLE);
+            } else {
+                nit.setVisibility(View.GONE);
+                //dvbc_operator_containner.setVisibility(View.VISIBLE);
+                dvbc_autoscantype_containner.setVisibility(View.VISIBLE);
+                int autoScanTypePos = dvbc_autoscantype_spinner.getSelectedItemPosition();
+                int visibility = View.GONE;
+                if (autoScanTypePos < 2) {
+                    visibility = View.VISIBLE;
+                }
+                dvbc_mode_containner.setVisibility(visibility);
+                dvbc_mode_spinner.setSelection(getResources().getStringArray(R.array.dvbc_mode_entries).length - 1);
+                dvbc_networkid_containner.setVisibility(visibility);
+                dvbc_symbol_containner.setVisibility(visibility);
+                dvbc_frequency_containner.setVisibility(visibility);
+            }
+            checkBoxLcn.setVisibility(View.VISIBLE);
+            checkBoxLcn.setChecked(mParameterMananer.getAutomaticOrderingEnabled());
             dvbt_bandwidth_containner.setVisibility(View.GONE);
             dvbt_mode_containner.setVisibility(View.GONE);
             dvbt_type_containner.setVisibility(View.GONE);
-            dvbc_mode_containner.setVisibility(View.GONE);
-            dvbc_symbol_containner.setVisibility(View.GONE);
+            dvbc_operator_containner.setVisibility(View.GONE);
             frequency_channel_container.setVisibility(View.GONE);
             public_search_channel_name_containner.setVisibility(View.GONE);
-            nit.setVisibility(View.VISIBLE);
+            public_typein_containner.setVisibility(View.GONE);
             search.setText(R.string.strAutoSearch);
         } else {
             search.setText(R.string.strManualSearch);
@@ -397,8 +432,14 @@ public class DtvkitDvbtSetup extends Activity {
                 dvbc_symbol_containner.setVisibility(View.VISIBLE);
                 dvbc_mode_containner.setVisibility(View.VISIBLE);
                 dvbc_mode_spinner.setSelection(mDataMananer.getIntParameters(DataMananer.KEY_DVBC_MODE));
-                dvbc_symbol_edit.setText(mDataMananer.getIntParameters(DataMananer.KEY_DVBC_SYMBOL_RATE) + "");
+                //dvbc_symbol_edit.setText(mDataMananer.getIntParameters(DataMananer.KEY_DVBC_SYMBOL_RATE) + "");
             }
+            nit.setVisibility(View.VISIBLE);
+            checkBoxLcn.setVisibility(View.GONE);
+            dvbc_operator_containner.setVisibility(View.GONE);
+            dvbc_autoscantype_containner.setVisibility(View.GONE);
+            dvbc_networkid_containner.setVisibility(View.GONE);
+            dvbc_frequency_containner.setVisibility(View.GONE);
         }
         if (init) {//init one time
             dvbt_bandwidth_spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -513,7 +554,144 @@ public class DtvkitDvbtSetup extends Activity {
                     }
                 }
             });
+            checkBoxLcn.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    if (checkBoxLcn.isChecked()) {
+                        mParameterMananer.setAutomaticOrderingEnabled(true);
+                    } else {
+                        mParameterMananer.setAutomaticOrderingEnabled(false);
+                    }
+                }
+            });
+            if (!mIsDvbt) {
+                dvbc_autoscantype_spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        initOrUpdateView(false);
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+                try {
+                    InvalidEditInputListener listener = new InvalidEditInputListener() {
+                        @Override
+                        public void onInputInvalid() {
+                            Toast.makeText(DtvkitDvbtSetup.this, "Invalid input numbers!", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                    mDvbcNitAutoEdit = new AutoNumberEditText(dvbc_networkid_editText,
+                            0, 1, 99999, "", listener);
+                    mDvbcSymAutoEdit = new AutoNumberEditText(dvbc_symbol_edit,
+                            0, 1, 10000, "", listener);
+                    mDvbcFreqAutoEdit = new AutoNumberEditText(dvbc_frequency_editText,
+                            0, 44, 870, "MHz", listener);
+                } catch (Exception e) {
+                }
+                JSONArray operatorList = mParameterMananer.getOperatorsTypeList(ParameterMananer.SIGNAL_QAM);
+                List<String> operatorStrList = new ArrayList<>();
+                try {
+                    if (operatorList != null && operatorList.length() > 0) {
+                        for (int i = 0; i < operatorList.length(); i++) {
+                            JSONObject operator = (JSONObject) operatorList.get(i);
+                            if (operator != null) {
+                                String name = operator.optString("operators_name");
+                                if (!TextUtils.isEmpty(name)) {
+                                    operatorStrList.add(name);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                }
+                if (operatorStrList.size() > 0) {
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, operatorStrList);
+                    operator_spinner.setAdapter(adapter);
+                    operator_spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            updateDvbcOperator(i);
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+                        }
+                    });
+                }
+            }
         }
+        if (!mIsDvbt) {
+            if (DataMananer.VALUE_PUBLIC_SEARCH_MODE_AUTO == value) {
+                updateDvbcOperator(operator_spinner.getSelectedItemPosition());
+                if (operator_spinner.getAdapter() != null) {
+                    dvbc_operator_containner.setVisibility(View.VISIBLE);
+                }
+            } else {
+                mDvbcSymAutoEdit.updateDefault(mDataMananer.getIntParameters(DataMananer.KEY_DVBC_SYMBOL_RATE));
+            }
+        }
+    }
+
+    private void updateDvbcOperator(int index) {
+        JSONArray operatorList = mParameterMananer.getOperatorsTypeList(ParameterMananer.SIGNAL_QAM);
+        if (operatorList != null && operatorList.length() > index) {
+            JSONObject operator = operatorList.optJSONObject(index);
+            if (operator != null) {
+                int networkID = operator.optInt("Networkid", 0);
+                int symbolrate = operator.optInt("SymbolRate", 0);
+                int freq = operator.optInt("Freqency", 0);
+                freq = freq / 1000;
+                updateDvbcOperator(networkID, symbolrate, freq);
+            } else {
+                updateDvbcOperator(0, 0, 0);
+            }
+        }
+    }
+
+    private void updateDvbcOperator(int networkid, int symbolerate, int freq) {
+        if (mDvbcNitAutoEdit != null) {
+            mDvbcNitAutoEdit.updateDefault(networkid);
+        }
+        if (mDvbcSymAutoEdit != null) {
+            mDvbcSymAutoEdit.updateDefault(symbolerate);
+        }
+        if (mDvbcFreqAutoEdit != null) {
+            mDvbcFreqAutoEdit.updateDefault(freq);
+        }
+    }
+
+    private JSONArray initDvbcScanParamsEx() {
+        Spinner dvbc_autoscantype_spinner = (Spinner) findViewById(R.id.dvbc_autoscantype_spinner);
+        String scanType = DVBC_AUTO_SCANTYPE[dvbc_autoscantype_spinner.getSelectedItemPosition()];
+        Spinner operator_spinner = (Spinner) findViewById(R.id.dvbc_operator_spinner);
+        ArrayAdapter<String> operatorAdpater = (ArrayAdapter<String>) operator_spinner.getAdapter();
+        String operator = "";
+        if (operatorAdpater != null) {
+            operator = (String) operatorAdpater.getItem(operator_spinner.getSelectedItemPosition());
+        }
+
+        JSONArray array = new JSONArray();
+        array.put(scanType);
+        array.put(operator);
+        array.put(true);//retune, clear db
+        array.put(DataMananer.VALUE_DVBC_MODE_LIST[mDataMananer.getIntParameters(DataMananer.KEY_DVBC_MODE)]);
+        if (mDvbcNitAutoEdit != null) {
+            array.put(mDvbcNitAutoEdit.getValue());
+        } else {
+            array.put(0);
+        }
+        if (mDvbcFreqAutoEdit != null) {
+            array.put(mDvbcFreqAutoEdit.getValue() * 1000 *1000);//hz
+        } else {
+            array.put(0);
+        }
+        if (mDvbcSymAutoEdit != null) {
+            array.put(mDvbcSymAutoEdit.getValue());
+        } else {
+            array.put(0);
+        }
+        return array;
     }
 
     private void updateChannelNameContainer() {
@@ -686,8 +864,11 @@ public class DtvkitDvbtSetup extends Activity {
                     }
                     mSearchManualAutoType = DtvkitDvbScanSelect.SEARCH_TYPE_MANUAL;
                 } else {
-                    command = (mIsDvbt ? "Dvbt.startSearch" : "Dvbc.startSearch");
+                    command = (mIsDvbt ? "Dvbt.startSearch" : "Dvbc.startSearchEx");
                     mSearchManualAutoType = DtvkitDvbScanSelect.SEARCH_TYPE_AUTO;
+                    if (!mIsDvbt) {
+                        args = initDvbcScanParamsEx();
+                    }
                 }
                 if (mIsDvbt) {
                     mSearchDvbcDvbtType = DtvkitDvbScanSelect.SEARCH_TYPE_DVBT;
@@ -1368,4 +1549,94 @@ public class DtvkitDvbtSetup extends Activity {
             }
         }
     }*/
+
+    interface InvalidEditInputListener {
+        public void onInputInvalid();
+    }
+
+    class AutoNumberEditText {
+        private EditText mEditText;
+        private int mDefault;
+        private String mDefaultHint;
+        private int mMinNumber;
+        private int mMaxNumber;
+        private String mUnit = "";
+        private InvalidEditInputListener mListener;
+        public AutoNumberEditText(EditText editText, int defaultVal, int min, int max, String unit, InvalidEditInputListener listener) throws Exception {
+            if (editText != null) {
+                mEditText = editText;
+                if (defaultVal < min || defaultVal > max)
+                    defaultVal = 0;
+                if (min > max) {
+                    min = max - 1;
+                }
+                if (unit == null) {
+                    unit = "";
+                }
+                mDefault = defaultVal;
+                mMinNumber = min;
+                mMaxNumber = max;
+                mListener = listener;
+                mUnit = unit;
+                mDefaultHint = (defaultVal == 0) ? "Auto" : defaultVal + " " + unit;
+                editText.setHint(mDefaultHint);
+                editText.setText("");
+            } else {
+                throw new Exception("Cannot use null EditText here.");
+            }
+            mEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        mEditText.setHint("" + mMinNumber + "~" + mMaxNumber + " " + mUnit);
+                    } else {
+                        String strValue = mEditText.getText().toString();
+                        int value = mDefault;
+                        try {
+                            value = Integer.parseInt(strValue);
+                        } catch (Exception e) {
+                        }
+                        if (value > mMaxNumber || value < mMinNumber) {
+                            if (mListener != null && value != mDefault) {
+                                mListener.onInputInvalid();
+                            }
+                            mEditText.setHint(mDefaultHint);
+                            mEditText.setText("");
+                        }else {
+                            if (mDefault != value) {
+                                mEditText.setHint(strValue);
+                            } else {
+                                mEditText.setHint(mDefaultHint);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        public void updateDefault(int defaultVal) {
+            if (defaultVal < mMinNumber || defaultVal > mMaxNumber)
+                defaultVal = 0;
+            if (defaultVal != mDefault) {
+                mDefault = defaultVal;
+                mDefaultHint = (defaultVal == 0) ? "Auto" : defaultVal + " " + mUnit;
+            }
+            mEditText.setHint(mDefaultHint);
+            mEditText.setText("");
+        }
+        public int getValue() {
+            int ret = mDefault;
+            String strValue = mEditText.getText().toString();
+            if (TextUtils.isEmpty(strValue)) {
+                return ret;
+            }
+            try {
+                ret = Integer.parseInt(strValue);
+            } catch (Exception e) {
+            }
+            if (ret > mMaxNumber || ret < mMinNumber) {
+                ret = mDefault;
+            }
+            return ret;
+        }
+    }
 }

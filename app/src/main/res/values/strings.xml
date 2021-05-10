@@ -125,4 +125,10 @@
     <string name="tertiary_region">Tertiary Region</string>
     <string name="no_sub_regions">No sub-regions</string>
     <string name="target_region_country">Country</string>
+
+    <!-- other scan strings-->
+    <string name="strOperator">Operator</string>
+    <string name="strLcnOnOff">Lcn On</string>
+    <string name="strDvbcAutoScanType">Auto Scan Type</string>
+    <string name="strDvbcNetworkId">Network ID</string>
 </resources>
