@@ -271,6 +271,118 @@ public class DtvkitDvbsSetup extends Activity {
         }*/
         fecmode.setSelection(mDataMananer.getIntParameters(DataMananer.KEY_FEC_MODE));
         modulationmode.setSelection(mDataMananer.getIntParameters(DataMananer.KEY_MODULATION_MODE));
+        Spinner channelTypeSpinner = (Spinner) findViewById(R.id.channel_type);
+        channelTypeSpinner.setSelection(getCurrentChannelType());
+        channelTypeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                updateChannelType(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+        Spinner serviceTypeSpinner = (Spinner) findViewById(R.id.service_type);
+        serviceTypeSpinner.setSelection(getCurrentServiceType());
+        serviceTypeSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                updateServiceType(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+    }
+
+    private int getFilterServiceTypeInSearch() {
+        int ret = 0;
+        try {
+            JSONArray array = new JSONArray();
+            array.put(ParameterMananer.SIGNAL_QPSK);
+            JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.GetFilterServiceTypeInSearch", array);
+            if (obj != null) {
+                ret = obj.optInt("data", 0);
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Dvb.GetFilterServiceTypeInSearch failed");
+        }
+        return ret;
+    }
+
+    private void SetFilterServiceTypeInSearch(int type) {
+        if (type == 0x1f || type == 0x18 || type == 0x07) {
+            //filter all, just equals no filter
+            type = 0;
+        }
+        try {
+            JSONArray array = new JSONArray();
+            array.put(ParameterMananer.SIGNAL_QPSK);
+            array.put(type);
+            DtvkitGlueClient.getInstance().request("Dvb.SetFilterServiceTypeInSearch", array);
+        } catch (Exception e) {
+            Log.w(TAG, "Dvb.SetFilterServiceTypeInSearch failed");
+        }
+    }
+
+    /*
+    * Filter Type Free channel: 0x01
+    * Filter Type Scamble channel: 0x02
+    * Filter Type network :        0x04 //not support in ui now
+    * */
+    private int getCurrentChannelType() {
+        int ret = 0;//match ui type
+        int filterType = getFilterServiceTypeInSearch();
+        int channelType = filterType >> 3;
+        if ((channelType & 0x03) == 0x03 || channelType == 0) {
+            ret = 0;
+        } else {
+            ret = (channelType & 0x03);
+        }
+        return ret;
+    }
+
+    /*param range: 0 - 2*/
+    private void updateChannelType(int type) {
+        if (type == 0) {
+            type = 0x03;
+        }
+        int filterType = getFilterServiceTypeInSearch();
+        if ( type != 7 && filterType == 0) {
+            filterType = 0x1f;
+        }
+        SetFilterServiceTypeInSearch((filterType & 0x07) + (type << 3));
+    }
+
+    /*
+     * Filter Type service tv: 0x01
+     * Filter Type service radio: 0x02
+     * Filter Type service other : 0x04 //not support in ui now
+     * */
+    private int getCurrentServiceType() {
+        int ret = 0;
+        int filterType = getFilterServiceTypeInSearch();
+        int serviceType = filterType & 0x07;
+        if ((serviceType & 0x03) == 0x03 || serviceType == 0) {
+            ret = 0;
+        } else {
+            ret = (serviceType & 0x03);
+        }
+        return ret;
+    }
+
+    /*param range: 0 - 2*/
+    private void updateServiceType(int type) {
+        if (type == 0) {
+            type = 0x07;
+        }
+        int filterType = getFilterServiceTypeInSearch();
+        if ( type != 7 && filterType == 0) {
+            filterType = 0x1f;
+        }
+        SetFilterServiceTypeInSearch((filterType & 0x18) + type);
     }
 
     @Override

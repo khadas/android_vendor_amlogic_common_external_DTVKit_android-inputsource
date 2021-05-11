@@ -131,4 +131,6 @@
     <string name="strLcnOnOff">Lcn On</string>
     <string name="strDvbcAutoScanType">Auto Scan Type</string>
     <string name="strDvbcNetworkId">Network ID</string>
+    <string name="strChannelType">Channel Type</string>
+    <string name="strServiceType">Service Type</string>
 </resources>

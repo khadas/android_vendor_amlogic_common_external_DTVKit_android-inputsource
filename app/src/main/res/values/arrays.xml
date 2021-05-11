@@ -127,4 +127,16 @@
         <item>Channel Frequency</item>
         <item>Channel Number</item>
     </string-array>
+
+    <string-array name="dvbs_channel_type">
+        <item>All</item>
+        <item>Free</item>
+        <item>Scramble</item>
+    </string-array>
+
+    <string-array name="dvbs_service_type">
+        <item>All</item>
+        <item>DTV</item>
+        <item>Radio</item>
+    </string-array>
 </resources>
