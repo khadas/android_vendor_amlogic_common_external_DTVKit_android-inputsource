@@ -2911,7 +2911,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             //if (!getFeatureSupportFullPipFccArchitecture()) {
                 //mSystemControlManager.SetDtvKitSourceEnable(0);
                 releaseSignalHandler();
-                if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip) {
+                if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip || mSurface == null) {
                     //release by message queue for current session
                     if (mMainHandle != null) {
                         mMainHandle.sendMessageAtFrontOfQueue(mMainHandle.obtainMessage(MSG_MAIN_HANDLE_DESTROY_OVERLAY));
@@ -2997,13 +2997,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         private void releaseSignalHandler() {
+            Log.d(TAG, "releaseSignalHandler index = " + mCurrentDtvkitTvInputSessionIndex);
             DtvkitGlueClient.getInstance().unregisterSignalHandler(mHandler);
         }
 
         private void sendDoReleaseMessage() {
             if (mHandlerThreadHandle != null) {
                 boolean result = mHandlerThreadHandle.sendMessage(mHandlerThreadHandle.obtainMessage(MSG_DO_RELEASE));
-                Log.d(TAG, "sendDoReleaseMessage status = " + result);
+                Log.d(TAG, "sendDoReleaseMessage status = " + result + " index = " + mCurrentDtvkitTvInputSessionIndex);
             } else {
                 Log.d(TAG, "sendDoReleaseMessage null mHandlerThreadHandle");
             }
@@ -3013,7 +3014,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (mHandlerThreadHandle != null) {
                 boolean result = mHandlerThreadHandle.sendMessage(mHandlerThreadHandle.obtainMessage(MSG_DO_RELEASE_SPECIFIELD_SESSION,
                         needKeep ? 1 : 0, needUpdate ? 1 : 0, session));
-                Log.d(TAG, "sendDoReleaseSpecifiedSessionMessage status = " + result);
+                Log.d(TAG, "sendDoReleaseSpecifiedSessionMessage status = " + result + " index = " + mCurrentDtvkitTvInputSessionIndex);
             } else {
                 Log.d(TAG, "sendDoReleaseSpecifiedSessionMessage null mHandlerThreadHandle");
             }
@@ -3021,7 +3022,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
         private void doReleaseSpecifiedSession(DtvkitTvInputSession session, boolean needKeep, boolean needUpdate) {
             if (session != null) {
-                Log.d(TAG, "doReleaseSpecifiedSession");
+                Log.d(TAG, "doReleaseSpecifiedSession index = " + mCurrentDtvkitTvInputSessionIndex);
                 session.doRelease(needKeep, needUpdate);
             } else {
                 Log.d(TAG, "doReleaseSpecifiedSession null session");
