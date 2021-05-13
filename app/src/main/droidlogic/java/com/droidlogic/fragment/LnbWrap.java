@@ -179,7 +179,7 @@ public class LnbWrap {
     public class Unicable {
         private boolean onOff = false;
         private int channel = 0;
-        private int band_freq = 0;
+        private int band_freq = 1284;
         private boolean isPostionB = false;
         private Lnb mLnb = null;
 
@@ -196,6 +196,10 @@ public class LnbWrap {
                     isPostionB = (boolean)(json.get("unicable_position_b"));
                 }
             } catch (Exception e) {
+            }
+            if (channel == 65535 || band_freq == 65535) {
+                channel = 0;
+                band_freq = 1284;
             }
         }
 
@@ -239,9 +243,10 @@ public class LnbWrap {
             return true;
         }
 
-        public boolean editUnicableChannel(int channel) {
+        public boolean editUnicableChannel(int channel, int freq) {
             if (this.channel != channel) {
                 this.channel = channel;
+                this.band_freq = freq;
                 mLnb.updateToDtvkit();
                 return true;
             }

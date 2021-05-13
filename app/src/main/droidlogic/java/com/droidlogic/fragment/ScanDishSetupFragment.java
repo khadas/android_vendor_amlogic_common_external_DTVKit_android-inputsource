@@ -450,7 +450,8 @@ public class ScanDishSetupFragment extends Fragment {
                         }
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getUnicable()
-                                .editUnicableChannel(updateChannel);
+                                .editUnicableChannel(updateChannel,
+                                        CustomDialog.DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST[updateChannel]);
                     }
                     if (mCurrentCustomDialog != null) {
                         mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
