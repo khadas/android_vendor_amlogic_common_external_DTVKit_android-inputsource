@@ -84,6 +84,7 @@ public final class Channel {
     public static final String KEY_CHANNEL_PROFILE_SELECTABLE = "profile_selectable";
     public static final String KEY_CHANNEL_CI_TUNE_QUIETLY = "tune_quietly";
     public static final String KEY_CHANNEL_CI_PROFILE_VERSION = "profile_ver";
+    public static final String KEY_CHANNEL_CI_VIRTUAL_CHANNEL = "is_virtual_channel";
 
     private String mVideoCodec;
 

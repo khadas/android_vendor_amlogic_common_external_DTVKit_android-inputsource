@@ -874,7 +874,7 @@ public class TvContractUtils {
         boolean result = defaultVal;
         try {
             if (channel != null) {
-                result = (boolean)channel.getInternalProviderData().get(key);
+                result = Boolean.valueOf((String)channel.getInternalProviderData().get(key));
             }
         } catch(Exception e) {
             Log.i(TAG, "getBooleanFromChannelInternalProviderData Exception " + e.getMessage());
@@ -886,7 +886,7 @@ public class TvContractUtils {
         int result = defaultVal;
         try {
             if (channel != null) {
-                result = (int)channel.getInternalProviderData().get(key);
+                result = Integer.valueOf((String)channel.getInternalProviderData().get(key));
             }
         } catch(Exception e) {
             Log.i(TAG, "getIntFromChannelInternalProviderData Exception " + e.getMessage());

@@ -65,25 +65,32 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put("video_codec", service.getString("video_codec"));
                 data.put("is_data", service.getBoolean("is_data"));
                 data.put("channel_signal_type", service.getString("sig_name"));
-                if (PropSettingManager.getBoolean(PropSettingManager.CI_PROFILE_ADD_TEST, false) && (i % 3 != 0)) {
-                    int countFlag = i % 3;
-                    data.put("ci_number", "ci_number" + countFlag);
+                if (PropSettingManager.getBoolean(PropSettingManager.CI_PROFILE_ADD_TEST, false) && (i % 4 != 0)) {
+                    int countFlag = i % 4;
+                    data.put("ci_number", countFlag);
                     data.put("profile_name", "profile_name" + countFlag);
                     data.put("slot_id", "slot_id" + countFlag);
                     data.put("tune_quietly", 0);
                     if (countFlag == 1) {
-                        data.put("profile_ver", "v1");
-                        if (i < 3) {
-                            data.put("profile_selectable", "false");
+                        if (i < 4) {
+                            data.put("is_virtual_channel", true);
                         } else {
-                            data.put("profile_selectable", "true");
+                            data.put("is_virtual_channel", false);
                         }
+                        data.put("profile_selectable", "true");
                     } else if (countFlag == 2) {
-                        data.put("profile_ver", "v2");
-                        if (i < 3) {
-                            data.put("profile_selectable", "false");
-                        } else {
+                        data.put("profile_ver", "v1");
+                        if (i < 4) {
                             data.put("profile_selectable", "true");
+                        } else {
+                            data.put("profile_selectable", "false");
+                        }
+                    } else if (countFlag == 3) {
+                        data.put("profile_ver", "v2");
+                        if (i < 4) {
+                            data.put("profile_selectable", "true");
+                        } else {
+                            data.put("profile_selectable", "false");
                         }
                     }
                 } else {
@@ -93,6 +100,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                     tryToPutStringToInternalProviderData(data, "slot_id", service, "slot_id");
                     tryToPutIntToInternalProviderData(data, "tune_quietly", service, "tune_quietly");
                     tryToPutStringToInternalProviderData(data, "profile_ver", service, "profile_ver");
+                    tryToPutBooleanToInternalProviderData(data, "is_virtual_channel", service, "is_virtual_channel");
                 }
                 channels.add(new Channel.Builder()
                         .setDisplayName(service.getString("name"))
@@ -352,6 +360,19 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 result = true;
             } catch (Exception e) {
                 Log.e(TAG, "tryToPutIntToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    private boolean tryToPutBooleanToInternalProviderData(InternalProviderData data, String key1, JSONObject obj, String key2) {
+        boolean result = false;
+        if (data != null && obj != null && key1 != null && key2 != null) {
+            try {
+                data.put(key1, obj.getBoolean(key2));
+                result = true;
+            } catch (Exception e) {
+                Log.e(TAG, "tryToPutBooleanToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
             }
         }
         return result;

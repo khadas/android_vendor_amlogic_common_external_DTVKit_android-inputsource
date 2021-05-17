@@ -2760,7 +2760,17 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
 
             Channel tunedChannel  = getChannel(channelUri);
-            final String dvbUri = getChannelInternalDvbUri(tunedChannel);
+            String dvbUri = null;
+            boolean isVirtual = false;
+            if (tunedChannel != null) {
+                isVirtual = TvContractUtils.getBooleanFromChannelInternalProviderData(tunedChannel, Channel.KEY_CHANNEL_CI_VIRTUAL_CHANNEL, false);
+                //Log.d(TAG, "onTuneByHandlerThreadHandle isVirtual = " + isVirtual + ", getInternalProviderData = " + tunedChannel.getInternalProviderData());
+            }
+            if (isVirtual) {
+                dvbUri = "vc://" + TvContractUtils.getStringFromChannelInternalProviderData(tunedChannel, Channel.KEY_CHANNEL_CI_NUMBER, null);
+            } else {
+                dvbUri = getChannelInternalDvbUri(tunedChannel);
+            }
             boolean mainMuteStatus = false;
             notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_TUNING);
 
