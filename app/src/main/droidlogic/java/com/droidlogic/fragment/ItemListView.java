@@ -420,7 +420,13 @@ public class ItemListView extends ListView implements OnItemSelectedListener {
     private String switchListType(String leftListType) {
         String result = null;
         if (ITEM_SATALLITE.equals(leftListType)) {
-            result = ITEM_TRANSPONDER;
+            ItemDetail item = (ItemDetail)getAdapter().getItem(getSelectedItemPosition());
+            if (item.getEditStatus() != ItemDetail.SELECT_EDIT) {
+                result = null;
+            } else {
+                mParameterMananer.getDvbsParaManager().setCurrentSatellite(item.getFirstText());
+                result = ITEM_TRANSPONDER;
+            }
         } else if (ITEM_TRANSPONDER.equals(leftListType)) {
             result = ITEM_SATALLITE;
         }

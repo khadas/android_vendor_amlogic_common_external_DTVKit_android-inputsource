@@ -242,6 +242,8 @@ public class ScanDishSetupFragment extends Fragment {
         mListViewItem.setOnItemSelectedListener(mListViewItem);
         initStrengthQualityUpdate();
 
+        mParameterMananer.getUbFreqs();
+
         return rootView;
     }
 
@@ -360,6 +362,33 @@ public class ScanDishSetupFragment extends Fragment {
             Log.d(TAG, "onStatusChange parameterKey = " + parameterKey + ", data = " + data);
             String lnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
             switch (parameterKey) {
+                case ParameterMananer.KEY_SATALLITE:
+                case ParameterMananer.KEY_TRANSPONDER: {
+                    int position = data.getInt("position");
+                    if ("selected".equals(data.getString("action"))) {
+                        if (parameterKey == ParameterMananer.KEY_SATALLITE) {
+                            List<String> sates = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
+                            String testSatellite = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
+                            if (!testSatellite.equals(sates.get(position))) {
+                                mParameterMananer.getDvbsParaManager().setCurrentSatellite(sates.get(position));
+                                startTune();
+                            }
+                        } else {
+                            LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList();
+                            String testTp = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
+                            if (!testTp.equals(tps.get(position).getFirstText())) {
+                                mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(position).getFirstText());
+                                startTune();
+                            }
+                        }
+                    }
+                    if (mCurrentCustomDialog != null) {
+                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                mCurrentCustomDialog.getDialogKey(), position);
+                    }
+                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                    break;
+                }
                 case ParameterMananer.KEY_LNB_TYPE:
                     if (data != null && "selected".equals(data.getString("action"))) {
                         int lnbType = data.getInt("position");
@@ -376,15 +405,6 @@ public class ScanDishSetupFragment extends Fragment {
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                     .editLnb22Khz(true);
                         }
-                        if (lnbType == 0 || lnbType == 1) {
-                            mParameterMananer.getDvbsParaManager()
-                                    .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                    .editLnbPower(false);
-                        } else if (lnbType == 3) {
-                            mParameterMananer.getDvbsParaManager()
-                                    .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                    .editLnbPower(true);
-                        }
                         if (mCurrentCustomDialog != null && TextUtils.equals(parameterKey, mCurrentCustomDialog.getDialogKey())) {
                             mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(), mCurrentCustomDialog.getDialogKey(), data.getInt("position"));
                             //mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
@@ -396,6 +416,7 @@ public class ScanDishSetupFragment extends Fragment {
                             }
                         }
                         mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
                     break;
                 case ParameterMananer.KEY_LNB_CUSTOM:
@@ -411,6 +432,7 @@ public class ScanDishSetupFragment extends Fragment {
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                     .updateLnbTypeFreq(lowMin, lowMax, lowLocal, highMin, highMax, highLocal);
+                            startTune();
                         } else if ("cancel".equals(data.getString("button"))) {
                             Log.d(TAG, "cancel in clicked");
                         }
@@ -421,14 +443,17 @@ public class ScanDishSetupFragment extends Fragment {
                     int unicable_position = data.getInt("position");
                     boolean isLeftAction = "left".equals(data.getString("action"));
                     boolean isRightAction = "right".equals(data.getString("action"));
+                    boolean isSelectAction = "selected".equals(data.getString("action"));
                     if (unicable_position == 0 && (isLeftAction || isRightAction)) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getUnicable()
                                 .switchUnicable();
+                        startTune();
                     } else if (unicable_position == 3 && (isLeftAction || isRightAction)) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getUnicable()
                                 .switchUnicablePosition();
+                        startTune();
                     } else if (unicable_position == 1 && (isLeftAction || isRightAction)) {
                         int min = 0;
                         int max = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_BAND.length - 1;
@@ -441,7 +466,6 @@ public class ScanDishSetupFragment extends Fragment {
                                 updateChannel = max;
                             }
                         } else {
-                            //right and select has same behavior
                             if (updateChannel < max) {
                                 updateChannel ++;
                             } else {
@@ -451,7 +475,40 @@ public class ScanDishSetupFragment extends Fragment {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getUnicable()
                                 .editUnicableChannel(updateChannel,
-                                        CustomDialog.DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST[updateChannel]);
+                                        mParameterMananer.getDvbsParaManager().getUbFrequency(updateChannel));
+                        startTune();
+                    } else if (unicable_position == 2 && (isLeftAction || isRightAction || isSelectAction)) {
+                        int channel = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable_chan");
+                        int freq = mParameterMananer.getDvbsParaManager().getUbFrequency(channel);
+                        int min = 950;
+                        int max = 2150;
+                        if (isLeftAction) {
+                            if (freq > min) {
+                                freq --;
+                            } else {
+                                freq = max;
+                            }
+                        } else if (isRightAction){
+                            if (freq < max) {
+                                freq ++;
+                            } else {
+                                freq = min;
+                            }
+                        } else {
+                            if (freq < max) {
+                                freq += 100;
+                                if (freq > max) {
+                                    freq = max;
+                                }
+                            } else {
+                                freq = min;
+                            }
+                        }
+                        mParameterMananer.getDvbsParaManager().setUbFrequency(channel, freq);
+                        mParameterMananer.getDvbsParaManager()
+                                .getLnbWrap().getLnbById(lnb).getUnicable()
+                                .editUnicableChannel(channel, freq);
+                        startTune();
                     }
                     if (mCurrentCustomDialog != null) {
                         mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
@@ -466,83 +523,88 @@ public class ScanDishSetupFragment extends Fragment {
                     int position = data.getInt("position");
                     int lnbType = mParameterMananer.getDvbsParaManager()
                             .getLnbWrap().getLnbById(lnb).getLnbInfo().getType();
-                    if (lnbType == 3 /*user defined*/ && "focused".equals(data.getString("action"))) {
+                    if ("selected".equals(data.getString("action"))) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                 .editLnbPower((position > 0) ? true : false);
+                        if (mCurrentCustomDialog != null) {
+                            mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                    mCurrentCustomDialog.getDialogKey(), position);
+                        }
+                        mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
-                    if (mCurrentCustomDialog != null) {
-                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
-                                mCurrentCustomDialog.getDialogKey(), position);
-                    }
-                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                     break;
                 }
                 case ParameterMananer.KEY_22_KHZ: {
                     int position = data.getInt("position");
                     int lnbType = mParameterMananer.getDvbsParaManager()
                             .getLnbWrap().getLnbById(lnb).getLnbInfo().getType();
-                    if (lnbType == 3 /*user defined*/ && "focused".equals(data.getString("action"))) {
+                    if ("selected".equals(data.getString("action"))) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                 .editLnb22Khz((position > 0) ? true : false);
+                        if (mCurrentCustomDialog != null) {
+                            mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                    mCurrentCustomDialog.getDialogKey(), position);
+                        }
+                        mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
-                    if (mCurrentCustomDialog != null) {
-                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
-                                mCurrentCustomDialog.getDialogKey(), position);
-                    }
-                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                     break;
                 }
                 case ParameterMananer.KEY_TONE_BURST: {
                     int position = data.getInt("position");
-                    if ("focused".equals(data.getString("action"))) {
+                    if ("selected".equals(data.getString("action"))) {
                         if (position > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_TONE_BURST_LIST.length - 1)) {
                             position = 0;
                         }
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb)
                                 .editToneBurst(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_TONE_BURST_LIST[position]);
+                        if (mCurrentCustomDialog != null) {
+                            mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                    mCurrentCustomDialog.getDialogKey(), position);
+                        }
+                        mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
-                    if (mCurrentCustomDialog != null) {
-                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
-                                mCurrentCustomDialog.getDialogKey(), position);
-                    }
-                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                     break;
                 }
                 case ParameterMananer.KEY_DISEQC1_0: {
                     int position = data.getInt("position");
-                    if ("focused".equals(data.getString("action"))) {
+                    if ("selected".equals(data.getString("action"))) {
                         if (position > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_0_LIST.length - 1)) {
                             position = 0;
                         }
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb)
                                 .editCswitch(position);
+                        if (mCurrentCustomDialog != null) {
+                            mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                    mCurrentCustomDialog.getDialogKey(), position);
+                        }
+                        mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
-                    if (mCurrentCustomDialog != null) {
-                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
-                                mCurrentCustomDialog.getDialogKey(), position);
-                    }
-                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                     break;
                 }
                 case ParameterMananer.KEY_DISEQC1_1: {
                     int position = data.getInt("position");
-                    if ("focused".equals(data.getString("action"))) {
+                    if ("selected".equals(data.getString("action"))) {
                         if (position > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_1_LIST.length - 1)) {
                             position = 0;
                         }
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb)
                                 .editUswitch(position);
+                        if (mCurrentCustomDialog != null) {
+                            mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
+                                    mCurrentCustomDialog.getDialogKey(), position);
+                        }
+                        mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
-                    if (mCurrentCustomDialog != null) {
-                        mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
-                                mCurrentCustomDialog.getDialogKey(), position);
-                    }
-                    mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                     break;
                 }
                 case ParameterMananer.KEY_MOTOR:
@@ -553,13 +615,19 @@ public class ScanDishSetupFragment extends Fragment {
                             if (data.getInt("position") == 2) {
                                 isDiseqc1_3 = true;
                             }
-                            mCurrentSubCustomDialog = mDialogManager.buildDiseqc1_2_ItemDialog(isDiseqc1_3, mSingleSelectDialogCallBack);
-                            if (mCurrentSubCustomDialog != null) {
-                                mCurrentSubCustomDialog.showDialog();
+                            String testSatellite = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
+                            if (!TextUtils.isEmpty(testSatellite)) {
+                                mCurrentSubCustomDialog = mDialogManager.buildDiseqc1_2_ItemDialog(isDiseqc1_3, mSingleSelectDialogCallBack);
+                                if (mCurrentSubCustomDialog != null) {
+                                    mCurrentSubCustomDialog.showDialog();
+                                }
+                            } else {
+                                Toast.makeText(getContext(), "Please select one satellite for diseqc setup", Toast.LENGTH_SHORT).show();
                             }
                         }
                         mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(), mCurrentCustomDialog.getDialogKey(), data.getInt("position"));
                         mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                        startTune();
                     }
                     break;
                 case ParameterMananer.KEY_DISEQC1_2: {
@@ -581,27 +649,21 @@ public class ScanDishSetupFragment extends Fragment {
                                 break;
                             }
                             case 9: /*save to position*/ {
-                                List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                                int sateIdex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                                String sateName = satelist.get(sateIdex);
+                                String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                                 int dishPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
                                 mParameterMananer.getDvbsParaManager().getSatelliteWrap().editDishPos(sateName, dishPos);
                                 mParameterMananer.storeDishPosition(dishPos);
                                 break;
                             }
                             case 10: /*move to position*/ {
-                                List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                                int sateIdex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                                String sateName = satelist.get(sateIdex);
+                                String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                                 int dishPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
                                 mParameterMananer.getDvbsParaManager().getSatelliteWrap().editDishPos(sateName, dishPos);
                                 mParameterMananer.moveDishToPosition(dishPos);
                                 break;
                             }
                             case 16: /*gotoxx*/ {
-                                List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                                int sateIdex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                                String sateName = satelist.get(sateIdex);
+                                String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                                 int locationIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
                                 boolean locationIsEast = mParameterMananer.getDvbsParaManager().getLnbWrap()
                                         .getLocationInfoByIndex(locationIndex).isLongitudeEast();
@@ -625,7 +687,7 @@ public class ScanDishSetupFragment extends Fragment {
                             case 0: /*satellite*/ {
                                 List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
                                 int indexMax = satelist.size() - 1;
-                                int sateIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
+                                int sateIndex = mParameterMananer.getDvbsParaManager().getCurrentSatelliteIndex(true);
                                 if ("left".equals(data.getString("action"))) {
                                     if (sateIndex != 0) {
                                         sateIndex = sateIndex - 1;
@@ -639,18 +701,18 @@ public class ScanDishSetupFragment extends Fragment {
                                         sateIndex = 0;
                                     }
                                 }
-                                mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("sate_index", sateIndex);
+                                mParameterMananer.getDvbsParaManager().setCurrentSatellite(satelist.get(sateIndex));
                                 int dish_Pos = mParameterMananer.getDvbsParaManager()
                                         .getSatelliteWrap().getSatelliteByName(satelist.get(sateIndex)).getDishPos();
                                 mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_pos", dish_Pos);
+                                mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                                startTune();
                                 break;
                             }
                             case 1: /*transponder*/ {
-                                int sateIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                                List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                                String sateName = satelist.get(sateIndex);
+                                String sateName =  mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                                 LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList(sateName);
-                                int tpIndx = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("tp_index");
+                                int tpIndx = mParameterMananer.getDvbsParaManager().getCurrentTransponderIndex();
                                 int indexMax = tps.size() - 1;
                                 if ("left".equals(data.getString("action"))) {
                                     if (tpIndx != 0) {
@@ -665,7 +727,8 @@ public class ScanDishSetupFragment extends Fragment {
                                         tpIndx = 0;
                                     }
                                 }
-                                mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("tp_index", tpIndx);
+                                mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(tpIndx).getFirstText());
+                                mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                                 startTune();
                                 break;
                             }
@@ -841,10 +904,10 @@ public class ScanDishSetupFragment extends Fragment {
                                 if (ItemListView.ITEM_SATALLITE.equals(data.getString("listtype"))) {
                                     mCurrentCustomDialog = mDialogManager.buildAddSatelliteDialogDialog(data.getString("parameter"), mSingleSelectDialogCallBack);
                                 } else if (ItemListView.ITEM_TRANSPONDER.equals(data.getString("listtype"))) {
-                                    String currentTransponder = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
-                                    mCurrentCustomDialog = mDialogManager.buildAddTransponderDialogDialog(currentTransponder, mSingleSelectDialogCallBack);
+                                    mCurrentCustomDialog = mDialogManager.buildAddTransponderDialogDialog(data.getString("parameter"), mSingleSelectDialogCallBack);
                                 } else {
-                                    Log.d(TAG, "not sure");
+                                    //lnb list
+                                    switchtoRightList();
                                     mCurrentCustomDialog = null;
                                 }
                                 if (mCurrentCustomDialog != null) {
@@ -857,6 +920,10 @@ public class ScanDishSetupFragment extends Fragment {
                                 } else if (ItemListView.ITEM_TRANSPONDER.equals(data.getString("listtype"))) {
                                     mCurrentCustomDialog = mDialogManager.buildRemoveTransponderDialogDialog(data.getString("parameter"), mSingleSelectDialogCallBack);
                                 } else if (ItemListView.ITEM_LNB.equals(data.getString("listtype"))) {
+                                    if (mParameterMananer.getDvbsParaManager().getLnbIdList().size() < 2) {
+                                        Toast.makeText(getContext(), "Cannot remove all lnbs", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    }
                                     String focusedLnb = mParameterMananer.getDvbsParaManager().getCurrentFocusedLnbId();
                                     String selectedLnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
                                     mParameterMananer.getDvbsParaManager().getLnbWrap().removeLnb(focusedLnb);
@@ -866,6 +933,7 @@ public class ScanDishSetupFragment extends Fragment {
                                         if (selectedLnb != null && selectedLnb.equals(focusedLnb)) {
                                             //select first lnb
                                             mParameterMananer.getDvbsParaManager().setCurrentLnbId(lnbs.get(0).getFirstText());
+                                            startTune();
                                         } else {
                                             int selection = mListViewItem.getSelectedItemPosition();
                                             if (selection < lnbs.size()) {
@@ -875,9 +943,11 @@ public class ScanDishSetupFragment extends Fragment {
                                                 }
                                             }
                                         }
+                                        mCurrentCustomDialog = null;
                                     } else {
                                         mParameterMananer.getDvbsParaManager().setCurrentLnbId("");
                                         mParameterMananer.getDvbsParaManager().setCurrentFocusedLnbId("");
+                                        stopTune();
                                     }
                                     mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                                     mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
@@ -918,6 +988,7 @@ public class ScanDishSetupFragment extends Fragment {
                             mParameterMananer.getDvbsParaManager().setCurrentSatellite(new_name_edit);
                             mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                             mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                            startTune();
                         } else {
                             mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                         }
@@ -937,7 +1008,10 @@ public class ScanDishSetupFragment extends Fragment {
                         }
                         //Log.d(TAG, "KEY_REMOVE_SATELLITE = " + mParameterMananer.getCurrentSatellite());
                         if (TextUtils.equals(name_remove, mParameterMananer.getDvbsParaManager().getCurrentSatellite())) {
+                            mParameterMananer.getDvbsParaManager().setCurrentSatellite("");
+                            mParameterMananer.getDvbsParaManager().setCurrentTransponder("");
                             mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                            stopTune();
                         }
                         if (mListViewItem.getSelectedView() != null) {
                             mListViewItem.cleanChoosed();
@@ -968,8 +1042,13 @@ public class ScanDishSetupFragment extends Fragment {
                                     .editTransponder(name_edit_t, oldName, new_frequency_edit_t,
                                             new_polarity_edit_t, new_symbol_edit_t, isDvbs2,
                                             new_modulation_edit_t, new_fec_edit_t, "auto");
-                            mParameterMananer.getDvbsParaManager()
-                                    .setCurrentTransponder(new_frequency_edit_t + new_polarity_edit_t + new_symbol_edit_t);
+                            String testTransponder = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
+                            if (testTransponder.equals(oldName)) {
+                                mParameterMananer.getDvbsParaManager()
+                                        .setCurrentTransponder(new_frequency_edit_t + new_polarity_edit_t + new_symbol_edit_t);
+                                mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                                startTune();
+                            }
                         }
                         mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                     }
@@ -991,6 +1070,12 @@ public class ScanDishSetupFragment extends Fragment {
                         if (mListViewItem.getSelectedView() != null) {
                             mListViewItem.cleanChoosed();
                             mListViewItem.setChoosed(mListViewItem.getSelectedView());
+                        }
+                        String testTransponder = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
+                        if (testTransponder.equals(tpName_remove_t)) {
+                            mParameterMananer.getDvbsParaManager().setCurrentTransponder("");
+                            mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                            stopTune();
                         }
                         mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                     }
@@ -1026,6 +1111,7 @@ public class ScanDishSetupFragment extends Fragment {
         Log.d(TAG, "stopAndRelease");
         abortStrengthQualityUpdate();
         stopTune();
+        mParameterMananer.saveUbFreqs();
         mParameterMananer.getDvbsParaManager().resetSelections();
         releaseMessage();
     }
@@ -1057,6 +1143,20 @@ public class ScanDishSetupFragment extends Fragment {
         }
     }
 
+    private void switchtoRightList() {
+        if (ItemListView.LIST_LEFT.equals(mCurrentListFocus)) {
+            mCurrentListFocus = ItemListView.LIST_RIGHT;
+        }
+        if (ItemListView.LIST_RIGHT.equals(mCurrentListFocus)) {
+            mListViewItem.cleanChoosed();
+            mListViewOption.requestFocus();
+            mListViewOption.setChoosed(mListViewOption.getSelectedView());
+            creatConfirmandExit1();
+            creatSatelliteandScan2();
+            mParameterMananer.getDvbsParaManager().setCurrentListDirection("right");
+        }
+    }
+
     ListItemSelectedListener mListItemSelectedListener = new ListItemSelectedListener() {
 
         @Override
@@ -1066,6 +1166,7 @@ public class ScanDishSetupFragment extends Fragment {
                 String listtype = mParameterMananer.getDvbsParaManager().getCurrentListType();
                 if (ItemListView.ITEM_SATALLITE.equals(listtype)) {
                     LinkedList<ItemDetail> sateAllList = mParameterMananer.getDvbsParaManager().getSatelliteNameList();
+                    String testSatellite = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                     String selectedSatellite = "";
                     if (sateAllList != null && sateAllList.size() > 0) {
                         selectedSatellite = sateAllList.get(position).getFirstText();
@@ -1073,6 +1174,10 @@ public class ScanDishSetupFragment extends Fragment {
                     if (selectedSatellite != null || !(selectedSatellite.isEmpty())) {
                         String lnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
                         mParameterMananer.getDvbsParaManager().getSatelliteWrap().getSatelliteByName(selectedSatellite).boundLnb(lnb, selected);
+                        if (selectedSatellite.equals(testSatellite) && selected == false) {
+                            mParameterMananer.getDvbsParaManager().setCurrentSatellite("");
+                            mParameterMananer.getDvbsParaManager().setCurrentTransponder("");
+                        }
                     }
                 } else if (ParameterMananer.ITEM_TRANSPONDER.equals(listtype)) {
                     LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList();
@@ -1084,7 +1189,6 @@ public class ScanDishSetupFragment extends Fragment {
                         String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                         mParameterMananer.getDvbsParaManager().getSatelliteWrap().selectTransponder(sateName, selectTp, selected);
                     }
-                    startTune();
                 } else if (ParameterMananer.ITEM_LNB.equals(listtype)) {
                     LinkedList<ItemDetail> lnbList = mParameterMananer.getDvbsParaManager().getLnbIdList();
                     String currentLnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
@@ -1092,12 +1196,12 @@ public class ScanDishSetupFragment extends Fragment {
                         String selectedLnb = lnbList.get(position).getFirstText();
                         if (!currentLnb.equals(selectedLnb)) {
                             mParameterMananer.getDvbsParaManager().setCurrentLnbId(selectedLnb);
+                            startTune();
                         }
                     }
                 }
                 mItemAdapterItem.reFill(mParameterMananer.getDvbsParaManager().getCurrentItemList());
                 mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
-
             } else if (ItemListView.LIST_RIGHT.equals(mCurrentListFocus)) {
                 if (position == 0) {
                     String listtype = ParameterMananer.ITEM_SATALLITE;
@@ -1106,14 +1210,10 @@ public class ScanDishSetupFragment extends Fragment {
                     return;
                 }
                 String lnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
-                int lnbType = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().getType();
-                if ((position == 3 || position == 4)) {
-                    if (lnbType != 3 /*user defined*/) {
-                        Log.d(TAG, "onListItemSelected KEY_LNB_POWER or KEY_22_KHZ can only be set under customed lnb type");
-                        return;
-                    } else {
-                        Log.d(TAG, "onListItemSelected KEY_LNB_POWER or KEY_22_KHZ can be set");
-                    }
+                boolean isSingle = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().isSingle();
+                if (!isSingle && position == 6) {
+                    //22KHz must on when use double lnb mode.
+                    return;
                 }
                 mCurrentCustomDialog = mDialogManager.buildItemDialogById(position, mSingleSelectDialogCallBack);
                 if (mCurrentCustomDialog != null) {
@@ -1147,17 +1247,7 @@ public class ScanDishSetupFragment extends Fragment {
                 }
                 if (!isOptionType) {
                     String listtype = mParameterMananer.getDvbsParaManager().getCurrentListType();
-                    if (ItemListView.ITEM_SATALLITE.equals(listtype)) {
-                        LinkedList<ItemDetail> sates = mParameterMananer.getDvbsParaManager().getSatelliteNameList();
-                        if (sates != null && sates.size() > 0) {
-                            mParameterMananer.getDvbsParaManager().setCurrentSatellite(sates.get(position).getFirstText());
-                        }
-                    } else if (ItemListView.ITEM_TRANSPONDER.equals(listtype)) {
-                        LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList();
-                        if (tps != null && tps.size() > 0) {
-                            mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(position).getFirstText());
-                        }
-                    } else if (ItemListView.ITEM_LNB.equals(listtype)) {
+                    if (ItemListView.ITEM_LNB.equals(listtype)) {
                         LinkedList<ItemDetail> lnbs = mParameterMananer.getDvbsParaManager().getLnbIdList();
                         if (lnbs != null && lnbs.size() > 0) {
                             mParameterMananer.getDvbsParaManager().setCurrentFocusedLnbId(lnbs.get(position).getFirstText());
@@ -1224,21 +1314,17 @@ public class ScanDishSetupFragment extends Fragment {
                 String itemText = getContext().getString(R.string.list_type_satellite);
                 String text = itemText + "(LNB" + lnbKey + ")";
                 mItemTitleTextView.setText(text);
-                mStrengthContainer.setVisibility(View.INVISIBLE);
-                mQualityContainer.setVisibility(View.INVISIBLE);
             } else if (ItemListView.ITEM_TRANSPONDER.equals(listtype)) {
                 String lnbKey = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
                 String sate = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                 String itemText = getContext().getString(R.string.list_type_transponder);
                 String text = itemText + "(LNB" + lnbKey + ":" + sate + ")";
                 mItemTitleTextView.setText(text);
-                mStrengthContainer.setVisibility(View.VISIBLE);
-                mQualityContainer.setVisibility(View.VISIBLE);
+                mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
+                startTune();
             } else {
                 position = mParameterMananer.getDvbsParaManager().getCurrentLnbIndex();
                 mItemTitleTextView.setText(R.string.list_type_lnb);
-                mStrengthContainer.setVisibility(View.INVISIBLE);
-                mQualityContainer.setVisibility(View.INVISIBLE);
                 //mParameterMananer.getDvbsParaManager().setCurrentSatellite("");
                 //mParameterMananer.getDvbsParaManager().setCurrentTransponder("");
             }

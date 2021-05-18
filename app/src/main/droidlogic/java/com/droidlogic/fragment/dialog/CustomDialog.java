@@ -70,6 +70,9 @@ public class CustomDialog/* extends AlertDialog*/ {
 
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE = R.string.list_type_satellite;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER = R.string.list_type_transponder;
+    public static final int DIALOG_SET_SELECT_LNB_SATELLITES = R.string.lnb_selected_satellites;
+    public static final int DIALOG_SET_SELECT_TEST_SATELLITE = R.string.test_satellite;
+    public static final int DIALOG_SET_SELECT_TEST_TRANSPONDER = R.string.test_transponder;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE = R.string.parameter_lnb_type;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE = R.string.parameter_unicable;
     public static final int DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER = R.string.parameter_lnb_power;
@@ -78,8 +81,9 @@ public class CustomDialog/* extends AlertDialog*/ {
     public static final int DIALOG_SET_SELECT_SINGLE_DISEQC1_0 = R.string.parameter_diseqc1_0;
     public static final int DIALOG_SET_SELECT_SINGLE_DISEQC1_1 = R.string.parameter_diseqc1_1;
     public static final int DIALOG_SET_SELECT_SINGLE_MOTOR = R.string.parameter_motor;
-    public static final int[] ID_DIALOG_TITLE_COLLECTOR = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE, DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE,
-            DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER, DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
+    public static final int[] ID_DIALOG_TITLE_COLLECTOR = {DIALOG_SET_SELECT_LNB_SATELLITES, DIALOG_SET_SELECT_TEST_SATELLITE, DIALOG_SET_SELECT_TEST_TRANSPONDER,
+            DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE, DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE, DIALOG_SET_SELECT_SINGLE_ITEM_LNB_POWER,
+            DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
             DIALOG_SET_SELECT_SINGLE_DISEQC1_1, DIALOG_SET_SELECT_SINGLE_MOTOR};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {"5150", "9750/10600", "Customize"};
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {R.string.parameter_lnb_type_5150, R.string.parameter_lnb_type_9750, R.string.parameter_lnb_custom};
@@ -192,11 +196,15 @@ public class CustomDialog/* extends AlertDialog*/ {
                     item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
                             mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), channel + "", false);
                     break;
-                case 2://need to type in frequency
-                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY,
-                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]),
-                            DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST[channel] + "MHz", false);
+                case 2: {
+                    int freq = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable_if");
+                    if (freq < 950 || freq > 2150) {
+                        freq = mParameterMananer.getDvbsParaManager().getUbFrequency(channel);
+                    }
+                    item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
+                            mContext.getString(DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_LIST[i]), freq + "MHz", false);
                     break;
+                }
                 case 3: {
                     int position = mParameterMananer.getDvbsParaManager().getCurrentLnbParaIntValue("unicable_position_b");
                     item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_EDIT_SWITCH,
@@ -278,9 +286,41 @@ public class CustomDialog/* extends AlertDialog*/ {
         return items;
     }
 
+    private LinkedList<DialogItemAdapter.DialogItemDetail> buildSelectSatelliteItem() {
+        LinkedList<DialogItemAdapter.DialogItemDetail> items = new LinkedList<DialogItemAdapter.DialogItemDetail>();
+        DialogItemAdapter.DialogItemDetail item = null;
+        List<String> sates = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
+        String testSatellite = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
+        for (String sate : sates) {
+            boolean needSelect = testSatellite.equals(sate);
+            item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_SELECT, sate, "", needSelect);
+            items.add(item);
+        }
+        return items;
+    }
+
+    private LinkedList<DialogItemAdapter.DialogItemDetail> buildSelectedTransponderItem() {
+        LinkedList<DialogItemAdapter.DialogItemDetail> items = new LinkedList<DialogItemAdapter.DialogItemDetail>();
+        DialogItemAdapter.DialogItemDetail item = null;
+        LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList();
+        String testTp = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
+        for (ItemDetail tp : tps) {
+            boolean needSelect = testTp.equals(tp.getFirstText());
+            item = new DialogItemAdapter.DialogItemDetail(DialogItemAdapter.DialogItemDetail.ITEM_SELECT, tp.getFirstText(), "", needSelect);
+            items.add(item);
+        }
+        return items;
+    }
+
     private LinkedList<DialogItemAdapter.DialogItemDetail> getSelectSingleItemsByKey(String title, String key, int select) {
         LinkedList<DialogItemAdapter.DialogItemDetail> items = new LinkedList<DialogItemAdapter.DialogItemDetail>();
         switch (key) {
+            case ParameterMananer.KEY_SATALLITE:
+                items.addAll(buildSelectSatelliteItem());
+                break;
+            case ParameterMananer.KEY_TRANSPONDER:
+                items.addAll(buildSelectedTransponderItem());
+                break;
             case ParameterMananer.KEY_LNB_TYPE:
                 items.addAll(buildLnbItem(select));
                 break;
@@ -316,11 +356,7 @@ public class CustomDialog/* extends AlertDialog*/ {
         LinkedList<DialogItemAdapter.DialogItemDetail> itemlist = getSelectSingleItemsByKey(title, key, select);
         mItemAdapter = new DialogItemAdapter(itemlist, mContext);
         mListView.setAdapter(mItemAdapter);
-        if (!ParameterMananer.KEY_UNICABLE_SWITCH.equals(key) && select >= 0 && select < itemlist.size()) {
-            mListView.setSelection(select);
-        } else {
-            mListView.setSelection(0);
-        }
+        mListView.setSelection(0);
         mDialogTitle.setText(title);
         mDialogTitleText = title;
         mListView.setKey(key);
@@ -392,7 +428,11 @@ public class CustomDialog/* extends AlertDialog*/ {
         int selection = customSingle ? 0 : 1;
 
         editText1.setText("" + lowLocalIf);
-        editText2.setText("" + highLocalIf);
+        if (highLocalIf != 0) {
+            editText2.setText("" + highLocalIf);
+        } else {
+            editText2.setText("" + 10600);
+        }
         lowMineditText.setText("" + lowBandMin);
         lowMaxeditText.setText("" + lowBandMax);
         highMineditText.setText("" + highBandMin);
@@ -468,20 +508,6 @@ public class CustomDialog/* extends AlertDialog*/ {
                 }
             }
         });
-
-        String value = mParameterMananer.getStringParameters(ParameterMananer.KEY_LNB_CUSTOM);
-        String[] resultValue = {"", ""};
-        if (value != null) {
-            String[] allvalue = value.split(",");
-            if (allvalue != null && allvalue.length > 0 && allvalue.length <= 2) {
-                for (int i = 0; i < allvalue.length; i++) {
-                    resultValue[i] = allvalue[i];
-                }
-            }
-        }
-
-        editText1.setHint(resultValue[0]);
-        editText2.setHint(resultValue[1]);
         mAlertDialog.setView(mDialogView);
         mAlertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
@@ -502,8 +528,6 @@ public class CustomDialog/* extends AlertDialog*/ {
             mStrengthTextView = (TextView)mDialogView.findViewById(R.id.strength_percent);
             mQualityTextView = (TextView)mDialogView.findViewById(R.id.quality_percent);
             //update diseqc caches
-            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("sate_index", 0);
-            mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("tp_index", 0);
             int limitStats = mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2_DISH_LIMITS_STATUS);
             mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dishlimit_state", limitStats);
             int dishDirection = mParameterMananer.getIntParameters(ParameterMananer.KEY_DISEQC1_2_DISH_MOVE_DIRECTION);
@@ -554,26 +578,11 @@ public class CustomDialog/* extends AlertDialog*/ {
             boolean isSelect = false;
             switch (i) {
                 case 0: {
-                    List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                    int pos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                    if (pos > satelist.size() -1) {
-                        pos = 0;
-                        mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("sate_index", pos);
-                    }
-                    value = satelist.get(pos);
+                    value = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                     break;
                 }
                 case 1: {
-                    List<String> satelist = mParameterMananer.getDvbsParaManager().getSatelliteNameListSelected();
-                    int satePos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("sate_index");
-                    String sateName = satelist.get(satePos);
-                    LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList(sateName);
-                    int tpPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("tp_index");
-                    if (tpPos > tps.size() -1) {
-                        tpPos = 0;
-                        mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("tp_index", tpPos);
-                    }
-                    value = tps.get(tpPos).getFirstText();
+                    value = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
                     break;
                 }
                 case 2: {
@@ -930,7 +939,7 @@ public class CustomDialog/* extends AlertDialog*/ {
                     final String[] fecModes = mContext.getResources().getStringArray(R.array.fec_mode_entries);
                     String fecMode = fecModes[fecmode.getSelectedItemPosition()];
                     final String[] modulations = mContext.getResources().getStringArray(R.array.modulation_mode_entries);
-                    String modulation = modulations[fecmode.getSelectedItemPosition()];
+                    String modulation = modulations[modulationmode.getSelectedItemPosition()];
                     bundle.putString("satellite", sate_name);
                     bundle.putString("oldName", parameter);
                     bundle.putBoolean("system", isDvbs2);

@@ -137,7 +137,7 @@ public class LnbWrap {
             if (obj != null) {
                 JSONArray array = (JSONArray)(obj.get("data"));
                 if (array != null) {
-                    if (index < (array.length() - 1)) {
+                    if (index < (array.length())) {
                         JSONObject jLocation = (JSONObject)(array.get(index));
                         ret.parseFromJson(jLocation);
                     }
@@ -244,7 +244,7 @@ public class LnbWrap {
         }
 
         public boolean editUnicableChannel(int channel, int freq) {
-            if (this.channel != channel) {
+            if (this.channel != channel || this.band_freq != freq) {
                 this.channel = channel;
                 this.band_freq = freq;
                 mLnb.updateToDtvkit();
@@ -287,6 +287,13 @@ public class LnbWrap {
                     }
                     if (high_freq_max == 0 || high_freq_max == 65535) {
                         high_freq_max = 11750;
+                    }
+                    if (lnb_type > 3) {
+                        lnb_type = 0;
+                        low_freq_local = 5150;
+                    }
+                    if (!isSingle() && tone_22k == false) {
+                        tone_22k = true;
                     }
                 }
             } catch (Exception e) {
@@ -413,6 +420,11 @@ public class LnbWrap {
             if (high_freq_local != highLocal) {
                 high_freq_local = highLocal;
                 result = true;
+                if (!isSingle()) {
+                    tone_22k = true;
+                } else {
+                    tone_22k = false;
+                }
             }
             if (result) {
                 mLnb.updateToDtvkit();

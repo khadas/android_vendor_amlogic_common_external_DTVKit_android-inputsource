@@ -31,21 +31,25 @@ public class DvbsParameterManager {
     private static DvbsParameterManager mInstance = null;
     private SatelliteWrap mSateWrap = null;
     private LnbWrap mLnbWrap = null;
-    private int mDiseqcSatellistPos = 0;
-    private int mDiseqcTpPos = 0;
     private int mDishStatus = 0;
     private int mDishDirection = 0;
     private int mDishStep = 1;
     private int mDishPos = 0;
     private int mDishLocationPos = 0;
+    private List<Integer> mUbFreqs = new ArrayList<>();
 
-    private final String[] lnbKeyList = {"satellites", "lnb_type", "unicable", "high_lnb_voltage", "high_tone_22k", "tone_burst", "diseqc1.0", "diseqc2.0", "motor"};
+    private final String[] lnbKeyList = {"selected_satellites", "test_satellite",
+            "test_transponder", "lnb_type", "unicable", "high_lnb_voltage", "high_tone_22k",
+            "tone_burst", "diseqc1.0", "diseqc2.0", "motor"};
 
     private DvbsParameterManager(Context context) {
         this.mContext = context;
         this.mDtvkitGlueClient = DtvkitGlueClient.getInstance();
         this.mSateWrap = new SatelliteWrap(mContext, mDtvkitGlueClient);
         this.mLnbWrap = new LnbWrap(mContext, mDtvkitGlueClient);
+        for (int i: CustomDialog.DIALOG_SET_EDIT_SWITCH_ITEM_UNICABLE_USER_BAND_FREQUENCY_LIST) {
+            mUbFreqs.add(i);
+        }
     }
 
     public static DvbsParameterManager getInstance(Context context) {
@@ -78,10 +82,16 @@ public class DvbsParameterManager {
     }
 
     public List<String> getSatelliteNameListSelected() {
+        return getSatelliteNameListSelected(mCurrentLnbId);
+    }
+    public List<String> getSatelliteNameListSelected(String lnbId) {
         List<String> list = new ArrayList<String>();
+        if (TextUtils.isEmpty(lnbId)) {
+            return list;
+        }
         List<SatelliteWrap.Satellite> sateList = mSateWrap.getSatelliteList();
         for (SatelliteWrap.Satellite sate: sateList) {
-            if (sate.isBoundedLnb(mCurrentLnbId)) {
+            if (sate.isBoundedLnb(lnbId)) {
                 list.add(sate.getName());
             }
         }
@@ -97,9 +107,6 @@ public class DvbsParameterManager {
                 type = ItemDetail.SELECT_EDIT;
             list.add(new ItemDetail(type, sate.getName(), null, true));
         }
-        if (list.size() > 0 && mCurrentSatellite.isEmpty()) {
-            mCurrentSatellite = list.get(0).getFirstText();
-        }
         return list;
     }
 
@@ -109,6 +116,9 @@ public class DvbsParameterManager {
 
     public LinkedList<ItemDetail> getTransponderList(String sateName) {
         LinkedList<ItemDetail> list = new LinkedList<ItemDetail>();
+        if (TextUtils.isEmpty(sateName)) {
+            return list;
+        }
         List<SatelliteWrap.Transponder> tps = mSateWrap.getTransponderList(sateName);
 
         for (SatelliteWrap.Transponder tp: tps) {
@@ -143,6 +153,7 @@ public class DvbsParameterManager {
             if (mCurrentLnbId.isEmpty()) {
                 mCurrentLnbId = list.get(0).getFirstText();
                 list.get(0).setEditStatus(ItemDetail.SELECT_EDIT);
+                setInitialCurrentSateTp(mCurrentLnbId);
             }
             if (mFocusedLnbId.isEmpty()) {
                 mFocusedLnbId = list.get(0).getFirstText();
@@ -196,6 +207,7 @@ public class DvbsParameterManager {
         int itemType = ItemDetail.SWITCH_EDIT;
 
         if (lnbKeyList[0].equals(parakey)) {
+            enable_switch = false;
             int linkNum = 0;
             List<SatelliteWrap.Satellite> satellites = mSateWrap.getSatelliteList();
             for (SatelliteWrap.Satellite satellite: satellites) {
@@ -207,6 +219,16 @@ public class DvbsParameterManager {
             if (linkNum > 1)
                 valueStr = "motor";
         } else if (lnbKeyList[1].equals(parakey)) {
+            String currentSate = getCurrentSatellite();
+            if (!TextUtils.isEmpty(currentSate)) {
+                valueStr = currentSate;
+            }
+        } else if (lnbKeyList[2].equals(parakey)) {
+            String currentTp = getCurrentTransponder();
+            if (!TextUtils.isEmpty(currentTp)) {
+                valueStr = currentTp;
+            }
+        } else if (lnbKeyList[3].equals(parakey)) {
             int lnbType = lnb.getLnbInfo().getType();
             int lnb_low_freq = lnb.getLnbInfo().lowLocalFreq();
             int lnb_high_freq = lnb.getLnbInfo().highLocalFreq();
@@ -214,36 +236,26 @@ public class DvbsParameterManager {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[lnbType]);
             } else if (lnbType == 3) {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[2]);
-            } else {
-                if (lnb_low_freq > 0) {
-                    valueStr = "" + lnb_low_freq;
-                }
-                if (lnb_high_freq > 0) {
-                    valueStr = valueStr + "/" + lnb_high_freq;
-                }
             }
-        } else if (lnbKeyList[2].equals(parakey)) {
+        } else if (lnbKeyList[4].equals(parakey)) {
             boolean unicable =  lnb.getUnicable().getOnoff();
             if (unicable) {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[1]);
             } else {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[0]);
             }
-        } else if (lnbKeyList[3].equals(parakey)) {
+        } else if (lnbKeyList[5].equals(parakey)) {
             String lp = lnb.getLnbInfo().getLnbPower();
             int lnbType = lnb.getLnbInfo().getType();
-            if (lnbType != 3) {
-                enable_switch = false;
-            }
             if (lp.isEmpty()) {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[1]);//on
             } else {
                 valueStr = lp;
             }
-        } else if (lnbKeyList[4].equals(parakey)) {
+        } else if (lnbKeyList[6].equals(parakey)) {
             boolean tone22K = lnb.getLnbInfo().get22Khz();
-            int lnbType = lnb.getLnbInfo().getType();
-            if (lnbType != 3) {
+            boolean isSingle = lnb.getLnbInfo().isSingle();
+            if (!isSingle) {
                 enable_switch = false;
             }
             if (tone22K) {
@@ -251,24 +263,24 @@ public class DvbsParameterManager {
             } else {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[0]);//off
             }
-        } else if (lnbKeyList[5].equals(parakey)) {
+        } else if (lnbKeyList[7].equals(parakey)) {
             String tb = lnb.getToneBurst();
             if (!tb.isEmpty()) {
                 valueStr = tb;
             }
-        } else if (lnbKeyList[6].equals(parakey)) {
+        } else if (lnbKeyList[8].equals(parakey)) {
             int c_switch = lnb.getCswitch();
             if (c_switch > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_0_LIST.length -1)) {
                 c_switch = 0;
             }
             valueStr = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_0_LIST[c_switch];
-        } else if (lnbKeyList[7].equals(parakey)) {
+        } else if (lnbKeyList[9].equals(parakey)) {
             int u_switch = lnb.getUswitch();
             if (u_switch > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_1_LIST.length -1)) {
                 u_switch = 0;
             }
             valueStr = CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_1_LIST[u_switch];
-        } else if (lnbKeyList[8].equals(parakey)) {
+        } else if (lnbKeyList[10].equals(parakey)) {
             int motor = lnb.getMotor();
             if (motor > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST.length -1)) {
                 motor = 0;
@@ -287,27 +299,27 @@ public class DvbsParameterManager {
 
     private int parseLnbParaIntValue(String parakey, LnbWrap.Lnb lnb) {
         int ret = 0;
-        if (lnbKeyList[1].equals(parakey)) {
+        if (lnbKeyList[3].equals(parakey)) {
             ret = lnb.getLnbInfo().getType();
             if (ret == 3) {
                 ret = 2;
             } else if (ret > 3) {
                 ret = 0;
             }
-        } else if (lnbKeyList[2].equals(parakey)) {
+        } else if (lnbKeyList[4].equals(parakey)) {
             boolean onoff = lnb.getUnicable().getOnoff();
             ret = onoff ? 1 : 0;
-        } else if (lnbKeyList[3].equals(parakey)) {
+        } else if (lnbKeyList[5].equals(parakey)) {
             String lp = lnb.getLnbInfo().getLnbPower();
             if (lp.equals("off")) {
                 ret = 0;
             } else {
                 ret = 1;
             }
-        } else if (lnbKeyList[4].equals(parakey)) {
+        } else if (lnbKeyList[6].equals(parakey)) {
             boolean tone22K = lnb.getLnbInfo().get22Khz();
             ret = tone22K ? 1 : 0;
-        } else if (lnbKeyList[5].equals(parakey)) {
+        } else if (lnbKeyList[7].equals(parakey)) {
             String tb = lnb.getToneBurst();
             if (tb.equals("a")) {
                 ret = 1;
@@ -316,17 +328,17 @@ public class DvbsParameterManager {
             } else {
                 ret = 0;
             }
-        } else if (lnbKeyList[6].equals(parakey)) {
+        } else if (lnbKeyList[8].equals(parakey)) {
             ret = lnb.getCswitch();
             if (ret > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_0_LIST.length -1)) {
                 ret = 0;
             }
-        } else if (lnbKeyList[7].equals(parakey)) {
+        } else if (lnbKeyList[9].equals(parakey)) {
             ret = lnb.getUswitch();
             if (ret > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_1_LIST.length -1)) {
                 ret = 0;
             }
-        } else if (lnbKeyList[8].equals(parakey)) {
+        } else if (lnbKeyList[10].equals(parakey)) {
             ret = lnb.getMotor();
             if (ret > (CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_MOTOR_LIST.length -1)) {
                 ret = 0;
@@ -385,25 +397,41 @@ public class DvbsParameterManager {
     }
 
     public int getCurrentSatelliteIndex() {
+        return getCurrentSatelliteIndex(false);
+    }
+    public int getCurrentSatelliteIndex(boolean selectedSatellites) {
         int pos = 0;
         boolean found = false;
         if (mCurrentSatellite == null || mCurrentSatellite.isEmpty()) {
             return 0;
         }
-        List<SatelliteWrap.Satellite> sateList = mSateWrap.getSatelliteList();
-        for (SatelliteWrap.Satellite sate: sateList) {
-            if (sate.getName().equals(mCurrentSatellite)) {
-                found = true;
-                break;
+        if (selectedSatellites) {
+            List<String> sateList = getSatelliteNameListSelected();
+            for (String sate : sateList) {
+                if (mCurrentSatellite.equals(sate)) {
+                    found = true;
+                    break;
+                }
+                pos ++;
             }
-            pos ++;
+        } else {
+            List<SatelliteWrap.Satellite> sateList = mSateWrap.getSatelliteList();
+            for (SatelliteWrap.Satellite sate: sateList) {
+                if (sate.getName().equals(mCurrentSatellite)) {
+                    found = true;
+                    break;
+                }
+                pos ++;
+            }
         }
         return (found)? pos:0;
     }
 
     public void setCurrentSatellite(String satellite) {
         if (satellite == null) return;
+        if (mCurrentSatellite.equals(satellite)) return;
         mCurrentSatellite = satellite;
+        setInitialCurrentTransponder(mCurrentSatellite);
     }
 
     public String getCurrentLnbId() {
@@ -429,7 +457,9 @@ public class DvbsParameterManager {
 
     public void setCurrentLnbId(String lnb) {
         if (lnb == null) return;
+        if (mCurrentLnbId.equals(lnb)) return;
         mCurrentLnbId = lnb;
+        setInitialCurrentSateTp(mCurrentLnbId);
     }
 
     public String getCurrentFocusedLnbId() {
@@ -438,30 +468,57 @@ public class DvbsParameterManager {
 
     public void setCurrentFocusedLnbId(String lnb) {
         if (lnb == null) return;
+        if (mFocusedLnbId.equals(lnb)) return;
         mFocusedLnbId = lnb;
-    }
-
-    public void updateCurrentTpByIndexFromDiseqc(int sateIndex, int tpIndex) {
-        if (sateIndex < 0 || tpIndex < 0) {
-            return;
-        }
-        List<String> satelist = getSatelliteNameListSelected();
-        if (sateIndex < satelist.size()) {
-            setCurrentSatellite(satelist.get(sateIndex));
-            LinkedList<ItemDetail> tpList = getTransponderList();
-            if (tpIndex < tpList.size()) {
-                setCurrentTransponder(tpList.get(tpIndex).getFirstText());
-            }
-        }
     }
 
     public void setCurrentTransponder(String tp) {
         if (tp == null) return;
+        if (mCurrentTp.equals(tp)) return;
         mCurrentTp = tp;
     }
 
     public String getCurrentTransponder() {
         return mCurrentTp;
+    }
+
+    public int getCurrentTransponderIndex() {
+        int pos = 0;
+        boolean found = false;
+        if (TextUtils.isEmpty(mCurrentSatellite) || TextUtils.isEmpty(mCurrentTp)) {
+            return 0;
+        }
+        LinkedList<ItemDetail> tps = getTransponderList();
+        for (ItemDetail tp : tps) {
+            if (mCurrentTp.equals(tp.getFirstText())) {
+                found = true;
+                break;
+            }
+            pos ++;
+        }
+        return (found)? pos:0;
+    }
+
+    public void setInitialCurrentSateTp(String lnbId) {
+        List<String> sates = getSatelliteNameListSelected();
+        if (sates.size() > 0) {
+            setCurrentSatellite(sates.get(0));
+            LinkedList<ItemDetail> tps = getTransponderList(sates.get(0));
+            if (tps.size() > 0) {
+                setCurrentTransponder(tps.get(0).getFirstText());
+            }
+        } else {
+            setCurrentSatellite("");
+        }
+    }
+
+    public void setInitialCurrentTransponder(String sate) {
+        LinkedList<ItemDetail> tps = getTransponderList(sate);
+        if (tps.size() > 0) {
+            setCurrentTransponder(tps.get(0).getFirstText());
+        } else {
+            setCurrentTransponder("");
+        }
     }
 
     public int getDisEqcLocationIndex(String location) {
@@ -483,12 +540,6 @@ public class DvbsParameterManager {
         if (key == null)
             return value;
         switch (key) {
-            case "sate_index":
-                value = mDiseqcSatellistPos;
-                break;
-            case "tp_index":
-                value = mDiseqcTpPos;
-                break;
             case "dishlimit_state":
                 value = mDishStatus;
                 break;
@@ -515,14 +566,6 @@ public class DvbsParameterManager {
             value = 0;
         }
         switch (key) {
-            case "sate_index":
-                mDiseqcSatellistPos = value;
-                updateCurrentTpByIndexFromDiseqc(value, 0);
-                break;
-            case "tp_index":
-                mDiseqcTpPos = value;
-                updateCurrentTpByIndexFromDiseqc(mDiseqcSatellistPos, value);
-                break;
             case "dishlimit_state": {
                 if (value > 1) value = 0;
                 mDishStatus = value;
@@ -546,6 +589,22 @@ public class DvbsParameterManager {
                 mDishLocationPos = value;
                 break;
         }
+    }
+
+    public int getUbFrequency(int brand) {
+        int ret = 0;
+        try {
+            ret = mUbFreqs.get(brand);
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    public void setUbFrequency(int brand, int value) {
+        if (brand >= mUbFreqs.size()) {
+            return;
+        }
+        mUbFreqs.set(brand, value);
     }
 
     public void resetSelections() {

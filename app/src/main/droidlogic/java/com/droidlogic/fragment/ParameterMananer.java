@@ -52,6 +52,7 @@ public class ParameterMananer {
     public static final String SAVE_TRANSPONDER_POSITION = "transponder_position";
     public static final String SAVE_CURRENT_LIST_TYPE = "current_list_type";
 
+    public static final String KEY_SATELLITES = "key_satellites";
     public static final String KEY_SATALLITE = "key_satallite";
     public static final String KEY_TRANSPONDER = "key_transponder";
     public static final String KEY_CURRENT_TYPE = "key_current_type";
@@ -90,7 +91,8 @@ public class ParameterMananer {
     public static final String KEY_DISEQC1_2_DISH_MOVE_TO_POSITION = "key_dish_move_to_position";
     public static final String KEY_DISEQC1_3_LOCATION_STRING = "key_diseqc_location";
 
-    public static final String[] ID_DIALOG_KEY_COLLECTOR = {KEY_SATALLITE, KEY_LNB_TYPE, KEY_UNICABLE_SWITCH/*KEY_UNICABLE*/, KEY_LNB_POWER,
+    public static final String[] ID_DIALOG_KEY_COLLECTOR = {KEY_SATELLITES, KEY_SATALLITE, KEY_TRANSPONDER,
+            KEY_LNB_TYPE, KEY_UNICABLE_SWITCH/*KEY_UNICABLE*/, KEY_LNB_POWER,
             KEY_22_KHZ, KEY_TONE_BURST, KEY_DISEQC1_0, KEY_DISEQC1_1, KEY_MOTOR};
     public static final String KEY_LNB_CUSTOM = "key_lnb_custom";
     public static final String KEY_LNB_CUSTOM_SINGLE_DOUBLE = "key_lnb_custom_single_double";
@@ -2402,5 +2404,22 @@ public class ParameterMananer {
             return true;
         }
         return false;
+    }
+
+    public void getUbFreqs() {
+        for (int channel = 0; channel < 8; channel ++) {
+            //only support 8 brands for unicable
+            int freq = getIntParameters(KEY_UB_FREQUENCY + channel);
+            if (freq >= 950 && freq <= 2150) {
+                mDvbsParaManager.setUbFrequency(channel, freq);
+            }
+        }
+    }
+
+    public void saveUbFreqs() {
+        for (int channel = 0; channel < 8; channel ++) {
+            //only support 8 brands for unicable
+            saveIntParameters(KEY_UB_FREQUENCY + channel, mDvbsParaManager.getUbFrequency(channel));
+        }
     }
 }

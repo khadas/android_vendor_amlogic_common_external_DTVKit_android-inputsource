@@ -486,11 +486,19 @@ public class DtvkitDvbsSetup extends Activity {
         try {
             for (String id : lnbList) {
                 JSONObject obj = new JSONObject();
-                obj.put("lnb", id);
-                lnbArgs_array.put(obj);
+                if (DvbsParameterManager.getInstance(DtvkitDvbsSetup.this)
+                        .getSatelliteNameListSelected(id).size() > 0) {
+                    obj.put("lnb", id);
+                    lnbArgs_array.put(obj);
+                }
             }
-            lnbArgs.put("lnblist", lnbArgs_array);
+            if (lnbArgs_array.length() > 0) {
+                lnbArgs.put("lnblist", lnbArgs_array);
+            } else {
+                return null;
+            }
         } catch (Exception e) {
+            return null;
         }
         args.put(lnbArgs.toString());//arg3
 
