@@ -5409,13 +5409,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private void playerSetMute(boolean mute, int index) {
-        try {
-            JSONArray args = new JSONArray();
-            args.put(index);
-            args.put(mute);
-            DtvkitGlueClient.getInstance().request("Player.setMute", args);
-        } catch (Exception e) {
-            Log.e(TAG, "playerSetMute = " + e.getMessage());
+        synchronized (mLock) {
+            try {
+                JSONArray args = new JSONArray();
+                args.put(index);
+                args.put(mute);
+                DtvkitGlueClient.getInstance().request("Player.setMute", args);
+            } catch (Exception e) {
+                Log.e(TAG, "playerSetMute = " + e.getMessage());
+            }
         }
     }
 
