@@ -708,24 +708,30 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         int numTuners = realNumTuners;
         if (numTuners > 0) {
             boolean multiFrequencySupport = false;
+            boolean supportPip = getFeatureSupportPip();
+            boolean supportFcc = getFeatureSupportFcc();
+            //1.currently ohm_mxl258c has 4 tuner and can server for pip or fcc by configure, besides, it can support play multi frequency
+            //    match for one record one play and one pip
+            //2.currently ohm has 2 tuner but can only match for single frequency, besides, it can only debug pip or fcc
+            //    match for one record and one play and pip
+            //3.one tuner and only can play and record within same frequency
+            //    match for one record and one play
             if (numTuners > 2) {
-                //currently ohm_mxl258c has 4 tuner and can server for pip or fcc by configure, besides, it can support play multi frequency
                 multiFrequencySupport = true;
-                numTuners = 3;//match for one record and one play pip
-            } else if (numTuners == 2) {
-                //currently ohm has 2 tuner but can only match for single frequency, besides, it can only debug pip or fcc
-                numTuners = 3;//match for one record and one play and pip
-            } else {
-                //one tuner and only can play and record within same frequency
-                numTuners = 2;//match for one record and one play
+                if (supportFcc) {
+                    numTuners = 2;//2 tuners that can work in two diffrent frequency
+                }
+                if (supportPip) {
+                    numTuners = 3;//3 tuners that can work in three diffrent frequency
+                }
             }
             if (mTvInputInfo != null && mTvInputInfo.getTunerCount() == numTuners) {
                 Log.d(TAG, "updateTunerNumber same count " + numTuners);
                 return;
             }
             Bundle extras = new Bundle();
-            extras.putBoolean(PropSettingManager.ENABLE_PIP_SUPPORT, getFeatureSupportPip());
-            extras.putBoolean(PropSettingManager.ENABLE_FCC_SUPPORT, getFeatureSupportFcc());
+            extras.putBoolean(PropSettingManager.ENABLE_PIP_SUPPORT, supportPip);
+            extras.putBoolean(PropSettingManager.ENABLE_FCC_SUPPORT, supportFcc);
             extras.putBoolean(PropSettingManager.ENABLE_MULTI_FREQUENCY_SUPPORT, multiFrequencySupport);
             extras.putInt(PropSettingManager.ENABLE_TUNER_NUMBER, realNumTuners);
             mTvInputInfo = buildTvInputInfo(mTvInputHardwareInfo, numTuners, extras);

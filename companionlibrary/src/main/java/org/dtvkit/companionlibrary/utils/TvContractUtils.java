@@ -195,6 +195,9 @@ public class TvContractUtils {
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         for (Channel channel : channels) {
             ContentValues values = new ContentValues();
+            if (isSearched) {
+                values.put(Channels.COLUMN_LOCKED, 0);
+            }
             values.put(Channels.COLUMN_INPUT_ID, inputId);
             values.putAll(channel.toContentValues());
             // If some required fields are not populated, the app may crash, so defaults are used
@@ -342,6 +345,41 @@ public class TvContractUtils {
                 logos.put(TvContract.buildChannelLogoUri(uri), channel.getChannelLogo());
             }*/
         }
+
+        // Deletes channels which don't exist in the new feed firstly.
+        int size = channelMap.size();
+        ArrayList<ContentProviderOperation> deleteOps = new ArrayList<>();
+        for (int i = 0; i < size; ++i) {
+            Long rowId = channelMap.valueAt(i);
+            if (DEBUG) {
+                Log.d(TAG, "add Deleting channel " + rowId);
+            }
+            deleteOps.add(ContentProviderOperation.newDelete(
+                                    TvContract.buildChannelUri(rowId))
+                                    .build());
+            //resolver.delete(TvContract.buildChannelUri(rowId), null, null);
+            /*SharedPreferences.Editor editor = context.getSharedPreferences(
+                    PREFERENCES_FILE_KEY, Context.MODE_PRIVATE).edit();
+            editor.apply();*/
+        }
+        for (int i = 0; i < deleteOps.size(); i += BATCH_OPERATION_COUNT) {
+            int toIndex =
+                    (i + BATCH_OPERATION_COUNT) > deleteOps.size()
+                            ? deleteOps.size()
+                            : (i + BATCH_OPERATION_COUNT);
+            ArrayList<ContentProviderOperation> batchOps =
+                    new ArrayList<>(deleteOps.subList(i, toIndex));
+            if (DEBUG) {
+                Log.d(TAG, "deleteChannels from fromIndex " + i + " to " + toIndex);
+            }
+            try {
+                resolver.applyBatch(TvContract.AUTHORITY, batchOps);
+            } catch (Exception e) {
+                Log.e(TAG, "deleteChannels updateChannels Failed = " + e.getMessage());
+            }
+        }
+        deleteOps.clear();
+
         for (int i = 0; i < ops.size(); i += BATCH_OPERATION_COUNT) {
             int toIndex =
                     (i + BATCH_OPERATION_COUNT) > ops.size()
@@ -363,18 +401,6 @@ public class TvContractUtils {
             new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
         }
 
-        // Deletes channels which don't exist in the new feed.
-        int size = channelMap.size();
-        for (int i = 0; i < size; ++i) {
-            Long rowId = channelMap.valueAt(i);
-            if (DEBUG) {
-                Log.d(TAG, "Deleting channel " + rowId);
-            }
-            resolver.delete(TvContract.buildChannelUri(rowId), null, null);
-            SharedPreferences.Editor editor = context.getSharedPreferences(
-                    PREFERENCES_FILE_KEY, Context.MODE_PRIVATE).edit();
-            editor.apply();
-        }
         //notify immediately as livetv may be in background and android r sends such contentprovider notification after 10s in ContentService
         if (VERSION.SDK_INT > VERSION_CODES.P + 1) {
             context.getContentResolver().notifyChange(Channels.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
