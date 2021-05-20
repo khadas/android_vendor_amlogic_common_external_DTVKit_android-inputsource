@@ -3863,6 +3863,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             break;
                         case "badsignal":
                             notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL);
+                            writeSysFs("/sys/class/video/disable_video", "2");
                             if (mIsPip) {
                                 Log.d(TAG, "badsignal PIP only need video status");
                                 return;
