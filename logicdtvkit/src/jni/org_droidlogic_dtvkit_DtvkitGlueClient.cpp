@@ -329,6 +329,9 @@ void DTVKitClientJni::notify(const parcel_t &parcel) {
     }
 
     if (parcel.msgType == SUBSERVER_DRAW) {
+        if (mSubContext == nullptr) {
+           return;
+        }
         switch (parcel.funname) {
             case SUBTITLE_START:
             {
@@ -420,7 +423,6 @@ static void setSubtitleOn(int pid, int type, int magazine, int page, int demuxId
     }
     ALOGD("SubtitleServiceCtl:setSubtitleOn with.pid=%d, type=%d,magazine=%d, page=%d, demuxId = %d.",
         pid, type, magazine, page, demuxId);
-
     setSubtitleStatus(true);
     if (type == SUBTITLE_SUB_TYPE_TTX || type == SUBTITLE_SUB_TYPE_TTXSUB) {
         mSubContext->setSubType(SUBTITLE_SUB_TYPE_TTXSUB + DTVKIT_SUBTITLE_ADD_OFFSET);
