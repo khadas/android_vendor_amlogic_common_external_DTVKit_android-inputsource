@@ -2321,6 +2321,8 @@ public class ParameterMananer {
             if (result) {
                 JSONArray args = new JSONArray();
                 args.put(ConstantManager.DTVKIT_SATELLITE_DATA);
+                args.put(ConstantManager.DTVKIT_LNBS_DATA);
+                args.put(ConstantManager.DTVKIT_LOCATION_DATA);
                 result = DtvkitGlueClient.getInstance().request("Dvbs.resetSatellites", args).getBoolean("data");
                 mDataMananer.saveIntParameters(DataMananer.DTVKIT_IMPORT_SATELLITE_FLAG, 0);
             }
@@ -2387,7 +2389,7 @@ public class ParameterMananer {
         try {
             JSONArray args = new JSONArray();
             args.put(path);
-            result = DtvkitGlueClient.getInstance().request("Dvbs.resetSatellites", args).getBoolean("data");
+            result = DtvkitGlueClient.getInstance().request("Dvbs.reImportFromPath", args).getBoolean("data");
         } catch (Exception e) {
             Log.e(TAG, "importSatellites = " + e.getMessage());
         }
