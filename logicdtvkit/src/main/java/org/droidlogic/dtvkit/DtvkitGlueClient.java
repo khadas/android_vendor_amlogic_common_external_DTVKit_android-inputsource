@@ -46,6 +46,7 @@ public class DtvkitGlueClient {
     private native void native_UnCrypt(String src, String dest);
     private native void native_openUserData();
     private native void native_closeUserData();
+    private native void native_nativeSubtitleSeekReset();
 
     static {
         System.loadLibrary("dtvkit_jni");
@@ -300,6 +301,11 @@ public class DtvkitGlueClient {
         public void onWriteSysFs(int ftype, String name, String cmd);
     }
     */
+
+    public void subtitleSeekReset() {
+        native_nativeSubtitleSeekReset();
+    }
+
     public void attachSubtitleCtl(int flag) {
         native_attachSubtitleCtl(flag);
     }

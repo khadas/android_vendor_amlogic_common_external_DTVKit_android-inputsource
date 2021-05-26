@@ -1449,6 +1449,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             mTtxTransparent = mode;
         }
 
+        public void clearSubtitle(){
+            Canvas canvas = new Canvas(overlay_draw);
+            canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+        }
+
         public void setOverlaySubtitleListener(DtvkitGlueClient.SubtitleListener listener) {
             DtvkitGlueClient.getInstance().setSubtileListener(listener);
         }
@@ -5642,13 +5647,26 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private boolean playerSeekTo(int index, long positionSecs) {
-        try {
+       boolean son = false;
+       try {
+           if (playerGetSubtitlesOn()){
+               son = true;
+               playerSetSubtitlesOn(false);
+            }
             JSONArray args = new JSONArray();
             args.put(index);
             args.put(positionSecs);
             DtvkitGlueClient.getInstance().request("Player.seekTo", args);
+            //DtvkitGlueClient.getInstance().subtitleSeekReset();
+            DtvkitTvInputSession mainSession = getMainTunerSession();
+            mainSession.mView.mSubServerView.clearSubtitle();
+            if (son){
+                playerSetSubtitlesOn(true);
+            }
             return true;
         } catch (Exception e) {
+            if(son)
+                playerSetSubtitlesOn(true);
             Log.e(TAG, "playerSeekTo = " + e.getMessage());
             return false;
         }

@@ -631,6 +631,12 @@ static void closeUserData() {
     }
 }
 
+static void resetForSeek() {
+    if (mSubContext != nullptr) {
+        mSubContext->resetForSeek();
+    }
+}
+
 static JNINativeMethod gMethods[] = {
 {
     "nativeconnectdtvkit", "(Lorg/droidlogic/dtvkit/DtvkitGlueClient;)V",
@@ -673,6 +679,10 @@ static JNINativeMethod gMethods[] = {
 {
   "native_closeUserData", "()V",
   (void*) closeUserData
+},
+{
+  "native_nativeSubtitleSeekReset", "()V",
+  (void*) resetForSeek
 },
 };
 
