@@ -1016,14 +1016,22 @@ public class DtvkitDvbSettings extends Activity {
             mAlarmManager.setRepeating(AlarmManager.RTC_WAKEUP, alarmtime, AlarmManager.INTERVAL_DAY * 7, alarmIntent);
         }*/
         Log.d(TAG, "current =" + new Date(current).toString() + "   alarmtime =" + new Date(alarmtime).toString());
-        if (current > alarmtime) {
-            if (repetition == DAILY) {//daily
-                mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime + AlarmManager.INTERVAL_DAY, mAlarmIntent);
-            } else if (repetition == WEEKLY) { //weekly
-                mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime + AlarmManager.INTERVAL_DAY * 7, mAlarmIntent);
+        if (mode == 1) { //standby mode
+            if (current > alarmtime) {
+                if (repetition == DAILY) {//daily
+                    mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime + AlarmManager.INTERVAL_DAY, mAlarmIntent);
+                } else if (repetition == WEEKLY) { //weekly
+                    mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime + AlarmManager.INTERVAL_DAY * 7, mAlarmIntent);
+                }
+            } else {
+                mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime/*wakeAt*/, mAlarmIntent);
             }
-        } else {
-            mAlarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarmtime/*wakeAt*/, mAlarmIntent);
+        } else if (mode == 2) { //operate mode
+            if (repetition == DAILY) {//daily
+                mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, alarmtime, AlarmManager.INTERVAL_DAY, mAlarmIntent);
+            } else if (repetition == WEEKLY) { //weekly
+                mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, alarmtime, AlarmManager.INTERVAL_DAY * 7, mAlarmIntent);
+            }
         }
     }
 }

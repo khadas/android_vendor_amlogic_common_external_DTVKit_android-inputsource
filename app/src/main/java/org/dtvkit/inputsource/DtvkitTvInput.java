@@ -8066,8 +8066,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             String action = intent.getAction();
             Log.d(TAG, "Automatic searching action =" + action);
             if (action.equals(intenAction)) {
-                String strMode = intent.getStringExtra("mode");
-                int mode = Integer.parseInt(strMode);
+                int mode  = mParameterMananer.getIntParameters(mParameterMananer.AUTO_SEARCHING_MODE);
+                Log.d(TAG, "mode = " + mode);
                 //if need to light the screen please run the interface below
                 if (mode == 2) {//operate mode
                     checkSystemWakeUp(context);
