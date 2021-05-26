@@ -2457,16 +2457,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (null != mHardware && mConfigs.length > 0) {
                     if (null == surface) {
                         //isMain status may be set to true by livetv after switch to luncher
-                        if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain) {
-                            setOverlayViewEnabled(false);
-                            mHardware.setSurface(null, null);
-                            //sendSetSurfaceMessage(null, null);
-                            Log.d(TAG, "onSetSurface null");
-                            mSurface = null;
-                            sendDoReleaseMessage();
-                            writeSysFs("/sys/class/video/video_inuse", "0");
-                            mSystemControlManager.SetDtvKitSourceEnable(0);
-                        }
+                        //all case use message to release related resource as semaphare has been applied
+                        setOverlayViewEnabled(false);
+                        mHardware.setSurface(null, null);
+                        //sendSetSurfaceMessage(null, null);
+                        Log.d(TAG, "onSetSurface null");
+                        mSurface = null;
+                        sendDoReleaseMessage();
+                        writeSysFs("/sys/class/video/video_inuse", "0");
+                        mSystemControlManager.SetDtvKitSourceEnable(0);
                     } else {
                         if (mSurface != null && mSurface != surface) {
                             Log.d(TAG, "TvView swithed,  onSetSurface null first");
@@ -2486,7 +2485,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 //DtvkitGlueClient.getInstance().setDisplay(surface);
             } else {
                 //support multi surface and save it only here, then set it when tuned according to pip or main
-                if (surface == null && (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip)) {
+                //all case use message to release related resource as semaphare has been applied
+                if (surface == null) {
                     //stop play when set surface null
                     //android r use hal to set tunnel id for each surface
                     if (isSdkAfterAndroidQ()) {
@@ -2924,23 +2924,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             //will regist handle to client when
             //creat ciMenuView,so we need destory and
             //unregist handle.
-            //if (!getFeatureSupportFullPipFccArchitecture()) {
-                //mSystemControlManager.SetDtvKitSourceEnable(0);
-                releaseSignalHandler();
-                if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain || mIsPip || mSurface == null) {
-                    //release by message queue for current session
-                    if (mMainHandle != null) {
-                        mMainHandle.sendMessageAtFrontOfQueue(mMainHandle.obtainMessage(MSG_MAIN_HANDLE_DESTROY_OVERLAY));
-                    } else {
-                        Log.i(TAG, "onRelease mMainHandle == null");
-                    }
-                } else {
-                    //release directly as new session has created
-                    finalReleaseWorkThread(false, false);
-                    doDestroyOverlay();
-                }
-                //send MSG_RELEASE_WORK_THREAD after dealing destroy overlay
-            //}
+            releaseSignalHandler();
+            //send MSG_RELEASE_WORK_THREAD after dealing destroy overlay
+            //all case use message to release related resource as semaphare has been applied
+            if (mMainHandle != null) {
+                mMainHandle.sendMessageAtFrontOfQueue(mMainHandle.obtainMessage(MSG_MAIN_HANDLE_DESTROY_OVERLAY));
+            } else {
+                Log.i(TAG, "onRelease mMainHandle == null");
+            }
             mContext.unregisterReceiver(mMediaReceiver);
             mMediaReceiver = null;
             hideStreamChangeUpdateDialog();
