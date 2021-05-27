@@ -1028,9 +1028,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mText.setText("");
                 if (mText.getVisibility() != View.GONE) {
                     mText.setVisibility(View.GONE);
+                    //hide black background
+                    hideTuningImage();
                 }
-                //hide black background
-                hideTuningImage();
             }
         }
 
@@ -3448,9 +3448,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 }*/
             } else if (ConstantManager.ACTION_TIF_BEFORE_TUNE.equals(action)) {
                 Log.d(TAG, "do private ACTION_TIF_BEFORE_TUNE");
-                if (mView != null) {
+                //comment it as block osd will cover pip video
+                /*if (mView != null) {
                     mView.showTuningImage(null);
-                }
+                }*/
             } else if (TextUtils.equals(DataMananer.ACTION_DTV_ENABLE_AUDIO_AD, action)) {
                 mAudioADAutoStart = data.getInt(DataMananer.PARA_ENABLE) == 1;
                 Log.d(TAG, "do private cmd: ACTION_DTV_ENABLE_AUDIO_AD: "+ mAudioADAutoStart);
