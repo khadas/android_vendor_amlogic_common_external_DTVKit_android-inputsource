@@ -132,6 +132,8 @@ public class ParameterMananer {
     public static final String KEY_EDIT_TRANSPONDER = "edit_transponder";
     public static final String KEY_REMOVE_TRANSPONDER = "remove_transponder";
 
+    public static final String SECURITY_PASSWORD  = "security_password";
+
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
     public static final int KEY_TRANSPONDER_DEFAULT_VALUE_INDEX = 0;
@@ -369,6 +371,9 @@ public class ParameterMananer {
                 break;
             case KEY_DISEQC1_3_LOCATION_STRING:
                 defValue = "off";
+                break;
+            case SECURITY_PASSWORD:
+                defValue = "";
                 break;
             default:
                 defValue = "";

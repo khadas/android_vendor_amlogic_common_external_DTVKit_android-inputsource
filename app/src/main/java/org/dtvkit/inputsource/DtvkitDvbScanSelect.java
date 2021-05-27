@@ -40,6 +40,7 @@ import org.json.JSONObject;
 import com.droidlogic.settings.ConstantManager;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 import com.droidlogic.fragment.ParameterMananer;
+import com.droidlogic.fragment.PasswordCheckUtil;
 
 public class DtvkitDvbScanSelect extends Activity {
     private static final String TAG = "DtvkitDvbScanSelect";
@@ -83,6 +84,12 @@ public class DtvkitDvbScanSelect extends Activity {
 
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        checkPassWordInfo();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
     }
@@ -93,7 +100,6 @@ public class DtvkitDvbScanSelect extends Activity {
             case REQUEST_CODE_START_DVBC_ACTIVITY:
             case REQUEST_CODE_START_DVBT_ACTIVITY:
             case REQUEST_CODE_START_DVBS_ACTIVITY:
-            case REQUEST_CODE_START_SETTINGS_ACTIVITY:
             case REQUEST_CODE_START_ISDBT_ACTIVITY:
                 if (resultCode == RESULT_OK) {
                     setResult(RESULT_OK, data);
@@ -102,9 +108,60 @@ public class DtvkitDvbScanSelect extends Activity {
                     setResult(RESULT_CANCELED);
                 }
                 break;
+            case REQUEST_CODE_START_SETTINGS_ACTIVITY:
+                if (resultCode == RESULT_OK) {
+                    setResult(RESULT_CANCELED);
+                    finish();
+                }
+                break;
             default:
                 // do nothing
                 Log.d(TAG, "onActivityResult other request");
+        }
+    }
+
+    private void checkPassWordInfo() {
+        String pinCode = mParameterMananer.getStringParameters(ParameterMananer.SECURITY_PASSWORD);
+        String countryCode = mParameterMananer.getCurrentCountryIso3Name();
+        if ("fra".equals(countryCode)) {
+            if (TextUtils.isEmpty(pinCode) || "0000".equals(pinCode)) {
+                PasswordCheckUtil passwordDialog = new PasswordCheckUtil(pinCode);
+                passwordDialog.setCurrent_mode(PasswordCheckUtil.PIN_DIALOG_TYPE_ENTER_NEW1_PIN);
+                passwordDialog.showPasswordDialog(this, new PasswordCheckUtil.PasswordCallback() {
+                    @Override
+                    public void passwordRight(String password) {
+                        Log.d(TAG, "password is right");
+                        mParameterMananer.saveStringParameters(mParameterMananer.SECURITY_PASSWORD, password);
+                    }
+                    @Override
+                    public void onKeyBack() {
+                        Log.d(TAG, "onKeyBack");
+                        String newPinCode = mParameterMananer.getStringParameters(mParameterMananer.SECURITY_PASSWORD);
+                        if (TextUtils.isEmpty(pinCode) || "0000".equals(pinCode)) {
+                            //finish current activity when passward hasn't been set right
+                            finish();
+                        }
+                    }
+                    @Override
+                    public void otherKeyHandler(int key_code) {
+                    }
+                    @Override
+                    public boolean checkNewPasswordValid(String value) {
+                        Log.d(TAG, "checkNewPasswordValid: " + value);
+                        int intValue = 0;
+                        try {
+                            intValue = Integer.parseInt(value);
+                        } catch (Exception e) {
+                        }
+                        //france cannot use 0000
+                        if (intValue > 0 && intValue <= 9999) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
+            }
         }
     }
 

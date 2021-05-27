@@ -24,4 +24,21 @@
     <dimen name="factory_sub_settings_item_width">150dp</dimen>
     <dimen name="factory_settings_item_height">40dp</dimen>
 
+    <dimen name="px_10.0">6.7dp</dimen>
+    <dimen name="px_22.0">14.7dp</dimen>
+    <dimen name="px_31.0">20.7dp</dimen>
+    <dimen name="px_36.0">24.0dp</dimen>
+    <dimen name="px_60.0">40.0dp</dimen>
+    <dimen name="px_70.0">46.7dp</dimen>
+    <dimen name="px_72.0">48.0dp</dimen>
+    <dimen name="px_76.0">50.7dp</dimen>
+    <dimen name="px_216.0">144.0dp</dimen>
+    <dimen name="px_371.0">247.3dp</dimen>
+    <dimen name="px_615.0">410.0dp</dimen>
+    <dimen name="pin_number_picker_text_view_height">@dimen/px_72.0</dimen>
+    <dimen name="pin_number_picker_text_view_width">@dimen/px_72.0</dimen>
+    <dimen name="pin_number_picker_height">@dimen/px_216.0</dimen>
+    <dimen name="pin_number_picker_background_width">@dimen/px_76.0</dimen>
+    <dimen name="pin_number_picker_text_size">24sp</dimen>
+    <dimen name="pin_number_picker_background_height">@dimen/px_76.0</dimen>
 </resources>

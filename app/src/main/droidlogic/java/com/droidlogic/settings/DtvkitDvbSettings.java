@@ -56,10 +56,12 @@ import android.content.ComponentName;
 import android.media.tv.TvInputInfo;
 import org.dtvkit.companionlibrary.EpgSyncJobService;
 import org.dtvkit.inputsource.DtvkitEpgSync;
+
 //import org.dtvkit.inputsource.AutomaticSearchingReceiver;
 
 import com.droidlogic.settings.SysSettingManager;
 import com.droidlogic.settings.PropSettingManager;
+import com.droidlogic.fragment.PasswordCheckUtil;
 
 public class DtvkitDvbSettings extends Activity {
 
@@ -177,6 +179,52 @@ public class DtvkitDvbSettings extends Activity {
         EpgSyncJobService.requestImmediateSync(this, inputId, true, new ComponentName(this, DtvkitEpgSync.class));
     }
 
+    private void checkPassWordInfo() {
+        String pinCode = mParameterMananer.getStringParameters(ParameterMananer.SECURITY_PASSWORD);
+        String countryCode = mParameterMananer.getCurrentCountryIso3Name();
+        if ("fra".equals(countryCode)) {
+            if (TextUtils.isEmpty(pinCode) || "0000".equals(pinCode)) {
+                PasswordCheckUtil passwordDialog = new PasswordCheckUtil(pinCode);
+                passwordDialog.setCurrent_mode(PasswordCheckUtil.PIN_DIALOG_TYPE_ENTER_NEW1_PIN);
+                passwordDialog.showPasswordDialog(this, new PasswordCheckUtil.PasswordCallback() {
+                    @Override
+                    public void passwordRight(String password) {
+                        Log.d(TAG, "password is right");
+                        mParameterMananer.saveStringParameters(mParameterMananer.SECURITY_PASSWORD, password);
+                    }
+                    @Override
+                    public void onKeyBack() {
+                        Log.d(TAG, "onKeyBack");
+                        String newPinCode = mParameterMananer.getStringParameters(mParameterMananer.SECURITY_PASSWORD);
+                        if (TextUtils.isEmpty(pinCode) || "0000".equals(pinCode)) {
+                            //finish current activity when passward hasn't been set right
+                            setResult(RESULT_OK);
+                            finish();
+                        }
+                    }
+                    @Override
+                    public void otherKeyHandler(int key_code) {
+                    }
+                    @Override
+                    public boolean checkNewPasswordValid(String value) {
+                        Log.d(TAG, "checkNewPasswordValid: " + value);
+                        int intValue = 0;
+                        try {
+                            intValue = Integer.parseInt(value);
+                        } catch (Exception e) {
+                        }
+                        //france cannot use 0000
+                        if (intValue > 0 && intValue <= 9999) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     private void initLayout(boolean update) {
         Spinner country = (Spinner)findViewById(R.id.country_spinner);
         Spinner main_audio = (Spinner)findViewById(R.id.main_audio_spinner);
@@ -219,6 +267,7 @@ public class DtvkitDvbSettings extends Activity {
                 if (!TextUtils.equals(previousMainAudioName, currentMainAudioName) || !TextUtils.equals(previousAssistAudioName, currentAssistAudioName)) {
                     needClearAudioLangSetting = true;
                 }
+                checkPassWordInfo();
             }
 
             @Override

@@ -135,4 +135,15 @@
     <string name="strFactorySettings">Factory Settings</string>
     <string name="strRestoreToDefault">Restore to Default</string>
 
+    <!-- password dialog-->
+    <string name="please_enter_pin">Please enter your PIN</string>
+    <string name="old_password">Please input old PIN</string>
+    <string name="new_password">Please input new PIN</string>
+    <string name="new_password_again">Please input new PIN again</string>
+    <string name="invalid_password">Invalid PIN</string>
+    <string name="change_password_not_match">The two passwords must match</string>
+    <string name="condensed_font" translatable="false">sans-serif-condensed</string>
+    <string name="option_item_text_font" translatable="false">@string/condensed_font</string>
+    <string name="option_item_secondary_text_font" translatable="false">@string/condensed_font</string>
+    <string name="number_picker_asterisk" translatable="false">*</string>
 </resources>
