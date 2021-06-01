@@ -467,6 +467,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     protected static final int MSG_CHECK_TV_PROVIDER_READY = 2;
     protected static final int MSG_CHECK_DTVKIT_SATELLITE = 3;
     protected static final int MSG_ADD_DTVKIT_DISK_PATH = 4;
+    protected static final int MSG_UPDATE_DTVKIT_DATABASE = 5;
 
     protected static final int PERIOD_RIGHT_NOW = 0;
     protected static final int PERIOD_CHECK_TV_PROVIDER_DELAY = 10;
@@ -502,6 +503,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         checkDtvkitSatelliteUpdateStatus();
                         break;
                     }
+                    case MSG_UPDATE_DTVKIT_DATABASE:{
+                        updateDtvkitDatabase();
+                        break;
+                    }
                     case MSG_UPDATE_RECORDING_PROGRAM:{
                         syncRecordingProgramsWithDtvkit((JSONObject)msg.obj);
                         break;
@@ -525,6 +530,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         });
     }
 
+    private void updateDtvkitDatabase() {
+        Log.i(TAG, "update Dtvkit Database start");
+        ComponentName sync = new ComponentName(this, DtvkitEpgSync.class);
+        checkAndUpdateLcn();
+        EpgSyncJobService.requestImmediateSync(this, mInputId, true, sync);
+    }
+
     private boolean sendMessageToInputThreadHandler(int what, int arg1, int arg2, Object obj, int delay) {
         boolean result = false;
         Message mess = null;
@@ -540,6 +552,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         Message mess = null;
         if (mInputThreadHandler != null) {
             mess = mInputThreadHandler.obtainMessage(what, 0, 0, null);
+            Log.d(TAG, "sendEmpty message to InputThreadHandler, message: " + mess);
+
             result = mInputThreadHandler.sendMessageDelayed(mess, 0);
         }
         return result;
@@ -609,6 +623,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         mParameterMananer = new ParameterMananer(this, DtvkitGlueClient.getInstance());
         updateRecorderNumber();
         sendEmptyMessageToInputThreadHandler(MSG_CHECK_DTVKIT_SATELLITE);
+        sendEmptyMessageToInputThreadHandler(MSG_UPDATE_DTVKIT_DATABASE);
         resetRecordingPath();
         int subFlg = getSubtitleFlag();
         if (subFlg >= SUBCTL_HK_DVBSUB) {
