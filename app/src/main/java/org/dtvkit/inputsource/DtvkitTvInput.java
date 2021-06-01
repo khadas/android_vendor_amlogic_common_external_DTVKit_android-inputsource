@@ -3731,13 +3731,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     break;
                 case KeyEvent.KEYCODE_CHANNEL_UP:
                 case KeyEvent.KEYCODE_DPAD_UP:
-                    Log.d(TAG, "dealTeletextKeyCode previous_page");
-                    playerNotifyTeletextEvent(16);
+                    Log.d(TAG, "dealTeletextKeyCode next_page");
+                    playerNotifyTeletextEvent(15);
                     break;
                 case KeyEvent.KEYCODE_CHANNEL_DOWN:
                 case KeyEvent.KEYCODE_DPAD_DOWN:
-                    Log.d(TAG, "dealTeletextKeyCode next_page");
-                    playerNotifyTeletextEvent(15);
+                    Log.d(TAG, "dealTeletextKeyCode previous_page");
+                    playerNotifyTeletextEvent(16);
                     break;
                 case KeyEvent.KEYCODE_0:
                 case KeyEvent.KEYCODE_1:
