@@ -2461,16 +2461,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (!getFeatureSupportFullPipFccArchitecture()) {
                 if (null != mHardware && mConfigs.length > 0) {
                     if (null == surface) {
-                        //isMain status may be set to true by livetv after switch to luncher
-                        //all case use message to release related resource as semaphare has been applied
-                        setOverlayViewEnabled(false);
-                        mHardware.setSurface(null, null);
-                        //sendSetSurfaceMessage(null, null);
-                        Log.d(TAG, "onSetSurface null");
-                        mSurface = null;
-                        sendDoReleaseMessage();
-                        writeSysFs("/sys/class/video/video_inuse", "0");
-                        mSystemControlManager.SetDtvKitSourceEnable(0);
+                        if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex || mIsMain) {
+                            //isMain status may be set to true by livetv after switch to luncher
+                            //all case use message to release related resource as semaphare has been applied
+                            setOverlayViewEnabled(false);
+                            mHardware.setSurface(null, null);
+                            //sendSetSurfaceMessage(null, null);
+                            Log.d(TAG, "onSetSurface null");
+                            mSurface = null;
+                            sendDoReleaseMessage();
+                            writeSysFs("/sys/class/video/video_inuse", "0");
+                            mSystemControlManager.SetDtvKitSourceEnable(0);
+                        }
                     } else {
                         if (mSurface != null && mSurface != surface) {
                             Log.d(TAG, "TvView swithed,  onSetSurface null first");
