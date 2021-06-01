@@ -133,6 +133,7 @@ public class ParameterMananer {
     public static final String KEY_REMOVE_TRANSPONDER = "remove_transponder";
 
     public static final String SECURITY_PASSWORD  = "security_password";
+    public static final String TV_KEY_DTVKIT_SYSTEM = "tv_dtvkit_system";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -374,6 +375,9 @@ public class ParameterMananer {
                 break;
             case SECURITY_PASSWORD:
                 defValue = "";
+                break;
+            case TV_KEY_DTVKIT_SYSTEM:
+                defValue = "DVB-T";
                 break;
             default:
                 defValue = "";

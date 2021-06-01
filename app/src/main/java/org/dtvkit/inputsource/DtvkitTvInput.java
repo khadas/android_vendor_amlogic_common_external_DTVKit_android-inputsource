@@ -534,6 +534,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         Log.i(TAG, "update Dtvkit Database start");
         ComponentName sync = new ComponentName(this, DtvkitEpgSync.class);
         checkAndUpdateLcn();
+        int dvbSource = getCurrentDvbSource();
+        EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
         EpgSyncJobService.requestImmediateSync(this, mInputId, true, sync);
     }
 
@@ -7378,6 +7380,40 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
            Log.e(TAG, "getNumTuners = " + e.getMessage());
        }
        return numTuners;
+   }
+
+   private String dvbSourceToChannelTypeString(int source) {
+       String result = "TYPE_DVB_T";
+
+       switch (source) {
+           case ParameterMananer.SIGNAL_COFDM:
+               result = "TYPE_DVB_T";
+               break;
+           case ParameterMananer.SIGNAL_QAM:
+               result = "TYPE_DVB_C";
+               break;
+           case ParameterMananer.SIGNAL_QPSK:
+               result = "TYPE_DVB_S";
+               break;
+           case ParameterMananer.SIGNAL_ISDBT:
+               result = "TYPE_ISDB_T";
+               break;
+           default:
+               break;
+       }
+       return result;
+   }
+
+   private int getCurrentDvbSource() {
+       int source = ParameterMananer.SIGNAL_COFDM;
+       try {
+           JSONObject sourceReq = DtvkitGlueClient.getInstance().request("Dvb.GetDvbSource", new JSONArray());
+           if (sourceReq != null) {
+               source = sourceReq.optInt("data");
+           }
+       } catch (Exception e) {
+       }
+       return source;
    }
 
    private boolean checkRecordingExists(String uri, Cursor cursor) {

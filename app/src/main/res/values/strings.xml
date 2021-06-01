@@ -61,6 +61,7 @@
     <string name="strDvbc">DVB-C</string>
     <string name="strDvbt">DVB-T</string>
     <string name="strDvbs">DVB-S</string>
+    <string name="strScanMenu">Scan menu</string>
 
     <string name="strStopSearch">Stop Search</string>
     <string name="manualSearch">Manual Search</string>

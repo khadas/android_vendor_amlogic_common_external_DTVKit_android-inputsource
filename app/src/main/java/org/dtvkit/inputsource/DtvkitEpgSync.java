@@ -224,8 +224,34 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                     tryToPutStringToInternalProviderData(data, "profile_ver", service, "profile_ver");
                     tryToPutBooleanToInternalProviderData(data, "is_virtual_channel", service, "is_virtual_channel");
                 }
+
+                String channelType = TvContract.Channels.TYPE_OTHER;
+                String signal_type = service.optString("sig_name", "TYPE_OTHER");
+                switch (signal_type) {
+                    case "DVB-T":
+                        channelType = TvContract.Channels.TYPE_DVB_T;
+                        break;
+                    case "DVB-T2":
+                        channelType = TvContract.Channels.TYPE_DVB_T2;
+                        break;
+                    case "DVB-C":
+                        channelType = TvContract.Channels.TYPE_DVB_C;
+                        break;
+                    case "DVB-S":
+                        channelType = TvContract.Channels.TYPE_DVB_S;
+                        break;
+                    case "DVB-S2":
+                        channelType = TvContract.Channels.TYPE_DVB_S2;
+                        break;
+                    case "ISDB-T":
+                        channelType = TvContract.Channels.TYPE_ISDB_T;
+                        break;
+                    default:
+                        break;
+                }
                 channels.add(new Channel.Builder()
                         .setDisplayName(service.getString("name"))
+                        .setType(channelType)
                         .setDisplayNumber(String.format(Locale.ENGLISH, "%d", service.getInt("lcn")))
                         .setServiceType(service.getBoolean("is_data") ? TvContract.Channels.SERVICE_TYPE_OTHER : (service.getBoolean("radio") ? TvContract.Channels.SERVICE_TYPE_AUDIO :
                                 TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO))

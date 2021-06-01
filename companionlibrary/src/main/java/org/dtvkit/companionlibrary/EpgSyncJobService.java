@@ -145,6 +145,7 @@ public abstract class EpgSyncJobService extends JobService {
     private final SparseArray<EpgSyncTask> mTaskArray = new SparseArray<>();
     private static final Object mContextLock = new Object();
     private Context mContext;
+    private static String mChannelTypeFilter;
 
     /**
      * Returns the channels that your app contains.
@@ -415,6 +416,10 @@ public abstract class EpgSyncJobService extends JobService {
         jobScheduler.cancelAll();
     }
 
+    public static void setChannelTypeFilter(String type) {
+        mChannelTypeFilter = type;
+    }
+
     /**
      * @hide
      */
@@ -443,7 +448,7 @@ public abstract class EpgSyncJobService extends JobService {
                 return null;
             }
             List<Channel> tvChannels = getChannels();
-            TvContractUtils.updateChannels(mContext, mInputId, mIsSearchedChannel, tvChannels);
+            TvContractUtils.updateChannels(mContext, mInputId, mIsSearchedChannel, tvChannels, mChannelTypeFilter);
             LongSparseArray<Channel> channelMap = TvContractUtils.buildChannelMap(
                     mContext.getContentResolver(), mInputId);
             if (channelMap == null) {

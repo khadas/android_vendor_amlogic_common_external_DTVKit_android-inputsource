@@ -74,7 +74,7 @@ public class TvContractUtils {
      * @hide
      */
 
-    public static void updateChannels(Context context, String inputId, boolean isSearched, List<Channel> channels) {
+    public static void updateChannels(Context context, String inputId, boolean isSearched, List<Channel> channels, String updateChannelType) {
         // Create a map from original network ID to channel row ID for existing channels.
         ArrayMap<String, Long> channelMap = new ArrayMap<>();
         ArrayMap<String, String> channelSetFavMap = new ArrayMap<>();
@@ -87,7 +87,7 @@ public class TvContractUtils {
         ArrayMap<String, String> channelDisPlayNameValueMap = new ArrayMap<>();
         ArrayMap<String, String> channelDisPlayNumberValueMap = new ArrayMap<>();
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
-        String[] projection = {Channels._ID, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
+        String[] projection = {Channels._ID, Channels.COLUMN_TYPE, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_DISPLAY_NUMBER,
                 Channels.COLUMN_INTERNAL_PROVIDER_DATA};
         ContentResolver resolver = context.getContentResolver();
@@ -107,12 +107,13 @@ public class TvContractUtils {
             String displayNumber = null;
             while (cursor != null && cursor.moveToNext()) {
                 long rowId = cursor.getLong(0);
-                int originalNetworkId = cursor.getInt(1);
-                int transportStreamId = cursor.getInt(2);
-                int serviceId = cursor.getInt(3);
-                displayName = cursor.getString(4);
-                displayNumber = cursor.getString(5);
-                int type = cursor.getType(6);//InternalProviderData type
+                String channelType = cursor.getString(1);
+                int originalNetworkId = cursor.getInt(2);
+                int transportStreamId = cursor.getInt(3);
+                int serviceId = cursor.getInt(4);
+                displayName = cursor.getString(5);
+                displayNumber = cursor.getString(6);
+                int type = cursor.getType(7);//InternalProviderData type
                 int frequency = 0;
                 String ciNumber = null;
                 setFavFlag = "0";
@@ -123,7 +124,7 @@ public class TvContractUtils {
                 setDisplayNameFlag = "0";
                 setDisplayNumberFlag = "0";
                 if (type == Cursor.FIELD_TYPE_BLOB) {
-                    internalProviderByteData = cursor.getBlob(6);
+                    internalProviderByteData = cursor.getBlob(7);
                     if (internalProviderByteData != null) {
                         internalProviderData = new InternalProviderData(internalProviderByteData);
                     }
@@ -165,8 +166,12 @@ public class TvContractUtils {
                 } else {
                     if (DEBUG) Log.i(TAG, "COLUMN_INTERNAL_PROVIDER_DATA other type");
                 }
-                String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, displayNumber);
+                String uniqueStr = getUniqueStrForChannel(channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, displayNumber);
                 if (uniqueStr == null) {
+                    continue;
+                }
+                if (!isChannelTypeMatchs(updateChannelType, channelType)) {
+                    if (DEBUG) Log.i(TAG, "Skip unmatch type channels (" + updateChannelType + ":" + channelType + ")");
                     continue;
                 }
                 channelMap.put(uniqueStr, rowId);
@@ -214,6 +219,7 @@ public class TvContractUtils {
                 values.put(Channels.COLUMN_TYPE, Channels.TYPE_OTHER);
             }
 
+            String channelType = channel.getType();
             int originalNetworkId = channel.getOriginalNetworkId();
             int transportStreamId = channel.getTransportStreamId();
             int serviceId = channel.getServiceId();
@@ -235,7 +241,7 @@ public class TvContractUtils {
                 Log.d(TAG, "updateChannels no frequency info");
                 continue;
             }
-            String uniqueStr = getUniqueStrForChannel(originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, channel.getDisplayNumber());
+            String uniqueStr = getUniqueStrForChannel(channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, channel.getDisplayNumber());
             if (uniqueStr == null) {
                 continue;
             }
@@ -407,10 +413,29 @@ public class TvContractUtils {
         }
     }
 
-    public static String getUniqueStrForChannel(int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String displayNumber) {
+    public static boolean isChannelTypeMatchs(String sourceType, String targetType) {
+        boolean ret = false;
+        if (TextUtils.isEmpty(targetType)) {
+            //should not happen
+            return ret;
+        }
+        if (TextUtils.isEmpty(sourceType)) {
+            ret = true; //empty, not filter
+        } else if (sourceType.equals(targetType)) {
+            ret = true;
+        } else if (sourceType.length() != targetType.length()) {
+            int compare = sourceType.compareTo(targetType);
+            if (compare == 1 || compare == -1) {
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public static String getUniqueStrForChannel(String channelType, int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String displayNumber) {
         String result = null;
         try {
-            result = String.valueOf(frequency / 1000000) + "-" + displayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
+            result = channelType + "-" + String.valueOf(frequency / 1000000) + "-" + displayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
         } catch (Exception e) {
             Log.d(TAG, "getUniqueStrForChannel Exception = " + e.getMessage());
         }
