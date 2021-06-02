@@ -160,6 +160,7 @@ public class DtvkitDvbSettings extends Activity {
         if (needClearAudioLangSetting) {
             mParameterMananer.clearUserAudioSelect();
         }
+        updatingGuide();
     }
 
     @Override
@@ -260,7 +261,7 @@ public class DtvkitDvbSettings extends Activity {
                     return;
                 }
                 mParameterMananer.setCountryCodeByIndex(position);
-                updatingGuide();
+                //updatingGuide();
                 initLayout(true);
                 String currentMainAudioName = mParameterMananer.getCurrentMainAudioLangName();
                 String currentAssistAudioName = mParameterMananer.getCurrentSecondAudioLangName();
@@ -286,7 +287,7 @@ public class DtvkitDvbSettings extends Activity {
                     return;
                 }
                 mParameterMananer.setPrimaryAudioLangByPosition(position);
-                updatingGuide();
+                //updatingGuide();
                 needClearAudioLangSetting = true;
             }
 
@@ -306,7 +307,7 @@ public class DtvkitDvbSettings extends Activity {
                     return;
                 }
                 mParameterMananer.setSecondaryAudioLangByPosition(position);
-                updatingGuide();
+                //updatingGuide();
                 needClearAudioLangSetting = true;
             }
 
@@ -326,7 +327,7 @@ public class DtvkitDvbSettings extends Activity {
                     return;
                 }
                 mParameterMananer.setPrimaryTextLangByPosition(position);
-                updatingGuide();
+                //updatingGuide();
             }
 
             @Override
@@ -345,7 +346,7 @@ public class DtvkitDvbSettings extends Activity {
                     return;
                 }
                 mParameterMananer.setSecondaryTextLangByPosition(position);
-                updatingGuide();
+                //updatingGuide();
             }
 
             @Override
@@ -795,7 +796,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 Log.d(TAG, "showNetworkInfoConfirmDialog onItemClick position = " + position);
                 mParameterMananer.setNetworkPreferedOfRegion(mParameterMananer.getNetworkId(networkArray, position));
-                updatingGuide();
+                //updatingGuide();
                 alert.dismiss();
             }
         });
