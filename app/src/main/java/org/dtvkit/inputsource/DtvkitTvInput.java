@@ -710,6 +710,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             boolean multiFrequencySupport = false;
             boolean supportPip = getFeatureSupportPip();
             boolean supportFcc = getFeatureSupportFcc();
+            Log.d(TAG, "updateTunerNumber new count " + numTuners + ", supportPip = " + supportPip + ", supportFcc = " + supportFcc);
             //1.currently ohm_mxl258c has 4 tuner and can server for pip or fcc by configure, besides, it can support play multi frequency
             //    match for one record one play and one pip
             //2.currently ohm has 2 tuner but can only match for single frequency, besides, it can only debug pip or fcc
@@ -725,8 +726,34 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     numTuners = 3;//3 tuners that can work in three diffrent frequency
                 }
             }
-            if (mTvInputInfo != null && mTvInputInfo.getTunerCount() == numTuners) {
-                Log.d(TAG, "updateTunerNumber same count " + numTuners);
+            boolean noChange = true;
+            if (mTvInputInfo != null) {
+                Bundle bundle = mTvInputInfo.getExtras();
+                if (bundle != null) {
+                    if (supportPip != bundle.getBoolean(PropSettingManager.ENABLE_PIP_SUPPORT, false)) {
+                        Log.d(TAG, "updateTunerNumber pip support new status = " + supportPip);
+                        noChange = false;
+                    }
+                    if (supportFcc != bundle.getBoolean(PropSettingManager.ENABLE_FCC_SUPPORT, false)) {
+                        Log.d(TAG, "updateTunerNumber fcc support new status = " + supportFcc);
+                        noChange = false;
+                    }
+                }
+                if (mTvInputInfo.getTunerCount() != numTuners) {
+                    Log.d(TAG, "updateTunerNumber new tunercount = " + numTuners + ", old tunercount = " + mTvInputInfo.getTunerCount());
+                    noChange = false;
+                } else {
+                    TvInputInfo latestInfo =  mTvInputManager.getTvInputInfo(mTvInputInfo.getId());
+                    if (latestInfo != null && latestInfo.getTunerCount() != numTuners) {
+                        Log.d(TAG, "updateTunerNumber getTunerCount in TIF = " + latestInfo.getTunerCount());
+                        noChange = false;
+                    }
+                }
+            } else {
+                noChange = false;
+            }
+            if (noChange) {
+                Log.d(TAG, "updateTunerNumber noChange");
                 return;
             }
             Bundle extras = new Bundle();
@@ -7511,7 +7538,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     return result;
                 } else {
                     mTvInputHardwareInfo = hardwareInfo;
-                    mTvInputInfo = buildTvInputInfo(hardwareInfo, 2, null);
+                    mTvInputInfo = buildTvInputInfo(hardwareInfo, 1, null);
                     setInputId(mTvInputInfo.getId());
                     mHardware = mTvInputManager.acquireTvInputHardware(19, mTvInputInfo, mHardwareCallback);
                     result = mTvInputInfo;
@@ -7526,7 +7553,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     return result;
                 } else {
                     mPipTvInputHardwareInfo = hardwareInfo;
-                    mPipTvInputInfo = buildTvInputInfo(hardwareInfo, 2, null);
+                    mPipTvInputInfo = buildTvInputInfo(hardwareInfo, 1, null);
                     mPipHardware = mTvInputManager.acquireTvInputHardware(19 + 100, mTvInputInfo, mPipHardwareCallback);
                 }
                 //force set it to mTvInputInfo as only one source is needed
