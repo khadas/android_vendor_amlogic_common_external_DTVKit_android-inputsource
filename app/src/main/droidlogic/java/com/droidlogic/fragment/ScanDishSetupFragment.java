@@ -402,11 +402,11 @@ public class ScanDishSetupFragment extends Fragment {
                         if (lnbType == 0 || lnbType == 3) {
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                    .editLnb22Khz(false);
+                                    .editLnb22Khz("false");
                         } else if (lnbType == 1) {
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                    .editLnb22Khz(true);
+                                    .editLnb22Khz("auto");
                         }
                         if (mCurrentCustomDialog != null && TextUtils.equals(parameterKey, mCurrentCustomDialog.getDialogKey())) {
                             mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(), mCurrentCustomDialog.getDialogKey(), data.getInt("position"));
@@ -546,7 +546,7 @@ public class ScanDishSetupFragment extends Fragment {
                     if ("selected".equals(data.getString("action"))) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                .editLnb22Khz((position > 0) ? true : false);
+                                .editLnb22Khz((position > 0) ? "on" : "off");
                         if (mCurrentCustomDialog != null) {
                             mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(),
                                     mCurrentCustomDialog.getDialogKey(), position);

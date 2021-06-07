@@ -269,16 +269,12 @@ public class DvbsParameterManager {
                 valueStr = lp;
             }
         } else if (lnbKeyList[6].equals(parakey)) {
-            boolean tone22K = lnb.getLnbInfo().get22Khz();
+            String tone22K = lnb.getLnbInfo().get22Khz();
             boolean isSingle = lnb.getLnbInfo().isSingle();
             if (!isSingle) {
                 enable_switch = false;
             }
-            if (tone22K) {
-                valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[1]);//on
-            } else {
-                valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST[0]);//off
-            }
+            valueStr = tone22K;
         } else if (lnbKeyList[7].equals(parakey)) {
             String tb = lnb.getToneBurst();
             if (!tb.isEmpty()) {
@@ -333,8 +329,14 @@ public class DvbsParameterManager {
                 ret = 1;
             }
         } else if (lnbKeyList[6].equals(parakey)) {
-            boolean tone22K = lnb.getLnbInfo().get22Khz();
-            ret = tone22K ? 1 : 0;
+            String tone22K = lnb.getLnbInfo().get22Khz();
+            if (tone22K.equals("off")) {
+                ret = 0;
+            } else if (tone22K.equals("on")) {
+                ret = 1;
+            } else {
+                ret = 2;
+            }
         } else if (lnbKeyList[7].equals(parakey)) {
             String tb = lnb.getToneBurst();
             if (tb.equals("a")) {

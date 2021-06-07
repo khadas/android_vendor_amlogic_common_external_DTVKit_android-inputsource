@@ -1,5 +1,6 @@
 package com.droidlogic.fragment;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -260,7 +261,7 @@ public class LnbWrap {
         private int low_freq_max = 11750;
         private int low_freq_local = 5150;
         private String lnb_power = "on";
-        private boolean tone_22k = false;
+        private String tone_22k = "auto";
         private int high_freq_min = 0;
         private int high_freq_max = 11750;
         private int high_freq_local = 0;
@@ -278,7 +279,7 @@ public class LnbWrap {
                     low_freq_max = (int)(json.get("low_max_freq"));
                     low_freq_local = (int)(json.get("low_local_oscillator_frequency"));
                     lnb_power = (String)(json.get("low_lnb_voltage"));
-                    tone_22k = (boolean)(json.get("low_tone_22k"));
+                    tone_22k = (String)(json.get("low_tone_22k"));
                     high_freq_min = (int)(json.get("high_min_freq"));
                     high_freq_max = (int)(json.get("high_max_freq"));
                     high_freq_local = (int)(json.get("high_local_oscillator_frequency"));
@@ -292,8 +293,8 @@ public class LnbWrap {
                         lnb_type = 0;
                         low_freq_local = 5150;
                     }
-                    if (!isSingle() && tone_22k == false) {
-                        tone_22k = true;
+                    if (!isSingle()) {
+                        tone_22k = "auto";
                     }
                 }
             } catch (Exception e) {
@@ -327,7 +328,7 @@ public class LnbWrap {
             return lnb_power;
         }
 
-        public boolean get22Khz() {
+        public String get22Khz() {
             return tone_22k;
         }
 
@@ -365,9 +366,11 @@ public class LnbWrap {
                 if (lnb_type == 0) {
                     low_freq_local = 5150;
                     high_freq_local = 0;
+                    tone_22k = "off";
                 } else if (lnb_type == 1) {
                     low_freq_local = 9750;
                     high_freq_local = 10600;
+                    tone_22k = "auto";
                 }
                 mLnb.updateToDtvkit();
                 return true;
@@ -375,9 +378,11 @@ public class LnbWrap {
             return false;
         }
 
-        public boolean editLnb22Khz(boolean onoff) {
-            if (tone_22k != onoff) {
-                tone_22k = onoff;
+        public boolean editLnb22Khz(String tone22khz) {
+            String[] validValues = {"off", "on", "auto"};
+            boolean valid = Arrays.stream(validValues).anyMatch(tone22khz::equals);
+            if (valid && !tone_22k.equals(tone22khz)) {
+                tone_22k = tone22khz;
                 mLnb.updateToDtvkit();
                 return true;
             }
@@ -421,9 +426,9 @@ public class LnbWrap {
                 high_freq_local = highLocal;
                 result = true;
                 if (!isSingle()) {
-                    tone_22k = true;
+                    tone_22k = "auto";
                 } else {
-                    tone_22k = false;
+                    tone_22k = "off";
                 }
             }
             if (result) {
