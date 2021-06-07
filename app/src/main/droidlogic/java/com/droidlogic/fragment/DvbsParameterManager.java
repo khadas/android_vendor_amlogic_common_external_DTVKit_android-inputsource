@@ -131,6 +131,22 @@ public class DvbsParameterManager {
         return list;
     }
 
+    public void selectSingleTransponder(String tpName, boolean selected) {
+        if (TextUtils.isEmpty(tpName)) {
+            return;
+        }
+        if (tpName.equals(mCurrentTp)) {
+            mSateWrap.selectTransponder(mCurrentSatellite, tpName, selected);
+            if (!selected) {
+                setCurrentTransponder("");
+            }
+        } else {
+            mSateWrap.selectTransponder(mCurrentSatellite, mCurrentTp, false);
+            mSateWrap.selectTransponder(mCurrentSatellite, tpName, selected);
+            setCurrentTransponder(tpName);
+        }
+    }
+
     public LinkedList<ItemDetail> getLnbNameList() {
         LinkedList<ItemDetail> list = getLnbIdList();
         for (ItemDetail item: list) {
@@ -503,9 +519,18 @@ public class DvbsParameterManager {
         List<String> sates = getSatelliteNameListSelected();
         if (sates.size() > 0) {
             setCurrentSatellite(sates.get(0));
-            LinkedList<ItemDetail> tps = getTransponderList(sates.get(0));
+            setCurrentTransponder("");
+            List<SatelliteWrap.Transponder> tps = mSateWrap.getTransponderList(sates.get(0));
             if (tps.size() > 0) {
-                setCurrentTransponder(tps.get(0).getFirstText());
+                //if support multi-tps
+                //setCurrentTransponder(tps.get(0).getFirstText());
+                //else support single-tp
+                for (SatelliteWrap.Transponder tp : tps) {
+                    if (tp.isSelected()) {
+                        setCurrentTransponder(tp.getDisplayName());
+                        break;
+                    }
+                }
             }
         } else {
             setCurrentSatellite("");
@@ -513,11 +538,18 @@ public class DvbsParameterManager {
     }
 
     public void setInitialCurrentTransponder(String sate) {
-        LinkedList<ItemDetail> tps = getTransponderList(sate);
+        setCurrentTransponder("");
+        List<SatelliteWrap.Transponder> tps = mSateWrap.getTransponderList(sate);
         if (tps.size() > 0) {
-            setCurrentTransponder(tps.get(0).getFirstText());
-        } else {
-            setCurrentTransponder("");
+            //if support multi-tps
+            //setCurrentTransponder(tps.get(0).getFirstText());
+            //else support single-tp
+            for (SatelliteWrap.Transponder tp : tps) {
+                if (tp.isSelected()) {
+                    setCurrentTransponder(tp.getDisplayName());
+                    break;
+                }
+            }
         }
     }
 

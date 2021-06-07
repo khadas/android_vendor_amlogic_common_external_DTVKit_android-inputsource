@@ -377,7 +377,10 @@ public class ScanDishSetupFragment extends Fragment {
                             LinkedList<ItemDetail> tps = mParameterMananer.getDvbsParaManager().getTransponderList();
                             String testTp = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
                             if (!testTp.equals(tps.get(position).getFirstText())) {
-                                mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(position).getFirstText());
+                                //if support multi-tp
+                                //mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(position).getFirstText());
+                                //else support single-tp
+                                mParameterMananer.getDvbsParaManager().selectSingleTransponder(tps.get(position).getFirstText(), true);
                                 startTune();
                             }
                         }
@@ -727,7 +730,10 @@ public class ScanDishSetupFragment extends Fragment {
                                         tpIndx = 0;
                                     }
                                 }
-                                mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(tpIndx).getFirstText());
+                                //if support multi-tp
+                                //mParameterMananer.getDvbsParaManager().setCurrentTransponder(tps.get(tpIndx).getFirstText());
+                                //else support single-tp
+                                mParameterMananer.getDvbsParaManager().selectSingleTransponder(tps.get(tpIndx).getFirstText(), true);
                                 mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                                 startTune();
                                 break;
@@ -1044,8 +1050,12 @@ public class ScanDishSetupFragment extends Fragment {
                                             new_modulation_edit_t, new_fec_edit_t, "auto");
                             String testTransponder = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
                             if (testTransponder.equals(oldName)) {
+                                //if support multi-tp
+                                //mParameterMananer.getDvbsParaManager()
+                                //        .setCurrentTransponder(new_frequency_edit_t + new_polarity_edit_t + new_symbol_edit_t);
+                                //else support single-tp
                                 mParameterMananer.getDvbsParaManager()
-                                        .setCurrentTransponder(new_frequency_edit_t + new_polarity_edit_t + new_symbol_edit_t);
+                                        .selectSingleTransponder(new_frequency_edit_t + new_polarity_edit_t + new_symbol_edit_t, true);
                                 mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                                 startTune();
                             }
@@ -1186,8 +1196,12 @@ public class ScanDishSetupFragment extends Fragment {
                         selectTp = tps.get(position).getFirstText();
                     }
                     if (selectTp != null || !(selectTp.isEmpty())) {
-                        String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
-                        mParameterMananer.getDvbsParaManager().getSatelliteWrap().selectTransponder(sateName, selectTp, selected);
+                        //if UI support multi-tp
+                        //String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
+                        //mParameterMananer.getDvbsParaManager().getSatelliteWrap().selectTransponder(sateName, selectTp, selected);
+                        //else support single tp
+                        mParameterMananer.getDvbsParaManager().selectSingleTransponder(selectTp, selected);
+                        startTune();
                     }
                 } else if (ParameterMananer.ITEM_LNB.equals(listtype)) {
                     LinkedList<ItemDetail> lnbList = mParameterMananer.getDvbsParaManager().getLnbIdList();
