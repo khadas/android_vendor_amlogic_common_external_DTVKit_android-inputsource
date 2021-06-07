@@ -76,6 +76,7 @@ public class DtvkitDvbSettings extends Activity {
     private List<String> mStorageNameList = new ArrayList<String>();
     private Object mStorageLock = new Object();
     private boolean needClearAudioLangSetting = false;
+    private boolean needSyncChannels = false;
 
     private FormatDialogCallBack mFormatDialogCallBack = null;
     private StorageStatusBroadcastReceiver mStorageStatusBroadcastReceiver = null;
@@ -152,6 +153,7 @@ public class DtvkitDvbSettings extends Activity {
     protected void onResume() {
         super.onResume();
         needClearAudioLangSetting = false;
+        needSyncChannels = false;
     }
 
     @Override
@@ -160,7 +162,9 @@ public class DtvkitDvbSettings extends Activity {
         if (needClearAudioLangSetting) {
             mParameterMananer.clearUserAudioSelect();
         }
-        updatingGuide();
+        if (needSyncChannels) {
+            updatingGuide();
+        }
     }
 
     @Override
@@ -262,6 +266,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 mParameterMananer.setCountryCodeByIndex(position);
                 //updatingGuide();
+                needSyncChannels = true;
                 initLayout(true);
                 String currentMainAudioName = mParameterMananer.getCurrentMainAudioLangName();
                 String currentAssistAudioName = mParameterMananer.getCurrentSecondAudioLangName();
@@ -288,6 +293,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 mParameterMananer.setPrimaryAudioLangByPosition(position);
                 //updatingGuide();
+                needSyncChannels = true;
                 needClearAudioLangSetting = true;
             }
 
@@ -308,6 +314,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 mParameterMananer.setSecondaryAudioLangByPosition(position);
                 //updatingGuide();
+                needSyncChannels = true;
                 needClearAudioLangSetting = true;
             }
 
@@ -328,6 +335,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 mParameterMananer.setPrimaryTextLangByPosition(position);
                 //updatingGuide();
+                needSyncChannels = true;
             }
 
             @Override
@@ -347,6 +355,7 @@ public class DtvkitDvbSettings extends Activity {
                 }
                 mParameterMananer.setSecondaryTextLangByPosition(position);
                 //updatingGuide();
+                needSyncChannels = true;
             }
 
             @Override
@@ -797,6 +806,7 @@ public class DtvkitDvbSettings extends Activity {
                 Log.d(TAG, "showNetworkInfoConfirmDialog onItemClick position = " + position);
                 mParameterMananer.setNetworkPreferedOfRegion(mParameterMananer.getNetworkId(networkArray, position));
                 //updatingGuide();
+                needSyncChannels = true;
                 alert.dismiss();
             }
         });
