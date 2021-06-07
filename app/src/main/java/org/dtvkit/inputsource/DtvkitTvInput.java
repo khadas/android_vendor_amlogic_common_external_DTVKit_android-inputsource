@@ -261,7 +261,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private static final int INDEX_FOR_MAIN = 0;
     private static final int INDEX_FOR_PIP = 1;
 
-    private String lastMhegUri = null;
+    volatile private String lastMhegUri = null;
 
     //stream change and update dialog
     private AlertDialog mStreamChangeUpdateDialog = null;
@@ -7068,6 +7068,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 lastMhegUri = dvbUri;
                 Log.d(TAG, "startMheg mhegStarted");
             } else {
+                lastMhegUri = null;
                 Log.d(TAG, "startMheg mheg failed to start");
             }
         } else {
@@ -7081,9 +7082,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             JSONArray args = new JSONArray();
             args.put(dvbUri);
             quiet = DtvkitGlueClient.getInstance().request("Mheg.start", args).getInt("data");
-            Log.e(TAG, "Mheg started");
+            Log.d(TAG, "Mheg started");
         } catch (Exception e) {
-            Log.e(TAG, "mhegStartService = " + e.getMessage());
+            Log.i(TAG, "mhegStartService Exception = " + e.getMessage());
         }
         return quiet;
     }
@@ -7092,11 +7093,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         try {
             JSONArray args = new JSONArray();
             DtvkitGlueClient.getInstance().request("Mheg.stop", args);
-            lastMhegUri = null;
-            Log.e(TAG, "Mheg stopped");
+            Log.d(TAG, "Mheg stopped");
         } catch (Exception e) {
-            Log.e(TAG, "mhegStop = " + e.getMessage());
+            Log.i(TAG, "mhegStop Exception = " + e.getMessage());
         }
+        lastMhegUri = null;
     }
     private boolean mhegKeypress(int keyCode) {
       boolean used=false;
@@ -7104,9 +7105,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             JSONArray args = new JSONArray();
             args.put(keyCode);
             used = DtvkitGlueClient.getInstance().request("Mheg.notifyKeypress", args).getBoolean("data");
-            Log.e(TAG, "Mheg keypress, used:" + used);
+            Log.d(TAG, "Mheg keypress, used:" + used);
         } catch (Exception e) {
-            Log.e(TAG, "mhegKeypress = " + e.getMessage());
+            Log.i(TAG, "mhegKeypress Exception = " + e.getMessage());
         }
         return used;
     }

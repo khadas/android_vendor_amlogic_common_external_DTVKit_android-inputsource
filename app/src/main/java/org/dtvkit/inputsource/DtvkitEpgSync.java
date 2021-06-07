@@ -227,8 +227,8 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 channels.add(new Channel.Builder()
                         .setDisplayName(service.getString("name"))
                         .setDisplayNumber(String.format(Locale.ENGLISH, "%d", service.getInt("lcn")))
-                        .setServiceType(service.getBoolean("radio") ? TvContract.Channels.SERVICE_TYPE_AUDIO :
-                                TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO)
+                        .setServiceType(service.getBoolean("is_data") ? TvContract.Channels.SERVICE_TYPE_OTHER : (service.getBoolean("radio") ? TvContract.Channels.SERVICE_TYPE_AUDIO :
+                                TvContract.Channels.SERVICE_TYPE_AUDIO_VIDEO))
                         .setOriginalNetworkId(Integer.parseInt(uri.substring(6, 10), 16))
                         .setTransportStreamId(Integer.parseInt(uri.substring(11, 15), 16))
                         .setServiceId(Integer.parseInt(uri.substring(16, 20), 16))
