@@ -183,6 +183,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     protected int mAudioADMixingLevel = 50;
     protected int mAudioADVolume = 100;
 
+    /*teletext subtitle status when open teletext page*/
+    protected boolean mSubFlagTtxPage = false;
+    /*teletext region id*/
+    private int mRegionId = 0;
+
     volatile private boolean mDvbNetworkChangeSearchStatus = false;
     private Channel mMainDvbChannel = null;
     private Channel mPipDvbChannel = null;
@@ -3184,6 +3189,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (playerIsTeletextOn()) {
                     boolean setTeleOff = playerSetTeletextOn(false, -1);//close if opened
                     Log.d(TAG, "selectSubtitleOrTeletext off setTeleOff = " + setTeleOff);
+
+                    if (mSubFlagTtxPage) {
+                        Log.d(TAG, "selectSubtitleOrTeletext ttx page exit, restart ttx sub");
+                        playerSetSubtitlesOn(true);
+                        mSubFlagTtxPage = false;
+                    }
                 }
                 boolean stopSub = playerSelectSubtitleTrack(0xFFFF);
                 boolean stopTele = playerSelectTeletextTrack(0xFFFF);
@@ -3204,6 +3215,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 } else if (type == 6) {//teletext
                     if (playerGetSubtitlesOn()) {
                         playerSetSubtitlesOn(false);
+                        mSubFlagTtxPage = true;
                         Log.d(TAG, "selectSubtitleOrTeletext ontele setSubOff");
                     }
                     if (!playerIsTeletextOn()) {
@@ -3735,6 +3747,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     keyCode == KeyEvent.KEYCODE_DPAD_UP ||
                     keyCode == KeyEvent.KEYCODE_CHANNEL_DOWN ||
                     keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                    keyCode == KeyEvent.KEYCODE_MEDIA_NEXT ||
                     keyCode == KeyEvent.KEYCODE_0 ||
                     keyCode == KeyEvent.KEYCODE_1 ||
                     keyCode == KeyEvent.KEYCODE_2 ||
@@ -3757,6 +3770,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         mTeleTextMixNormal = true;
                         mView.setTeletextMix(TTX_MODE_NORMAL);
                         playerSetRectangle(0, 0, mWinWidth, mWinHeight);
+                    }
+
+                    Log.d(TAG, "dealTeletextKeyCode mSubFlagTtxPage:" + mSubFlagTtxPage);
+                    if (mSubFlagTtxPage) {
+                        playerSetSubtitlesOn(true);
+                        mSubFlagTtxPage = false;
                     }
                     break;
                 case KeyEvent.KEYCODE_PROG_RED:
@@ -3784,6 +3803,36 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 case KeyEvent.KEYCODE_DPAD_DOWN:
                     Log.d(TAG, "dealTeletextKeyCode previous_page");
                     playerNotifyTeletextEvent(16);
+                    break;
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
+                    switch (mRegionId) {
+                        case 0:
+                            mRegionId = 8;
+                            break;
+                        case 8:
+                            mRegionId = 16;
+                            break;
+                        case 16:
+                            mRegionId = 24;
+                            break;
+                        case 24:
+                            mRegionId = 32;
+                            break;
+                        case 32:
+                            mRegionId = 48;
+                            break;
+                        case 48:
+                            mRegionId = 64;
+                            break;
+                        case 64:
+                            mRegionId = 80;
+                            break;
+                        default:
+                            mRegionId = 0;
+                            break;
+                    };
+                    Log.i(TAG, "region id:" + mRegionId);
+                    DtvkitGlueClient.getInstance().setRegionId(mRegionId);
                     break;
                 case KeyEvent.KEYCODE_0:
                 case KeyEvent.KEYCODE_1:

@@ -47,7 +47,7 @@ public class DtvkitGlueClient {
     private native void native_openUserData();
     private native void native_closeUserData();
     private native void native_nativeSubtitleSeekReset();
-
+    private native void native_setRegionId(int regionId);
     static {
         System.loadLibrary("dtvkit_jni");
     }
@@ -321,4 +321,9 @@ public class DtvkitGlueClient {
     public void closeUserData() {
         native_closeUserData();
     }
+
+    public void setRegionId(int regionId) {
+        native_setRegionId(regionId);
+    }
+
 }

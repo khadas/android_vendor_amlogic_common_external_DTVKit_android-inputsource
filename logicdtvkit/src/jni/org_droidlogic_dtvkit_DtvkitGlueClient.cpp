@@ -63,6 +63,8 @@ static jboolean g_bSubStatus = false;
 #define TT_EVENT_INDEXPAGE 14
 #define TT_EVENT_GO_TO_PAGE 30
 #define TT_EVENT_GO_TO_SUBTITLE 31
+#define TT_EVENT_SET_REGION_ID 32
+
 
 static void postSubtitleDataEx(int type, int width, int height, int dst_x, int dst_y, int dst_width, int dst_height, const char *data);
 static void clearSubtitleDataEx();
@@ -625,6 +627,13 @@ static void openUserData() {
     }
 }
 
+static void setRegionId(JNIEnv *env, jclass clazz __unused, jint regionId) {
+    ALOGD("set region Id:%d", regionId);
+    if (mSubContext != nullptr) {
+        mSubContext->ttControl(TT_EVENT_SET_REGION_ID, -1, -1, regionId, -1);
+    }
+}
+
 static void closeUserData() {
     if (mSubContext != nullptr) {
         mSubContext->userDataClose();
@@ -684,6 +693,11 @@ static JNINativeMethod gMethods[] = {
   "native_nativeSubtitleSeekReset", "()V",
   (void*) resetForSeek
 },
+{
+  "native_setRegionId", "(I)V",
+  (void*) setRegionId
+},
+
 };
 
 
