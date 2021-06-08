@@ -898,7 +898,38 @@ public class CustomDialog/* extends AlertDialog*/ {
             String modulation = mParameterMananer.getDvbsParaManager().
                     getSatelliteWrap().getTransponderByName(satellitename1, parameter).getModulation();
             modulationmode.setSelection(getSpinnerIndex(modulationmode, modulation));
+        } else {
+            frequency.setHint("3000~4800 10700~12750");
+            symbol.setHint("1000~45000");
         }
+        frequency.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    frequency.setHint("3000~4800 10700~12750");
+                } else {
+                    if (parameter != null) {
+                        int freq = mParameterMananer.getDvbsParaManager().
+                                getSatelliteWrap().getTransponderByName(satellitename1, parameter).getFreq();
+                        frequency.setHint("" + freq);
+                    }
+                }
+            }
+        });
+        symbol.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    symbol.setHint("1000~45000");
+                } else {
+                    if (parameter != null) {
+                        int symbol_rate = mParameterMananer.getDvbsParaManager().
+                                getSatelliteWrap().getTransponderByName(satellitename1, parameter).getSymbol();
+                        symbol.setHint("" + symbol_rate);
+                    }
+                }
+            }
+        });
         satellite.setText(satellitename1);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -921,19 +952,39 @@ public class CustomDialog/* extends AlertDialog*/ {
                     bundle.putString("action", "onClick");
                     bundle.putString("key", ParameterMananer.KEY_EDIT_TRANSPONDER);
                     bundle.putString("button", "ok");
+                    String freq_edit_str = null;
+                    String symbol_edit_str = null;
                     String sate_name = !TextUtils.isEmpty(satellite.getText()) ? satellite.getText().toString() : (satellite.getHint() != null ? satellite.getHint().toString() : "");
-                    String freq_edit_str = !TextUtils.isEmpty(frequency.getText()) ? frequency.getText().toString() : (frequency.getHint() != null ? frequency.getHint().toString() : "0");
-                    String symbol_edit_str = !TextUtils.isEmpty(symbol.getText()) ? symbol.getText().toString() : (symbol.getHint() != null ? symbol.getHint().toString() : "0");
+                    if (parameter != null) {
+                        freq_edit_str = !TextUtils.isEmpty(frequency.getText()) ? frequency.getText().toString() : (frequency.getHint() != null ? frequency.getHint().toString() : "0");
+                        symbol_edit_str = !TextUtils.isEmpty(symbol.getText()) ? symbol.getText().toString() : (symbol.getHint() != null ? symbol.getHint().toString() : "0");
+                    } else {
+                        freq_edit_str = frequency.getText().toString();
+                        symbol_edit_str = symbol.getText().toString();
+                    }
                     if (TextUtils.isEmpty(sate_name) || TextUtils.isEmpty(freq_edit_str) || TextUtils.isEmpty(symbol_edit_str)) {
                         Toast.makeText(mContext, R.string.dialog_parameter_not_complete, Toast.LENGTH_SHORT).show();
                         return;
                     }
                     int freq_edit = 0;
                     int symbol_edit = 0;
+                    boolean freq_sym_valid = true;
                     try {
                         freq_edit = Integer.parseInt(freq_edit_str);
                         symbol_edit = Integer.parseInt(symbol_edit_str);
                     } catch (Exception e) {
+                    }
+                    if (freq_edit < 3000 || (freq_edit > 4800 && freq_edit < 10700) || freq_edit > 12750) {
+                        freq_sym_valid = false;
+                        frequency.setText("");
+                    }
+                    if (symbol_edit < 1000 || symbol_edit > 45000) {
+                        freq_sym_valid = false;
+                        symbol.setText("");
+                    }
+                    if (!freq_sym_valid) {
+                        Toast.makeText(mContext, "Frequency or symbol out of range", Toast.LENGTH_SHORT).show();
+                        return;
                     }
                     boolean isDvbs2 = dvbs2.isChecked();
                     final String[] fecModes = mContext.getResources().getStringArray(R.array.fec_mode_entries);
