@@ -4130,7 +4130,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.i(TAG, "DvbUpdatedChannel");
                     ComponentName sync = new ComponentName(mContext, DtvkitEpgSync.class);
                     checkAndUpdateLcn();
-                    EpgSyncJobService.requestImmediateSync(mContext, mInputId, false, true, sync);
+                    EpgSyncJobService.requestImmediateSync(mContext, mInputId, false, false, sync);
                 }
                 else if (signal.equals("CiplusUpdateService"))
                 {

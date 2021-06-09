@@ -651,6 +651,7 @@ public abstract class EpgSyncJobService extends JobService {
                     ops.clear();
                 }
             }
+            mContext.getContentResolver().notifyChange(TvContract.Programs.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
         }
     }
 }
