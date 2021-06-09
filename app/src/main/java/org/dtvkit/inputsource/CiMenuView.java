@@ -10,15 +10,22 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.LayoutInflater;
 import android.view.KeyEvent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
 
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import org.droidlogic.dtvkit.DtvkitGlueClient;
+import com.droidlogic.settings.PropSettingManager;
+import com.droidlogic.settings.ConstantManager;
 
 import java.util.ArrayList;
 
@@ -36,6 +43,81 @@ public class CiMenuView extends LinearLayout {
     private final Handler uiHandler;
     private final Context mContext;
 
+    private int mCiMenuTestItemCount = 0;
+    private JSONArray mCiMenuTestItemArray = null;
+    private String mCiMenuTestItemType = null;
+    protected final BroadcastReceiver mCiMenuItemTestBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (PropSettingManager.getBoolean(PropSettingManager.CI_MENU_ITEM_TEST, false)) {
+                Log.d(TAG, "TEST_CASE intent = " + (intent != null ? intent.getExtras() : null));
+                if (intent != null) {
+                    try {
+                        String action = intent.getAction();
+                        if (ConstantManager.ACTION_CI_MENU_INFO.equals(action)) {
+                            String command = intent.getStringExtra(ConstantManager.COMMAND_CI_MENU);
+                            switch (command) {
+                                case ConstantManager.VALUE_CI_MENU_INSERT_MODULE:
+                                    //am broadcast -a ci_menu_info --es command "ci_menu_insert_module" --es module_type "MENU_LIST" --ei module_count 10
+                                    mCiMenuTestItemCount = intent.getIntExtra("module_count", 0);
+                                    mCiMenuTestItemType = intent.getStringExtra("module_type");
+                                    Log.i(TAG, "TEST_CASE Ci Menu: command = " + command + ", mCiMenuTestItemCount = " + mCiMenuTestItemCount + ", mCiMenuTestItemType = " + mCiMenuTestItemType);
+                                    mCiMenuTestItemArray = creatTestCiMenuItem(mCiMenuTestItemCount);
+                                    clearPreviousMenu();
+                                    menuCloseHandler("Ci Module is inserted", EXIT_TO_QUIT);
+                                    setMenuVisible();
+                                    break;
+                                case ConstantManager.VALUE_CI_MENU_OPEN_MODULE:
+                                    //am broadcast -a ci_menu_info --es command "ci_menu_open_module"
+                                    Log.i(TAG, "TEST_CASE Ci Menu: command = " + command);
+                                    clearPreviousMenu();
+                                    signalTriggered = true;
+                                    menuHandler(true);
+                                    break;
+                                case ConstantManager.VALUE_CI_MENU_CLOSE_MODULE:
+                                    //am broadcast -a ci_menu_info --es command "ci_menu_close_module"
+                                    Log.i(TAG, "TEST_CASE Ci Menu: command = " + command);
+                                    clearPreviousMenu();
+                                    signalTriggered = true;
+                                    menuCloseHandler("Ci Module closed by HOST", EXIT_TO_QUIT);
+                                    setMenuInvisible();
+                                    break;
+                                case ConstantManager.VALUE_CI_MENU_REMOVE_MODULE:
+                                    //am broadcast -a ci_menu_info --es command "ci_menu_remove_module"
+                                    Log.i(TAG, "TEST_CASE Ci Menu: command = " + command);
+                                    clearPreviousMenu();
+                                    signalTriggered = true;
+                                    menuCloseHandler("Ci Module removed", EXIT_TO_QUIT);
+                                    setMenuVisible();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.d(TAG, "mCiMenuItemTestBroadcastReceiver Exception = " + e.getMessage());
+                    }
+                }
+            } else {
+                Log.d(TAG, "TEST_CASE hasn't been enabled");
+            }
+        }
+    };
+
+    private JSONArray creatTestCiMenuItem(int count) {
+        JSONArray result = new JSONArray();
+        try {
+            for (int i = 0; i < count; i++) {
+                JSONObject obj = new JSONObject();
+                obj.put("data", "test item " + (i + 1));
+                result.put(obj);
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "creatTestCiMenuItem Exception = " + e.getMessage());
+        }
+        return result;
+    }
+
     private final DtvkitGlueClient.SignalHandler mHandler = new DtvkitGlueClient.SignalHandler() {
         @Override
         public void onSignal(String signal, JSONObject data) {
@@ -49,7 +131,7 @@ public class CiMenuView extends LinearLayout {
                 clearPreviousMenu();
                 Log.i(TAG, "Ci Menu: OnSignal " + signal);
                 signalTriggered = true;
-                menuHandler();
+                menuHandler(false);
             }
             else if (signal.equals("CiCloseModule")) {
                 Log.i(TAG, "Ci Menu: OnSignal " + signal);
@@ -100,19 +182,23 @@ public class CiMenuView extends LinearLayout {
             int numMenuItems;
 
             Log.i(TAG, "Entered menu List Handler");
+            boolean isTest = PropSettingManager.getBoolean(PropSettingManager.CI_MENU_ITEM_TEST, false);
 
             /* Generate list of options */
-            readCiMenuTitle();
+            readCiMenuTitle(isTest);
 
-            numMenuItems = getCiNumMenuItems();
-            readCiMenuOptions(numMenuItems);
+            numMenuItems = getCiNumMenuItems(isTest);
+            readCiMenuOptions(numMenuItems, isTest);
 
-            readCiMenuBottomText();
+            readCiMenuBottomText(isTest);
         }
 
-        private void readCiMenuTitle() {
+        private void readCiMenuTitle(boolean isTest) {
             String textBoxText;
-
+            if (isTest) {
+                setMenuTitleText("title ci menu item test");
+                return;
+            }
             try {
                 JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getCiMenuScreenTitle", new JSONArray());
                 textBoxText = "CAM ID: " + obj.getString("data");
@@ -123,9 +209,11 @@ public class CiMenuView extends LinearLayout {
             }
         }
 
-        private int getCiNumMenuItems() {
+        private int getCiNumMenuItems(boolean isTest) {
             int numMenuItems = 0;
-
+            if (isTest) {
+                return mCiMenuTestItemCount;
+            }
             try {
                 JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getCiMenuScreenNumItems", new JSONArray());
                 numMenuItems = obj.getInt("data");
@@ -137,7 +225,7 @@ public class CiMenuView extends LinearLayout {
             return numMenuItems;
         }
 
-        private void readCiMenuOptions(final int numMenuItems) {
+        private void readCiMenuOptions(final int numMenuItems, final boolean isTest) {
             String itemText;
             JSONArray args;
             ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
@@ -148,7 +236,12 @@ public class CiMenuView extends LinearLayout {
                     args = new JSONArray();
                     args.put(i-1);
 
-                    JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getCiMenuScreenItemText", args);
+                    JSONObject obj = null;
+                    if (isTest) {
+                        obj = mCiMenuTestItemArray.getJSONObject(i-1);
+                    } else {
+                        obj = DtvkitGlueClient.getInstance().request("Dvb.getCiMenuScreenItemText", args);
+                    }
                     itemText = Integer.toString(i) + ")" + formatSpaces(i) + obj.getString("data");
 
                     Log.i(TAG, itemText);
@@ -164,7 +257,7 @@ public class CiMenuView extends LinearLayout {
             }
 
             /* Set focus on the first menu item */
-            setMenuFocus(1);
+            setMenuFocus(1, true);
         }
 
         private void setUpAndPrintMenuItem(final int buttonNum, final String itemText) {
@@ -217,7 +310,7 @@ public class CiMenuView extends LinearLayout {
             }
         }
 
-        private void readCiMenuBottomText() {
+        private void readCiMenuBottomText(boolean isTest) {
             String text;
 
             try {
@@ -311,6 +404,7 @@ public class CiMenuView extends LinearLayout {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    enquiryLayout.setId(0);
                     enquiryTextView.setText(text);
                     enquiryEditText.requestFocus();
 
@@ -397,11 +491,15 @@ public class CiMenuView extends LinearLayout {
         inflate(getContext(), R.layout.cimenu,  this);
 
         startListeningForCamSignal();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConstantManager.ACTION_CI_MENU_INFO);
+        mContext.registerReceiver(mCiMenuItemTestBroadcastReceiver, intentFilter);
     }
 
     public void destroy() {
         Log.i(TAG, "destroy and unregisterSignalHandler");
         stopListeningForCamSignal();
+        mContext.unregisterReceiver(mCiMenuItemTestBroadcastReceiver);
     }
 
     public boolean handleKeyDown(int keyCode, KeyEvent event) {
@@ -467,7 +565,7 @@ public class CiMenuView extends LinearLayout {
         if (isMenuVisible) {
             currentFocus = getCurrentFocusedItem();
             if (currentFocus > 1) {
-                setMenuFocus(currentFocus - 1);
+                setMenuFocus(currentFocus - 1, true);
             }
             used = true;
         }
@@ -481,7 +579,7 @@ public class CiMenuView extends LinearLayout {
         if (isMenuVisible) {
             currentFocus = getCurrentFocusedItem();
             if (currentFocus < numberOfMenuItems()) {
-                setMenuFocus(currentFocus + 1);
+                setMenuFocus(currentFocus + 1, false);
             }
             used = true;
         }
@@ -555,11 +653,15 @@ public class CiMenuView extends LinearLayout {
         DtvkitGlueClient.getInstance().unregisterSignalHandler(mHandler);
     }
 
-    private void menuHandler() {
+    private void menuHandler(boolean isTest) {
         MenuType menuType;
         clearPreviousMenu();
         setMenuVisible();
-
+        if (isTest) {
+            menuType = MenuType.fromString(mCiMenuTestItemType);
+            menuType.menuHandler(this);
+            return;
+        }
         try {
             JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getCiMenuMode", new JSONArray());
             menuType = MenuType.fromString(obj.getString("data"));
@@ -592,7 +694,8 @@ public class CiMenuView extends LinearLayout {
         // }
     }
 
-    private void setMenuFocus(final int buttonNum) {
+    private void setMenuFocus(final int buttonNum, final boolean up) {
+        final ScrollView scrollView = (ScrollView)findViewById(R.id.scrollContainer);
         final LinearLayout linearLayout = (LinearLayout)findViewById(R.id.linearlayoutMMIItems);
 
         runOnUiThread(new Runnable() {
@@ -604,6 +707,7 @@ public class CiMenuView extends LinearLayout {
                     button.setFocusable(true);
                     button.setFocusableInTouchMode(true);
                     button.requestFocus();
+                    scrollView.smoothScrollBy(0, up ? -button.getMeasuredHeight() : button.getMeasuredHeight());
                 }
             }
         });

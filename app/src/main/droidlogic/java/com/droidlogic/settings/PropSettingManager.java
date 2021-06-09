@@ -34,6 +34,7 @@ public class PropSettingManager {
     public static final String CI_PROFILE_ADD_TEST = "vendor.sys.tv.add.profile";
     public static final String CI_PROFILE_TEST = "vendor.sys.tv.test.profile";
     public static final String CI_PROFILE_SEARCH_TEST = "vendor.sys.tv.test.search";
+    public static final String CI_MENU_ITEM_TEST = "vendor.sys.tv.test.ciitem";
 
     public static String getProp(String key) {
         String result = null;

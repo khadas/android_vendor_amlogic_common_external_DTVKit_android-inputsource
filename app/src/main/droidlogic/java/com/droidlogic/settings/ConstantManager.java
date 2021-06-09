@@ -110,6 +110,12 @@ public class ConstantManager {
     public static final String VALUE_CI_CARD_SLOT = "ci_card_slot";
     public static final String VALUE_CI_CAM_CARD_ID = "ci_cam_card_id";
     public static final String VALUE_CI_CAM_CARD_STATUS = "ci_cam_card_status";
+    public static final String ACTION_CI_MENU_INFO = "ci_menu_info";
+    public static final String COMMAND_CI_MENU = "command";
+    public static final String VALUE_CI_MENU_INSERT_MODULE = "ci_menu_insert_module";
+    public static final String VALUE_CI_MENU_OPEN_MODULE = "ci_menu_open_module";
+    public static final String VALUE_CI_MENU_CLOSE_MODULE = "ci_menu_close_module";
+    public static final String VALUE_CI_MENU_REMOVE_MODULE = "ci_menu_remove_module";
 
     public static final Map<String, String> PI_TO_VIDEO_FORMAT_MAP = new HashMap<>();
     static {

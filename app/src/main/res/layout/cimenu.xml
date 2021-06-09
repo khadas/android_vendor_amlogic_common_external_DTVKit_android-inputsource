@@ -9,33 +9,44 @@
 
     <LinearLayout
         android:id="@+id/linearlayoutMMI"
-        android:layout_width="wrap_content"
+        android:layout_width="600dp"
         android:layout_height="wrap_content"
+        android:minHeight="200dp"
+        android:weightSum="7"
         android:orientation="vertical"
-        android:layout_weight="5"
         android:layout_marginLeft="30dp"
-        android:layout_marginTop="30dp">
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="30dp">
 
         <TextView
             android:id="@+id/textViewMenuTitle"
             android:layout_width="600dp"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:textColor="#ffffffff"
             android:gravity="left|center_vertical"
             android:background="#06516e"
             android:textSize="24sp" />
 
-        <LinearLayout
-            android:id="@+id/linearlayoutMMIItems"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-        </LinearLayout>
+        <ScrollView
+            android:id="@+id/scrollContainer"
+            android:layout_width="600dp"
+            android:layout_height="0dp"
+            android:layout_weight="5">
+
+            <LinearLayout
+                android:id="@+id/linearlayoutMMIItems"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            </LinearLayout>
+        </ScrollView>
 
         <TextView
             android:id="@+id/textViewMenuFooter"
             android:layout_width="600dp"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:textColor="#ffffffff"
             android:gravity="left|center_vertical"
             android:background="#06516e"
