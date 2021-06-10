@@ -200,6 +200,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                             data.put("is_virtual_channel", false);
                         }
                         data.put("profile_selectable", "true");
+                        data.put("service_type_label", "op test");
                     } else if (countFlag == 2) {
                         data.put("profile_ver", "v1");
                         if (i < 4) {
@@ -223,8 +224,18 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                     tryToPutIntToInternalProviderData(data, "tune_quietly", service, "tune_quietly");
                     tryToPutStringToInternalProviderData(data, "profile_ver", service, "profile_ver");
                     tryToPutBooleanToInternalProviderData(data, "is_virtual_channel", service, "is_virtual_channel");
+                    tryToPutStringToInternalProviderData(data, "service_type_label", service, "service_type_label");
                 }
-
+                if (service.has("raw_name")) {
+                    data.put("raw_displayname", service.getString("raw_name"));
+                } else {
+                    data.put("raw_displayname", service.getString("name"));
+                }
+                if (service.has("raw_lcn")) {
+                    data.put("raw_displaynumber", String.format(Locale.ENGLISH, "%d", service.getInt("raw_lcn")));
+                } else {
+                    data.put("raw_displaynumber", String.format(Locale.ENGLISH, "%d", service.getInt("lcn")));
+                }
                 String channelType = TvContract.Channels.TYPE_OTHER;
                 String signal_type = service.optString("sig_name", "TYPE_OTHER");
                 switch (signal_type) {
@@ -276,7 +287,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
         int parental_rating;
         int content_value;
         try {
-        String dvbUri = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
+            String dvbUri = getDtvkitChannelUri(channel);
 
             Log.i(TAG, String.format("Get channel programs for epg sync. Uri %s, startMs %d, endMs %d",
                 dvbUri, startMs, endMs));
@@ -333,7 +344,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
         int parental_rating;
 
         try {
-        String dvbUri = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
+            String dvbUri = getDtvkitChannelUri(channel);
 
             Log.i(TAG, String.format("Get channel programs for epg sync. Uri %s", dvbUri));
 
@@ -381,7 +392,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
         List<Program> programs = new ArrayList<>();
 
         try {
-            String dvbUri = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
+            String dvbUri = getDtvkitChannelUri(channel);
 
             Log.i(TAG, "Get channel now next programs for epg sync. Uri " + dvbUri);
 
@@ -541,7 +552,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put(key1, obj.getString(key2));
                 result = true;
             } catch (Exception e) {
-                Log.e(TAG, "tryToPutStringToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
+                //Log.e(TAG, "tryToPutStringToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
             }
         }
         return result;
@@ -554,7 +565,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put(key1, obj.getInt(key2));
                 result = true;
             } catch (Exception e) {
-                Log.e(TAG, "tryToPutIntToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
+                //Log.e(TAG, "tryToPutIntToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
             }
         }
         return result;
@@ -567,8 +578,26 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put(key1, obj.getBoolean(key2));
                 result = true;
             } catch (Exception e) {
-                Log.e(TAG, "tryToPutBooleanToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
+                //Log.e(TAG, "tryToPutBooleanToInternalProviderData key2 = " + key2 + "Exception = " + e.getMessage());
             }
+        }
+        return result;
+    }
+
+    private String getDtvkitChannelUri(Channel channel) {
+        String result = null;
+        if (channel != null) {
+            result = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
+            //uncomment it if unique id feature has been enabled and uri can represent a channel at that time
+            /*
+            try {
+                InternalProviderData data = channel.getInternalProviderData();
+                if (data != null) {
+                    result = (String)data.get(Channel.KEY_DTVKIT_URI);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "getDtvkitChannelUri Exception = " + e.getMessage());
+            }*/
         }
         return result;
     }

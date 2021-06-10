@@ -730,7 +730,10 @@ public class DtvkitDvbsSetup extends Activity {
         String inputId = this.getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
         Log.i(TAG, String.format("inputId: %s", inputId));
         //EpgSyncJobService.requestImmediateSync(this, inputId, true, new ComponentName(this, DtvkitEpgSync.class)); // 12 hours
-        EpgSyncJobService.requestImmediateSyncSearchedChannel(this, inputId, (mFoundServiceNumber > 0),new ComponentName(this, DtvkitEpgSync.class));
+        Bundle parameters = new Bundle();
+        parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_MANUAL);
+        parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, "DVB-S");
+        EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(this, inputId, (mFoundServiceNumber > 0),new ComponentName(this, DtvkitEpgSync.class), parameters);
     }
 
     private void startMonitoringSearch() {

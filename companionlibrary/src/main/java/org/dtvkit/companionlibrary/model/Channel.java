@@ -69,10 +69,15 @@ public final class Channel {
     public static final String KEY_HIDDEN = "hidden";
     public static final String KEY_SET_HIDDEN = "set_hidden";
     public static final String KEY_SET_DISPLAYNAME = "set_displayname";
+    public static final String KEY_NEW_DISPLAYNAME = "new_displayname";
     public static final String KEY_SET_DISPLAYNUMBER = "set_displaynumber";
+    public static final String KEY_NEW_DISPLAYNUMBER = "new_displaynumber";
+    public static final String KEY_RAW_DISPLAYNAME = "raw_displayname";
+    public static final String KEY_RAW_DISPLAYNUMBER = "raw_displaynumber";
     public static final String KEY_VIDEO_CODEC = "video_codec";
     public static final String KEY_CHANNEL_SIGNAL_TYPE = "channel_signal_type";
     public static final String KEY_FREQUENCY = "frequency";
+    public static final String KEY_DTVKIT_URI = "dvbUri";
 
     public static final String FIXED_SIGNAL_TYPE_DVBC = "DVB-C";
     public static final String FIXED_SIGNAL_TYPE_DVBT = "DVB-T";

@@ -152,8 +152,12 @@ public class FactorySettings {
                 LocalBroadcastManager.getInstance(mContext).registerReceiver(syncReceiver,
                         new IntentFilter(EpgSyncJobService.ACTION_SYNC_STATUS_CHANGED));
                 EpgSyncJobService.cancelAllSyncRequests(mContext);
-                EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext,
-                    mInput, true, new ComponentName(mContext, DtvkitEpgSync.class), new Bundle());
+                /*EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext,
+                    mInput, true, new ComponentName(mContext, DtvkitEpgSync.class), new Bundle());*/
+                Bundle parameters = new Bundle();
+                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO);
+                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, null);
+                EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext, mInput, false,new ComponentName(mContext, DtvkitEpgSync.class), parameters);
            }
         }
     }

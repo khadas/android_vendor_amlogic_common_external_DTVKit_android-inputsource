@@ -49,6 +49,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.json.JSONObject;
+
 /**
  * Service to handle callbacks from JobScheduler. This service will be called by the system to
  * update the EPG with channels and programs periodically.
@@ -140,7 +142,12 @@ public abstract class EpgSyncJobService extends JobService {
     private static final String BUNDLE_KEY_SYNC_CHANNEL_ONLY = "BUNDLE_KEY_SYNC_CHANNEL_ONLY";
     public static final String BUNDLE_KEY_SYNC_SEARCHED_CHANNEL = "BUNDLE_KEY_SYNC_SEARCHED_CHANNEL";
     public static final String BUNDLE_KEY_SYNC_SEARCHED_LCN_CONFLICT = "BUNDLE_KEY_SYNC_SEARCHED_LCN_CONFLICT";
-
+    public static final String BUNDLE_KEY_SYNC_SEARCHED_MODE = "BUNDLE_KEY_SYNC_SEARCHED_MODE";
+    public static final String BUNDLE_VALUE_SYNC_SEARCHED_MODE_MANUAL = "MANUAL";
+    public static final String BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO = "AUTO";
+    public static final String BUNDLE_VALUE_SYNC_SEARCHED_MODE_UPDATE = "UPDATE";
+    public static final String BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE = "BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE";
+    public static final String BUNDLE_KEY_SYNC_SEARCHED_FREQUENCY = "BUNDLE_KEY_SYNC_SEARCHED_FREQUENCY";
 
     private final SparseArray<EpgSyncTask> mTaskArray = new SparseArray<>();
     private static final Object mContextLock = new Object();
@@ -356,11 +363,6 @@ public abstract class EpgSyncJobService extends JobService {
         requestImmediateSync(context, inputId, nowNext, false, jobServiceComponent);
     }
 
-    public static void requestImmediateSyncSearchedChannel(Context context, String inputId, boolean searchedChannel,
-            ComponentName jobServiceComponent) {
-        requestImmediateSyncSearchedChannelWitchParameters(context, inputId, searchedChannel, jobServiceComponent, null);
-    }
-
     public static void requestImmediateSyncSearchedChannelWitchParameters(Context context, String inputId, boolean searchedChannel,
             ComponentName jobServiceComponent, Bundle parameters) {
         if (jobServiceComponent.getClass().isAssignableFrom(EpgSyncJobService.class)) {
@@ -448,7 +450,7 @@ public abstract class EpgSyncJobService extends JobService {
                 return null;
             }
             List<Channel> tvChannels = getChannels();
-            TvContractUtils.updateChannels(mContext, mInputId, mIsSearchedChannel, tvChannels, mChannelTypeFilter);
+            TvContractUtils.updateChannels(mContext, mInputId, mIsSearchedChannel, tvChannels, mChannelTypeFilter, extras);
             LongSparseArray<Channel> channelMap = TvContractUtils.buildChannelMap(
                     mContext.getContentResolver(), mInputId);
             if (channelMap == null) {

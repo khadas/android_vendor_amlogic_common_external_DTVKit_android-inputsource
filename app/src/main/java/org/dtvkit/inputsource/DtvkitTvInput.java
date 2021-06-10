@@ -3096,7 +3096,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         public void onSetStreamVolume(float volume) {
             Log.i(TAG, "onSetStreamVolume " + volume + ", mute " + (volume == 0.0f) + "index = " + mCurrentDtvkitTvInputSessionIndex);
             //playerSetVolume((int) (volume * 100));
-            writeSysFs("/sys/class/video/video_global_output", (volume == 0.0f ? "0" : "1"));
+            if (!getFeatureSupportFullPipFccArchitecture()) {
+                if (mHandlerThreadHandle != null) {
+                    mHandlerThreadHandle.removeMessages(MSG_ENABLE_VIDEO);
+                    Message mess = mHandlerThreadHandle.obtainMessage(MSG_ENABLE_VIDEO, (volume == 0.0f ? 0 : 1), 0);
+                    mHandlerThreadHandle.sendMessageDelayed(mess, 0);
+                }
+            } else {
+                Log.d(TAG, "onSetStreamVolume pip case can't set video on or off");
+            }
             if (mHandlerThreadHandle != null) {
                 mHandlerThreadHandle.removeMessages(MSG_BLOCK_MUTE_OR_UNMUTE);
                 Message mess = mHandlerThreadHandle.obtainMessage(MSG_BLOCK_MUTE_OR_UNMUTE, (volume == 0.0f ? 1 : 0), 0);
@@ -4564,7 +4572,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             }
                             break;
                         case MSG_ENABLE_VIDEO:
-                             writeSysFs("/sys/class/video/video_global_output", "1");
+                             writeSysFs("/sys/class/video/video_global_output", msg.arg1 == 1 ? "1" : "0");
                             break;
                         case MSG_SET_UNBLOCK:
                             if (msg.obj != null && msg.obj instanceof TvContentRating) {
@@ -8051,7 +8059,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.d(TAG, "showSearchConfirmDialog need to stop search");
                     setup.stopSearch();
                     EpgSyncJobService.cancelAllSyncRequests(DtvkitTvInput.this);
-                    EpgSyncJobService.requestImmediateSyncSearchedChannel(DtvkitTvInput.this, mInputId, true, new ComponentName(DtvkitTvInput.this, DtvkitEpgSync.class));
+                    EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(DtvkitTvInput.this, mInputId, true, new ComponentName(DtvkitTvInput.this, DtvkitEpgSync.class), null);
                     mDvbNetworkChangeSearchStatus = false;
                     mMainDvbChannel = null;
                     mPipDvbChannel = null;

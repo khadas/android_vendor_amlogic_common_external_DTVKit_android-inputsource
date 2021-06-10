@@ -38,10 +38,12 @@ import android.content.ContentProviderOperation;
 import android.content.OperationApplicationException;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.PersistableBundle;
 
 import org.dtvkit.companionlibrary.model.Channel;
 import org.dtvkit.companionlibrary.model.Program;
 import org.dtvkit.companionlibrary.model.InternalProviderData;
+import org.dtvkit.companionlibrary.EpgSyncJobService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +67,11 @@ public class TvContractUtils {
     private static final boolean DEBUG = true;
     private static final int BATCH_OPERATION_COUNT = 50;
 
+    private static final String[] USER_SETTING_FLAG_KEY = {Channel.KEY_SET_FAVOURITE, Channel.KEY_SET_HIDDEN, Channel.KEY_IS_FAVOURITE, Channel.KEY_FAVOURITE_INFO, Channel.KEY_HIDDEN,
+                                                       Channel.KEY_SET_DISPLAYNAME, Channel.KEY_NEW_DISPLAYNAME, Channel.KEY_SET_DISPLAYNUMBER, Channel.KEY_NEW_DISPLAYNUMBER, Channel.KEY_RAW_DISPLAYNAME, Channel.KEY_RAW_DISPLAYNUMBER};
+    private static final String[] USER_SETTING_FLAG_DEFAULT = {"0", "0", "0", "", "false",
+                                                          "0", "" ,"0", "","", ""};
+
     /**
      * Updates the list of available channels.
      *
@@ -74,18 +81,34 @@ public class TvContractUtils {
      * @hide
      */
 
-    public static void updateChannels(Context context, String inputId, boolean isSearched, List<Channel> channels, String updateChannelType) {
+    public static void updateChannels(Context context, String inputId, boolean isSearched, List<Channel> channels, String updateChannelType, PersistableBundle extras) {
         // Create a map from original network ID to channel row ID for existing channels.
         ArrayMap<String, Long> channelMap = new ArrayMap<>();
-        ArrayMap<String, String> channelSetFavMap = new ArrayMap<>();
-        ArrayMap<String, String> channelSetSkipMap = new ArrayMap<>();
-        ArrayMap<String, String> channelSkipValueMap = new ArrayMap<>();
-        ArrayMap<String, String> channelFavValueMap = new ArrayMap<>();
-        ArrayMap<String, String> channelFavListValueMap = new ArrayMap<>();
-        ArrayMap<String, String> channelSetDisPlayNameMap = new ArrayMap<>();
-        ArrayMap<String, String> channelSetDisPlayNumberMap = new ArrayMap<>();
-        ArrayMap<String, String> channelDisPlayNameValueMap = new ArrayMap<>();
-        ArrayMap<String, String> channelDisPlayNumberValueMap = new ArrayMap<>();
+        ArrayMap<String, ArrayMap<String, String>> channelUseSettingValueMap = new ArrayMap<>();
+        Map<Uri, String> logos = new HashMap<>();
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+
+        //1.fisrt get existed channels in tv.db
+        cacheRelatedChannel(channelMap, channelUseSettingValueMap,
+            context, inputId, isSearched, channels, updateChannelType, extras);
+        //2.find new channel and channels that need to be updated
+        addRelatedChannelToContentProviderOperation(ops, channelMap, channelUseSettingValueMap, logos,
+            context, inputId, isSearched, channels, updateChannelType, extras);
+        //3.delete channels that don't exist in dtvkit db anymore
+        // Deletes channels which don't exist in the new feed firstly.
+        addRelatedChannelToContentProviderOperationAndDelete(channelMap, context);
+        //4.deal insert or update channels to tv.db
+        dealUpdateOrInsertInContentProviderOperation(ops, logos, context);
+
+        //notify immediately as livetv may be in background and android r sends such contentprovider notification after 10s in ContentService
+        if (VERSION.SDK_INT > VERSION_CODES.P + 1) {
+            context.getContentResolver().notifyChange(Channels.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
+        }
+    }
+
+    //1.fisrt get existed channels in tv.db
+    private static void cacheRelatedChannel(ArrayMap<String, Long> channelMap, ArrayMap<String, ArrayMap<String, String>> channelUseSettingValueMap,
+            Context context, String inputId, boolean isSearched, List<Channel> channels, String updateChannelType, PersistableBundle extras) {
         Uri channelsUri = TvContract.buildChannelsUriForInput(inputId);
         String[] projection = {Channels._ID, Channels.COLUMN_TYPE, Channels.COLUMN_ORIGINAL_NETWORK_ID, Channels.COLUMN_TRANSPORT_STREAM_ID,
                 Channels.COLUMN_SERVICE_ID, Channels.COLUMN_DISPLAY_NAME, Channels.COLUMN_DISPLAY_NUMBER,
@@ -96,15 +119,12 @@ public class TvContractUtils {
             cursor = resolver.query(channelsUri, projection, null, null, null);
             InternalProviderData internalProviderData = null;
             byte[] internalProviderByteData = null;
-            String setFavFlag = "0";
-            String setSkipFlag = "0";
-            String favValue = "0";
-            String favListValue = "";
-            String skipValue = "false";
-            String setDisplayNameFlag = "0";
-            String setDisplayNumberFlag = "0";
             String displayName = null;
             String displayNumber = null;
+            String rawDisplayName = null;
+            String rawDisplayNumber = null;
+            boolean setRawDisplayNumber = false;
+            boolean setRawDisplayName = false;
             while (cursor != null && cursor.moveToNext()) {
                 long rowId = cursor.getLong(0);
                 String channelType = cursor.getString(1);
@@ -116,75 +136,45 @@ public class TvContractUtils {
                 int type = cursor.getType(7);//InternalProviderData type
                 int frequency = 0;
                 String ciNumber = null;
-                setFavFlag = "0";
-                setSkipFlag = "0";
-                favValue = "0";
-                favListValue = "";
-                skipValue = "false";
-                setDisplayNameFlag = "0";
-                setDisplayNumberFlag = "0";
                 if (type == Cursor.FIELD_TYPE_BLOB) {
                     internalProviderByteData = cursor.getBlob(7);
                     if (internalProviderByteData != null) {
                         internalProviderData = new InternalProviderData(internalProviderByteData);
                     }
-                    if (internalProviderData != null) {
-                        if (DEBUG) Log.i(TAG, "internalProviderData = " + internalProviderData.toString());
-                        setSkipFlag = (String)internalProviderData.get(Channel.KEY_SET_HIDDEN);
-                        setFavFlag = (String)internalProviderData.get(Channel.KEY_SET_FAVOURITE);
-                        favValue = (String)internalProviderData.get(Channel.KEY_IS_FAVOURITE);
-                        favListValue = (String)internalProviderData.get(Channel.KEY_FAVOURITE_INFO);
-                        skipValue = (String)internalProviderData.get(Channel.KEY_HIDDEN);
-                        setDisplayNameFlag = (String)internalProviderData.get(Channel.KEY_SET_DISPLAYNAME);
-                        setDisplayNumberFlag = (String)internalProviderData.get(Channel.KEY_SET_DISPLAYNUMBER);
-                        frequency = Integer.valueOf((String)internalProviderData.get(Channel.KEY_FREQUENCY));
-                        ciNumber = (String)internalProviderData.get(Channel.KEY_CHANNEL_CI_NUMBER);
-                        if (setSkipFlag == null) {
-                            setSkipFlag = "0";
-                        }
-                        if (setFavFlag == null) {
-                            setFavFlag = "0";
-                        }
-                        if (favValue == null) {
-                            favValue = "0";
-                        }
-                        if (favListValue == null) {
-                            favListValue = "";
-                        }
-                        if (skipValue == null) {
-                            skipValue = "false";
-                        }
-                        if (setDisplayNameFlag == null) {
-                            setDisplayNameFlag = "0";
-                        }
-                        if (setDisplayNumberFlag == null) {
-                            setDisplayNumberFlag = "0";
-                        }
-                    }
-                    if (DEBUG) Log.i(TAG, "skipValue = " + skipValue + ", setSkipFlag = " + setSkipFlag + ", favValue = " + favValue + ", setFavFlag = " + setFavFlag +
-                            ", setDisplayNameFlag = " + setDisplayNameFlag + ", setDisplayNumberFlag = " + setDisplayNumberFlag + ", displayName = " + displayName + " displayNumber = " + displayNumber);
                 } else {
                     if (DEBUG) Log.i(TAG, "COLUMN_INTERNAL_PROVIDER_DATA other type");
                 }
-                String uniqueStr = getUniqueStrForChannel(channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, displayNumber);
+                if (internalProviderData != null) {
+                    if (DEBUG) Log.i(TAG, "internalProviderData = " + internalProviderData.toString());
+                    frequency = Integer.valueOf((String)internalProviderData.get(Channel.KEY_FREQUENCY));
+                    ciNumber = (String)internalProviderData.get(Channel.KEY_CHANNEL_CI_NUMBER);
+                    rawDisplayName = (String)internalProviderData.get(Channel.KEY_RAW_DISPLAYNAME);
+                    rawDisplayNumber = (String)internalProviderData.get(Channel.KEY_RAW_DISPLAYNUMBER);
+                    setRawDisplayNumber = "1".equals((String)internalProviderData.get(Channel.KEY_SET_DISPLAYNUMBER));
+                    setRawDisplayName = "1".equals((String)internalProviderData.get(Channel.KEY_SET_DISPLAYNAME));
+                    if (setRawDisplayNumber) {
+                        internalProviderData.put(Channel.KEY_NEW_DISPLAYNUMBER, displayNumber);
+                    }
+                    if (setRawDisplayName) {
+                        internalProviderData.put(Channel.KEY_NEW_DISPLAYNAME, displayName);
+                    }
+                }
+                String uniqueStr = getUniqueStrForChannel(internalProviderData, channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, rawDisplayNumber);
                 if (uniqueStr == null) {
                     continue;
                 }
-                if (!isChannelTypeMatchs(updateChannelType, channelType)) {
+                //factory set will use null signalType to clear all channel in db
+                String signalType = extras.getString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, null);
+                if (signalType != null && !isChannelTypeMatchs(updateChannelType, channelType)) {
                     if (DEBUG) Log.i(TAG, "Skip unmatch type channels (" + updateChannelType + ":" + channelType + ")");
                     continue;
                 }
                 channelMap.put(uniqueStr, rowId);
-                if (!isSearched) {
-                    channelSetFavMap.put(uniqueStr, setFavFlag);
-                    channelSetSkipMap.put(uniqueStr, setSkipFlag);
-                    channelSkipValueMap.put(uniqueStr, skipValue);
-                    channelFavValueMap.put(uniqueStr, favValue);
-                    channelFavListValueMap.put(uniqueStr, favListValue);
-                    channelSetDisPlayNameMap.put(uniqueStr, setDisplayNameFlag);
-                    channelSetDisPlayNumberMap.put(uniqueStr, setDisplayNumberFlag);
-                    channelDisPlayNameValueMap.put(uniqueStr, displayName);
-                    channelDisPlayNumberValueMap.put(uniqueStr, displayNumber);
+                String searchMode = extras.getString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, null);
+                int searchFrequency = extras.getInt(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_FREQUENCY, 0);
+                if (!isSearched
+                        || (frequency != 0 && EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_MANUAL.equals(searchMode) && searchFrequency != frequency)) {
+                    saveRawUseSettingValuesToMap(uniqueStr, channelUseSettingValueMap, internalProviderData);
                 }
             }
         } catch (Exception e) {
@@ -194,10 +184,13 @@ public class TvContractUtils {
                 cursor.close();
             }
         }
+    }
 
+    //2.find new channel and channels that need to be updated
+    private static void addRelatedChannelToContentProviderOperation(ArrayList<ContentProviderOperation> ops, ArrayMap<String, Long> channelMap, ArrayMap<String, ArrayMap<String, String>> channelUseSettingValueMap, Map<Uri, String> logos,
+            Context context, String inputId, boolean isSearched, List<Channel> channels, String updateChannelType, PersistableBundle extras) {
         // If a channel exists, update it. If not, insert a new one.
-        Map<Uri, String> logos = new HashMap<>();
-        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        //Map<Uri, String> logos = new HashMap<>();
         for (Channel channel : channels) {
             ContentValues values = new ContentValues();
             if (isSearched) {
@@ -226,6 +219,7 @@ public class TvContractUtils {
             InternalProviderData internalProviderData = channel.getInternalProviderData();
             int frequency = 0;
             String ciNumber = null;
+            String rawDisplayNumber = null;
             if (internalProviderData != null) {
                 try {
                     frequency = Integer.valueOf((String)internalProviderData.get(Channel.KEY_FREQUENCY));
@@ -237,85 +231,30 @@ public class TvContractUtils {
                 } catch (Exception e) {
                     //Log.d(TAG, "updateChannels no ciNumber info Exception = " + e.getMessage());
                 }
+                try {
+                    rawDisplayNumber = (String)internalProviderData.get(Channel.KEY_RAW_DISPLAYNUMBER);
+                } catch (Exception e) {
+                    Log.d(TAG, "updateChannels no rawDisplayNumber info Exception = " + e.getMessage());
+                }
             } else {
                 Log.d(TAG, "updateChannels no frequency info");
                 continue;
             }
-            String uniqueStr = getUniqueStrForChannel(channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, channel.getDisplayNumber());
+            String uniqueStr = getUniqueStrForChannel(internalProviderData, channelType, originalNetworkId, transportStreamId, serviceId, frequency, ciNumber, rawDisplayNumber);
             if (uniqueStr == null) {
                 continue;
             }
+            String searchMode = extras.getString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, null);
             Long rowId = channelMap.get(uniqueStr);
-            String setFavFlag = channelSetFavMap.get(uniqueStr);
-            String setSkipFlag = channelSetSkipMap.get(uniqueStr);
-            String favValue = channelFavValueMap.get(uniqueStr);
-            String favListValue = channelFavListValueMap.get(uniqueStr);
-            String skipValue = channelSkipValueMap.get(uniqueStr);
-            String setDisplayNameFlag = channelSetDisPlayNameMap.get(uniqueStr);
-            String setDisplayNumberFlag = channelSetDisPlayNumberMap.get(uniqueStr);
-            String displayName = channelDisPlayNameValueMap.get(uniqueStr);
-            String displayNumber = channelDisPlayNumberValueMap.get(uniqueStr);
+            if (EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO.equals(searchMode)) {
+                rowId = null;
+            }
             byte[] dataByte = null;
-            if (setSkipFlag == null) {
-                setSkipFlag = "0";
-            }
-            if (setFavFlag == null) {
-                setFavFlag = "0";
-            }
-            if (favValue == null) {
-                favValue = "0";
-            }
-            if (favListValue == null) {
-                favListValue = "";
-            }
-            if (skipValue == null) {
-                skipValue = "false";
-            }
-            if (setDisplayNameFlag == null) {
-                setSkipFlag = "0";
-            }
-            if (setDisplayNumberFlag == null) {
-                setFavFlag = "0";
-            }
             if (internalProviderData == null) {
                 internalProviderData = new InternalProviderData();
             }
-            try {
-                if ("1".equals(setDisplayNameFlag) && displayName != null) {
-                    internalProviderData.put(Channel.KEY_SET_DISPLAYNAME, "1");
-                    values.put(Channels.COLUMN_DISPLAY_NAME, displayName);
-                } else {
-                    internalProviderData.put(Channel.KEY_SET_DISPLAYNAME, "0");
-                }
-                if ("1".equals(setDisplayNumberFlag) && displayNumber != null) {
-                    internalProviderData.put(Channel.KEY_SET_DISPLAYNUMBER, "1");
-                    values.put(Channels.COLUMN_DISPLAY_NUMBER, displayNumber);
-                } else {
-                    internalProviderData.put(Channel.KEY_SET_DISPLAYNUMBER, "0");
-                }
-                if ("1".equals(setFavFlag)) {
-                    internalProviderData.put(Channel.KEY_SET_FAVOURITE, "1");
-                    internalProviderData.put(Channel.KEY_IS_FAVOURITE, favValue);
-                    internalProviderData.put(Channel.KEY_FAVOURITE_INFO, favListValue);
-                } else {
-                    internalProviderData.put(Channel.KEY_SET_FAVOURITE, "0");
-                    String getFavValue = ((String)internalProviderData.get(Channel.KEY_IS_FAVOURITE));
-                    String getFavListValue = ((String)internalProviderData.get(Channel.KEY_FAVOURITE_INFO));
-                    internalProviderData.put(Channel.KEY_IS_FAVOURITE, getFavValue == null ? "0" : getFavValue);
-                    internalProviderData.put(Channel.KEY_FAVOURITE_INFO, getFavListValue == null ? "" : getFavListValue);
-                }
-                if ("1".equals(setSkipFlag)) {
-                    internalProviderData.put(Channel.KEY_SET_HIDDEN, "1");
-                    internalProviderData.put(Channel.KEY_HIDDEN, skipValue);
-                } else {
-                    internalProviderData.put(Channel.KEY_SET_HIDDEN, "0");
-                    String getSkipValue = ((String)internalProviderData.get(Channel.KEY_HIDDEN));
-                    internalProviderData.put(Channel.KEY_SET_HIDDEN, getSkipValue == null ? "false" : getSkipValue);
-                }
-                dataByte = internalProviderData.toString().getBytes();
-            } catch (Exception e) {
-                Log.e(TAG, "updateChannels put Failed = " + e.getMessage());
-            }
+            restoreRawUseSettingValuesToInternalProviderData(uniqueStr, channelUseSettingValueMap, internalProviderData);
+            dataByte = internalProviderData.toString().getBytes();
             if (dataByte != null && dataByte.length > 0) {
                 values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, dataByte);
             } else {
@@ -323,6 +262,15 @@ public class TvContractUtils {
             }
             if (DEBUG) {
                 Log.d(TAG, String.format("Mapping %s to %d", uniqueStr, rowId));
+            }
+            ArrayMap<String, String> singleUserSettings = channelUseSettingValueMap.get(uniqueStr);
+            if (singleUserSettings != null && singleUserSettings.size() > 0) {
+                if ("1".equals(singleUserSettings.get(Channel.KEY_SET_DISPLAYNUMBER))) {
+                    values.put(TvContract.Channels.COLUMN_DISPLAY_NUMBER, singleUserSettings.get(Channel.KEY_NEW_DISPLAYNUMBER));
+                }
+                if ("1".equals(singleUserSettings.get(Channel.KEY_SET_DISPLAYNAME))) {
+                    values.put(TvContract.Channels.COLUMN_DISPLAY_NAME, singleUserSettings.get(Channel.KEY_NEW_DISPLAYNAME));
+                }
             }
             Uri uri = null;
             if (rowId == null) {
@@ -351,14 +299,17 @@ public class TvContractUtils {
                 logos.put(TvContract.buildChannelLogoUri(uri), channel.getChannelLogo());
             }*/
         }
+    }
 
-        // Deletes channels which don't exist in the new feed firstly.
+    //3.delete channels that don't exist in dtvkit db anymore
+    private static void addRelatedChannelToContentProviderOperationAndDelete(ArrayMap<String, Long> channelMap, Context context) {
         int size = channelMap.size();
         ArrayList<ContentProviderOperation> deleteOps = new ArrayList<>();
+        ContentResolver resolver = context.getContentResolver();
         for (int i = 0; i < size; ++i) {
             Long rowId = channelMap.valueAt(i);
             if (DEBUG) {
-                Log.d(TAG, "add Deleting channel " + rowId);
+                Log.d(TAG, " dealDelete add Deleting channel " + rowId);
             }
             deleteOps.add(ContentProviderOperation.newDelete(
                                     TvContract.buildChannelUri(rowId))
@@ -376,16 +327,20 @@ public class TvContractUtils {
             ArrayList<ContentProviderOperation> batchOps =
                     new ArrayList<>(deleteOps.subList(i, toIndex));
             if (DEBUG) {
-                Log.d(TAG, "deleteChannels from fromIndex " + i + " to " + toIndex);
+                Log.d(TAG, "dealDelete deleteChannels from fromIndex " + i + " to " + toIndex);
             }
             try {
                 resolver.applyBatch(TvContract.AUTHORITY, batchOps);
             } catch (Exception e) {
-                Log.e(TAG, "deleteChannels updateChannels Failed = " + e.getMessage());
+                Log.e(TAG, "dealDelete deleteChannels updateChannels Failed = " + e.getMessage());
             }
         }
         deleteOps.clear();
+    }
 
+    //4.deal insert or update channels to tv.db
+    private static void dealUpdateOrInsertInContentProviderOperation(ArrayList<ContentProviderOperation> ops, Map<Uri, String> logos, Context context) {
+        ContentResolver resolver = context.getContentResolver();
         for (int i = 0; i < ops.size(); i += BATCH_OPERATION_COUNT) {
             int toIndex =
                     (i + BATCH_OPERATION_COUNT) > ops.size()
@@ -406,36 +361,73 @@ public class TvContractUtils {
         if (!logos.isEmpty()) {
             new InsertLogosTask(context).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, logos);
         }
+    }
 
-        //notify immediately as livetv may be in background and android r sends such contentprovider notification after 10s in ContentService
-        if (VERSION.SDK_INT > VERSION_CODES.P + 1) {
-            context.getContentResolver().notifyChange(Channels.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
+    //cache use settings
+    private static void saveRawUseSettingValuesToMap(String uniqueKey, ArrayMap<String, ArrayMap<String, String>> map, InternalProviderData internalProviderData) {
+        if (USER_SETTING_FLAG_KEY.length != USER_SETTING_FLAG_DEFAULT.length || uniqueKey == null || map == null || internalProviderData == null) {
+            Log.d(TAG, "saveRawUseSettingValuesToMap USER_SETTING_FLAG and USER_SETTING_FLAG_DEFAULT are not same length or null container");
+            return;
+        }
+        String tempStr;
+        ArrayMap<String, String> child = new ArrayMap<String, String>();
+        for (int i = 0; i < USER_SETTING_FLAG_KEY.length; i++) {
+            try {
+                tempStr = (String)internalProviderData.get(USER_SETTING_FLAG_KEY[i]);
+                if (tempStr == null) {
+                    tempStr = USER_SETTING_FLAG_DEFAULT[i];
+                }
+                if (DEBUG) {
+                    Log.d(TAG, "saveRawUseSettingValuesToMap no." + i + "->" + USER_SETTING_FLAG_KEY[i] + ":" + tempStr);
+                }
+                child.put(USER_SETTING_FLAG_KEY[i], tempStr);
+            } catch (Exception e) {
+                Log.i(TAG, "saveRawUseSettingValuesToMap can't get " + USER_SETTING_FLAG_KEY[i]);
+            }
+        }
+        map.put(uniqueKey, child);
+    }
+
+    //restore use settings
+    private static void restoreRawUseSettingValuesToInternalProviderData(String uniqueKey, ArrayMap<String, ArrayMap<String, String>> map, InternalProviderData internalProviderData) {
+        if (USER_SETTING_FLAG_KEY.length != USER_SETTING_FLAG_DEFAULT.length || uniqueKey == null || map == null || internalProviderData == null) {
+            Log.d(TAG, "restoreRawUseSettingValuesToInternalProviderData USER_SETTING_FLAG and USER_SETTING_FLAG_DEFAULT are not same length or null container");
+            return;
+        }
+        String tempStr;
+        ArrayMap<String, String> child = (ArrayMap<String, String>)map.get(uniqueKey);
+        for (int i = 0; i < USER_SETTING_FLAG_KEY.length; i++) {
+            try {
+                tempStr = (String)child.get(USER_SETTING_FLAG_KEY[i]);
+                if (tempStr == null) {
+                    tempStr = USER_SETTING_FLAG_DEFAULT[i];
+                }
+                if (DEBUG) {
+                    Log.d(TAG, "restoreRawUseSettingValuesToInternalProviderData no." + i + "->" + USER_SETTING_FLAG_KEY[i] + ":" + tempStr);
+                }
+                internalProviderData.put(USER_SETTING_FLAG_KEY[i], tempStr);
+            } catch (Exception e) {
+                Log.i(TAG, "restoreRawUseSettingValuesToInternalProviderData can't get " + USER_SETTING_FLAG_KEY[i]);
+            }
         }
     }
 
     public static boolean isChannelTypeMatchs(String sourceType, String targetType) {
         boolean ret = false;
-        if (TextUtils.isEmpty(targetType)) {
-            //should not happen
-            return ret;
-        }
-        if (TextUtils.isEmpty(sourceType)) {
-            ret = true; //empty, not filter
-        } else if (sourceType.equals(targetType)) {
+        if (sourceType != null && targetType != null && targetType.contains(sourceType)) {
             ret = true;
-        } else if (sourceType.length() != targetType.length()) {
-            int compare = sourceType.compareTo(targetType);
-            if (compare == 1 || compare == -1) {
-                ret = true;
-            }
         }
         return ret;
     }
 
-    public static String getUniqueStrForChannel(String channelType, int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String displayNumber) {
+    public static String getUniqueStrForChannel(InternalProviderData internalProviderData, String channelType, int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String rawDisplayNumber) {
         String result = null;
         try {
-            result = channelType + "-" + String.valueOf(frequency / 1000000) + "-" + displayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
+            result = channelType + "-" + String.valueOf(frequency / 1000000) + "-" + rawDisplayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
+            //uncomment it if unique id feature has been enabled and uri can represent a channel at that time
+            /*if (internalProviderData != null) {
+                result = (String)internalProviderData.get(Channel.KEY_DTVKIT_URI);
+            }*/
         } catch (Exception e) {
             Log.d(TAG, "getUniqueStrForChannel Exception = " + e.getMessage());
         }

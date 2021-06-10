@@ -230,7 +230,10 @@ public class DtvkitBackGroundSearch {
         EpgSyncJobService.cancelAllSyncRequests(mContext);
 
         // If the intent that started this activity is from Live Channels app
-        EpgSyncJobService.requestImmediateSyncSearchedChannel(mContext, mInputId, (mFoundServiceNumber > 0),new ComponentName(mContext, DtvkitEpgSync.class));
+        Bundle parameters = new Bundle();
+        parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_MANUAL);
+        parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, mIsDvbt ? "DVB-T" : "DVB-C");
+        EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext, mInputId, (mFoundServiceNumber > 0),new ComponentName(mContext, DtvkitEpgSync.class), parameters);
     }
 
     private void startMonitoringSearch() {
