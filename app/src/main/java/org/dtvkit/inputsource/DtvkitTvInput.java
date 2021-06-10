@@ -3096,6 +3096,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         public void onSetStreamVolume(float volume) {
             Log.i(TAG, "onSetStreamVolume " + volume + ", mute " + (volume == 0.0f) + "index = " + mCurrentDtvkitTvInputSessionIndex);
             //playerSetVolume((int) (volume * 100));
+            writeSysFs("/sys/class/video/video_global_output", (volume == 0.0f ? "0" : "1"));
             if (mHandlerThreadHandle != null) {
                 mHandlerThreadHandle.removeMessages(MSG_BLOCK_MUTE_OR_UNMUTE);
                 Message mess = mHandlerThreadHandle.obtainMessage(MSG_BLOCK_MUTE_OR_UNMUTE, (volume == 0.0f ? 1 : 0), 0);
@@ -4359,10 +4360,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                        m_surface_right = right;
                        m_surface_top = top;
                        m_surface_bottom = bottom;
-                       if (mHandlerThreadHandle != null) {
-                          mHandlerThreadHandle.removeMessages(MSG_ENABLE_VIDEO);
-                          mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_ENABLE_VIDEO, 40);
-                       }
+                       //if (mHandlerThreadHandle != null) {
+                       //   mHandlerThreadHandle.removeMessages(MSG_ENABLE_VIDEO);
+                       //   mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_ENABLE_VIDEO, 40);
+                       //}
                    }
                 }
                 else if (signal.equals("ServiceRetuned"))
