@@ -2431,6 +2431,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         private boolean mAquireMainSemaphore = false;
         private boolean mAquirePipSemaphore = false;
 
+        private static final int INPUT_MPEG = 10;
+        private static final int INPUT_DVB  = 11;
+
         DtvkitTvInputSession(Context context) {
             super(context);
             mContext = context;
@@ -2515,6 +2518,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             //all case use message to release related resource as semaphare has been applied
                             setOverlayViewEnabled(false);
                             mHardware.setSurface(null, null);
+                            if (mSystemControlManager != null) {
+                                mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_MPEG), 0, 0);
+                            }
                             //sendSetSurfaceMessage(null, null);
                             Log.d(TAG, "onSetSurface null");
                             mSurface = null;
@@ -2530,8 +2536,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             //sendSetSurfaceMessage(null, null);
                         }
                         mHardware.setSurface(surface, mConfigs[0]);
-                        //createDecoder();
-                        //decoderRelease();
+                        if (mSystemControlManager != null) {
+                            mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_DVB), 0, 0);
+                        }
                         //sendSetSurfaceMessage(surface, mConfigs[0]);
                         mSurface = surface;
                         mSystemControlManager.SetDtvKitSourceEnable(1);
@@ -7777,64 +7784,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     private boolean getFeatureTimeshiftingPriorityHigh() {
         return PropSettingManager.getBoolean("vendor.tv.dtv.tf.priority_high", false);
-    }
-
-    private boolean createDecoder() {
-        String str = "OMX.amlogic.avc.decoder.awesome.secure";
-        try {
-            mMediaCodec1 = MediaCodec.createByCodecName(str);
-            } catch (Exception exception) {
-            Log.e(TAG, "Exception during decoder creation", exception);
-            decoderRelease();
-            return false;
-        }
-        try {
-            mMediaCodec2 = MediaCodec.createByCodecName(str);
-            } catch (Exception exception) {
-            Log.e(TAG, "Exception during decoder creation", exception);
-            decoderRelease();
-            return false;
-        }
-        Log.e(TAG, "createDecoder done");
-        return true;
-    }
-
-    private void decoderRelease() {
-        if (mMediaCodec1 != null) {
-            try {
-                mMediaCodec1.stop();
-                } catch (IllegalStateException exception) {
-                mMediaCodec1.reset();
-                // IllegalStateException happens when decoder fail to start.
-                Log.e(TAG, "IllegalStateException during decoder1 stop", exception);
-                } finally {
-                    try {
-                        mMediaCodec1.release();
-                    } catch (IllegalStateException exception) {
-                        Log.e(TAG, "IllegalStateException during decoder1 release", exception);
-                    }
-                    mMediaCodec1 = null;
-            }
-        }
-
-        if (mMediaCodec2 != null) {
-            try {
-                mMediaCodec2.stop();
-                } catch (IllegalStateException exception) {
-                mMediaCodec2.reset();
-                // IllegalStateException happens when decoder fail to start.
-                Log.e(TAG, "IllegalStateException during decoder2 stop", exception);
-                } finally {
-                    try {
-                        mMediaCodec2.release();
-                    } catch (IllegalStateException exception) {
-                        Log.e(TAG, "IllegalStateException during decoder2 release", exception);
-                    }
-                    mMediaCodec2 = null;
-            }
-        }
-
-        Log.e(TAG, "decoderRelease done");
     }
 
 /*
