@@ -3162,7 +3162,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 int isTele = 0;//default subtitle
                 if (!TextUtils.isEmpty(trackId) && !TextUtils.isDigitsOnly(trackId)) {
                     String[] nameValuePairs = trackId.split("&");
-                    if (nameValuePairs != null && nameValuePairs.length == 5) {
+                    if (nameValuePairs != null && nameValuePairs.length >= 3) {
                         String[] nameValue = nameValuePairs[0].split("=");
                         String[] typeValue = nameValuePairs[1].split("=");
                         String[] teleValue = nameValuePairs[2].split("=");
@@ -5958,7 +5958,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             for (int i = 0; i < audioStreams.length(); i++)
             {
                 JSONObject audioStream = audioStreams.getJSONObject(i);
-                Log.d(TAG, "getAudioTrackInfoList audioStream = " + audioStream.toString());
+                //Log.d(TAG, "getAudioTrackInfoList audioStream = " + audioStream.toString());
                 TvTrackInfo.Builder track = new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Integer.toString(audioStream.getInt("index")));
                 Bundle bundle = new Bundle();
                 String audioLang = ISO639Data.parse(audioStream.getString("language"));
@@ -6108,7 +6108,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             {
                 Bundle bundle = new Bundle();
                 JSONObject subtitleStream = subtitleStreams.getJSONObject(i);
-                Log.d(TAG, "getSubtitleTrackInfoList subtitleStream = " + subtitleStream.toString());
+                //Log.d(TAG, "getSubtitleTrackInfoList subtitleStream = " + subtitleStream.toString());
                 String trackId = null;
                 if (subtitleStream.getBoolean("teletext")) {
                     bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_SUBTITLE_IS_TELETEXT, true);
@@ -6126,13 +6126,20 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_SUBTITLE_IS_TELETEXT, false);
                     int subtitletype = subtitleStream.getInt("subtitle_type");
                     bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_SUBTITLE_IS_HARD_HEARING, false);
+                    Boolean isHdSubtitle = false;
                     if (subtitletype >= ConstantManager.ADB_SUBTITLE_TYPE_DVB && subtitletype <= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HD) {
-                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none";//TYPE_DTV_CC
+                        if (subtitletype == ConstantManager.ADB_SUBTITLE_TYPE_DVB_HD) {
+                            isHdSubtitle = true;
+                        }
+                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                     } else if (subtitletype >= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING && subtitletype <= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_HD) {
                         bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_SUBTITLE_IS_HARD_HEARING, true);
-                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=1&flag=H.O.H";//TYPE_DTV_CC
+                        if (subtitletype == ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_HD) {
+                            isHdSubtitle = true;
+                        }
+                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=1&flag=H.O.H" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                     } else {
-                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none";//TYPE_DTV_CC
+                        trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                     }
                 }
                 TvTrackInfo.Builder track = new TvTrackInfo.Builder(TvTrackInfo.TYPE_SUBTITLE, trackId);
@@ -6159,7 +6166,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             {
                 Bundle bundle = new Bundle();
                 JSONObject teletextStream = teletextStreams.getJSONObject(i);
-                Log.d(TAG, "getSubtitleTrackInfoList teletextStream = " + teletextStream.toString());
+                //Log.d(TAG, "getSubtitleTrackInfoList teletextStream = " + teletextStream.toString());
                 String trackId = null;
                 int teletextType = teletextStream.getInt("teletext_type");
                 if (teletextType == 1 || teletextType == 3 || teletextType == 4) {
@@ -6681,12 +6688,19 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         }
                     } else {
                         int subtitletype = subtitleStream.getInt("subtitle_type");
+                        Boolean isHdSubtitle = false;
                         if (subtitletype >= ConstantManager.ADB_SUBTITLE_TYPE_DVB && subtitletype <= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HD) {
-                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none";//TYPE_DTV_CC
+                            if (subtitletype == ConstantManager.ADB_SUBTITLE_TYPE_DVB_HD) {
+                                isHdSubtitle = true;
+                            }
+                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                         } else if (subtitletype >= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING && subtitletype <= ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_HD) {
-                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=1&flag=H.O.H";//TYPE_DTV_CC
+                            if (subtitletype == ConstantManager.ADB_SUBTITLE_TYPE_DVB_HARD_HEARING_HD) {
+                                isHdSubtitle = true;
+                            }
+                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=1&flag=H.O.H" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                         } else {
-                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none";//TYPE_DTV_CC
+                            trackId = "id=" + Integer.toString(subtitleStream.getInt("index")) + "&" + "type=" + "4" + "&teletext=0&hearing=0&flag=none" + "&hd=" + (isHdSubtitle?"1":"0");//TYPE_DTV_CC
                         }
                     }
                 }
