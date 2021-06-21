@@ -13,4 +13,8 @@
         <item name="android:background">@drawable/button</item>
         <item name="android:textColor">#ffffffff</item>
     </style>
+
+    <declare-styleable name="MaxHeightScrollView">
+        <attr name="maxHeight" format="dimension" />
+    </declare-styleable>
 </resources>

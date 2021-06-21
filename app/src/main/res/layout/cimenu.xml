@@ -11,8 +11,6 @@
         android:id="@+id/linearlayoutMMI"
         android:layout_width="600dp"
         android:layout_height="wrap_content"
-        android:minHeight="200dp"
-        android:weightSum="7"
         android:orientation="vertical"
         android:layout_marginLeft="30dp"
         android:layout_marginTop="30dp"
@@ -21,18 +19,17 @@
         <TextView
             android:id="@+id/textViewMenuTitle"
             android:layout_width="600dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:textColor="#ffffffff"
             android:gravity="left|center_vertical"
             android:background="#06516e"
             android:textSize="24sp" />
 
-        <ScrollView
+        <org.dtvkit.inputsource.MaxHeightScrollView
             android:id="@+id/scrollContainer"
             android:layout_width="600dp"
-            android:layout_height="0dp"
-            android:layout_weight="5">
+            android:layout_height="wrap_content"
+            app:maxHeight="300dp" >
 
             <LinearLayout
                 android:id="@+id/linearlayoutMMIItems"
@@ -40,13 +37,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
             </LinearLayout>
-        </ScrollView>
+        </org.dtvkit.inputsource.MaxHeightScrollView>
 
         <TextView
             android:id="@+id/textViewMenuFooter"
             android:layout_width="600dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:textColor="#ffffffff"
             android:gravity="left|center_vertical"
             android:background="#06516e"
