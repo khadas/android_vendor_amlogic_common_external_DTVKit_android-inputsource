@@ -44,12 +44,11 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/low_band_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:orientation="horizontal"
-        android:weightSum="6">
+        android:weightSum="4">
 
         <TextView
             android:id="@+id/text_frequency1"
@@ -74,59 +73,6 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/text_low_min_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/parameter_lnb_custom_band_min"
-            android:textColor="#B3EEEEEE"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/edittext_low_min_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="number"
-            android:imeOptions="actionDone"
-            android:shadowColor="@android:color/white"
-            android:text=""
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/text_low_max_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/parameter_lnb_custom_band_max"
-            android:textColor="#B3EEEEEE"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/edittext_low_max_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="number"
-            android:imeOptions="actionDone"
-            android:shadowColor="@android:color/white"
-            android:text=""
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/high_band_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:orientation="horizontal"
-        android:weightSum="6">
-
-        <TextView
             android:id="@+id/text_frequency2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -143,50 +89,6 @@
             android:ems="10"
             android:inputType="number"
             android:imeOptions="actionDone"
-            android:text=""
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/text_high_min_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/parameter_lnb_custom_band_min"
-            android:textColor="#B3EEEEEE"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/edittext_high_min_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="number"
-            android:imeOptions="actionDone"
-            android:shadowColor="@android:color/white"
-            android:text=""
-            android:textColor="@android:color/black"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/text_high_max_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/parameter_lnb_custom_band_max"
-            android:textColor="#B3EEEEEE"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/edittext_high_max_frequency"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="number"
-            android:imeOptions="actionDone"
-            android:shadowColor="@android:color/white"
             android:text=""
             android:textColor="@android:color/black"
             android:textSize="14sp" />

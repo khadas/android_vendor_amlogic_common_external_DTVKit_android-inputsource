@@ -86,7 +86,7 @@ public class CustomDialog/* extends AlertDialog*/ {
             DIALOG_SET_SELECT_SINGLE_ITEM_22KHZ, DIALOG_SET_SELECT_SINGLE_TONE_BURST, DIALOG_SET_SELECT_SINGLE_DISEQC1_0,
             DIALOG_SET_SELECT_SINGLE_DISEQC1_1, DIALOG_SET_SELECT_SINGLE_MOTOR};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {"5150", "9750/10600", "Customize"};
-    public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {R.string.parameter_lnb_type_5150, R.string.parameter_lnb_type_9750, R.string.parameter_lnb_custom};
+    public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST = {R.string.parameter_lnb_type_5150, R.string.parameter_lnb_type_5750, R.string.parameter_lnb_type_9750, R.string.parameter_lnb_custom};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST = {"first freq", "sencond freg"};
     public static final int[] DIALOG_SET_SELECT_SINGLE_ITEM_LNB_CUSTOM_TYPE_LIST = {R.string.parameter_lnb_custom_frequency1, R.string.parameter_lnb_custom_frequency2};
     //public static final String[] DIALOG_SET_SELECT_SINGLE_ITEM_UNICABLE_LIST = {"off", "on"};
@@ -120,7 +120,7 @@ public class CustomDialog/* extends AlertDialog*/ {
 
     public static final /*String*/int[] DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST = {DIALOG_SET_SELECT_SINGLE_ITEM_SATALLITE, DIALOG_SET_SELECT_SINGLE_ITEM_TRANOPONDER, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DISH_LIMITS,
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_EAST_DISH_LIMITS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SET_WEST_DISH_LIMITS, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_DIRECTTION,
-            DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STEP, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_POSITION,
+            DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STEP, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE,
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_SAVE_TO_POSITION, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_MOVE_TO_POSITION, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_STRENGTH,
             DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_LIST_QUALITY, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SAVE, DIALOG_SET_SELECT_SINGLE_ITEM_DISEQC1_2_SCAN
     };
@@ -406,22 +406,13 @@ public class CustomDialog/* extends AlertDialog*/ {
         mDialogView = View.inflate(mContext, R.layout.set_custom_lnb, null);
         mDialogTitle = (TextView) mDialogView.findViewById(R.id.dialog_title);
 
-        mDialogTitle.setText(DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[2]);
+        mDialogTitle.setText(DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[3]);
         final EditText editText1 = (EditText)mDialogView.findViewById(R.id.edittext_frequency1);
-        final EditText lowMineditText = (EditText)mDialogView.findViewById(R.id.edittext_low_min_frequency);
-        final EditText lowMaxeditText = (EditText)mDialogView.findViewById(R.id.edittext_low_max_frequency);
         final EditText editText2 = (EditText)mDialogView.findViewById(R.id.edittext_frequency2);
-        final EditText highMineditText = (EditText)mDialogView.findViewById(R.id.edittext_high_min_frequency);
-        final EditText highMaxeditText = (EditText)mDialogView.findViewById(R.id.edittext_high_max_frequency);
-        final LinearLayout lowBandContainer = (LinearLayout)mDialogView.findViewById(R.id.low_band_container);
-        final LinearLayout highBandContainer = (LinearLayout)mDialogView.findViewById(R.id.high_band_container);
+        final TextView textFreq2 = (TextView)mDialogView.findViewById(R.id.text_frequency2);
         final Spinner lowHighBandSpinner = (Spinner)mDialogView.findViewById(R.id.spinner_band_type);
 
         String lnb = mParameterMananer.getDvbsParaManager().getCurrentLnbId();
-        int lowBandMin = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowMin();
-        int lowBandMax = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowMax();
-        int highBandMin = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highMin();
-        int highBandMax = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highMax();
         int lowLocalIf = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().lowLocalFreq();
         int highLocalIf = mParameterMananer.getDvbsParaManager().getLnbWrap().getLnbById(lnb).getLnbInfo().highLocalFreq();
         boolean customSingle = (lowLocalIf == 0 || highLocalIf == 0);
@@ -433,15 +424,13 @@ public class CustomDialog/* extends AlertDialog*/ {
         } else {
             editText2.setText("" + 10600);
         }
-        lowMineditText.setText("" + lowBandMin);
-        lowMaxeditText.setText("" + lowBandMax);
-        highMineditText.setText("" + highBandMin);
-        highMaxeditText.setText("" + highBandMax);
 
         if (customSingle) {
-            highBandContainer.setVisibility(View.GONE);
+            textFreq2.setVisibility(View.GONE);
+            editText2.setVisibility(View.GONE);
         } else {
-            highBandContainer.setVisibility(View.VISIBLE);
+            textFreq2.setVisibility(View.VISIBLE);
+            editText2.setVisibility(View.VISIBLE);
         }
 
         lowHighBandSpinner.setSelection(selection);
@@ -449,9 +438,11 @@ public class CustomDialog/* extends AlertDialog*/ {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == ParameterMananer.DEFAULT_LNB_CUSTOM_SINGLE_DOUBLE) {
-                    highBandContainer.setVisibility(View.GONE);
+                    textFreq2.setVisibility(View.GONE);
+                    editText2.setVisibility(View.GONE);
                 } else {
-                    highBandContainer.setVisibility(View.VISIBLE);
+                    textFreq2.setVisibility(View.VISIBLE);
+                    editText2.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -473,22 +464,13 @@ public class CustomDialog/* extends AlertDialog*/ {
                     bundle.putString("button", "ok");
                     String lowLocal = (!TextUtils.isEmpty(editText1.getText()) ? editText1.getText().toString() : "0");
                     String highLocal = (!TextUtils.isEmpty(editText2.getText()) ? editText2.getText().toString() : "0");
-                    String lowMinstr = (!TextUtils.isEmpty(lowMineditText.getText()) ? lowMineditText.getText().toString() : "0");
-                    String lowMaxstr = (!TextUtils.isEmpty(lowMaxeditText.getText()) ? lowMaxeditText.getText().toString() : "0");
-                    String highMaxstr = (!TextUtils.isEmpty(highMaxeditText.getText()) ? highMaxeditText.getText().toString() : "0");
-                    String highMinstr = (!TextUtils.isEmpty(highMineditText.getText()) ? highMineditText.getText().toString() : "0");
-                    Log.d(TAG, "initLnbCustomedItemDialog lowMinstr = " + lowMinstr + ", lowMaxstr = " + lowMaxstr + ",highMinstr = " + highMinstr + ", highMaxstr = " + highMaxstr);
-                    if ((TextUtils.isEmpty(editText1.getText()) || TextUtils.isEmpty(lowMineditText.getText()) || TextUtils.isEmpty(lowMaxeditText.getText())) ||
-                            (!customSingle && (TextUtils.isEmpty(editText2.getText()) || TextUtils.isEmpty(highMineditText.getText()) || TextUtils.isEmpty(highMaxeditText.getText())))) {
+                    if (TextUtils.isEmpty(editText1.getText()) ||
+                            (!customSingle && (TextUtils.isEmpty(editText2.getText())))) {
                         Toast.makeText(mContext, R.string.dialog_parameter_not_complete, Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    bundle.putInt("lowmin", Integer.parseInt(lowMinstr));
-                    bundle.putInt("lowmax", Integer.parseInt(lowMaxstr));
                     bundle.putInt("lowlocal", Integer.parseInt(lowLocal));
                     if (lowHighBandSpinner.getSelectedItemPosition() > 0 ) {
-                        bundle.putInt("highmin", Integer.parseInt(highMinstr));
-                        bundle.putInt("highmax", Integer.parseInt(highMaxstr));
                         bundle.putInt("highlocal", Integer.parseInt(highLocal));
                     } else {
                         bundle.putInt("highlocal", 0);
@@ -579,10 +561,16 @@ public class CustomDialog/* extends AlertDialog*/ {
             switch (i) {
                 case 0: {
                     value = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
+                    if (TextUtils.isEmpty(value)) {
+                        value = "none";
+                    }
                     break;
                 }
                 case 1: {
                     value = mParameterMananer.getDvbsParaManager().getCurrentTransponder();
+                    if (TextUtils.isEmpty(value)) {
+                        value = "none";
+                    }
                     break;
                 }
                 case 2: {
@@ -616,16 +604,11 @@ public class CustomDialog/* extends AlertDialog*/ {
                     break;
                 }
                 case 8: {
-                    int dish_Pos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
-                    value = String.valueOf(dish_Pos);
-                    break;
-                }
-                case 9: {
                     value = mContext.getString(R.string.parameter_diseqc1_2_press_to_save);
                     type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
                     break;
                 }
-                case 10: {
+                case 9: {
                     type = DialogItemAdapter.DialogItemDetail.ITEM_DISPLAY;
                     value = mContext.getString(R.string.parameter_diseqc1_2_press_to_move);
                     break;

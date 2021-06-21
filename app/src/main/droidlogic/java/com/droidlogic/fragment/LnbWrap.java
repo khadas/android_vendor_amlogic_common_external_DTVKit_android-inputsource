@@ -149,15 +149,11 @@ public class LnbWrap {
         return ret;
     }
 
-    public void actionToLocation(String sateName, boolean isEast, int longitude,
-                                 boolean isNorth, int latitude) {
+    public void actionToLocation(String sateName, String location) {
         try {
             JSONArray array = new JSONArray();
             array.put(sateName);
-            array.put(isEast);
-            array.put(longitude);
-            array.put(isNorth);
-            array.put(latitude);
+            array.put(location);
             mDtvkitGlueClient.request("Dvbs.goToXX", array);
         } catch (Exception e) {
         }
@@ -275,21 +271,15 @@ public class LnbWrap {
             try {
                 if (json != null) {
                     lnb_type = (int)(json.get("lnb_type"));
-                    low_freq_min = (int)(json.get("low_min_freq"));
-                    low_freq_max = (int)(json.get("low_max_freq"));
+                    low_freq_min = 0;//always use as 0
+                    low_freq_max = 0;//always use as 0
                     low_freq_local = (int)(json.get("low_local_oscillator_frequency"));
                     lnb_power = (String)(json.get("low_lnb_voltage"));
                     tone_22k = (String)(json.get("low_tone_22k"));
-                    high_freq_min = (int)(json.get("high_min_freq"));
-                    high_freq_max = (int)(json.get("high_max_freq"));
+                    high_freq_min = 0;//always use as 0
+                    high_freq_max = 0;//always use as 0
                     high_freq_local = (int)(json.get("high_local_oscillator_frequency"));
-                    if (low_freq_max == 0 || low_freq_max == 65535) {
-                        low_freq_max = 11750;
-                    }
-                    if (high_freq_max == 0 || high_freq_max == 65535) {
-                        high_freq_max = 11750;
-                    }
-                    if (lnb_type > 3) {
+                    if (lnb_type > 4) {
                         lnb_type = 0;
                         low_freq_local = 5150;
                     }
@@ -371,6 +361,10 @@ public class LnbWrap {
                     low_freq_local = 9750;
                     high_freq_local = 10600;
                     tone_22k = "auto";
+                } else if (lnb_type == 4) {
+                    low_freq_local = 5150;
+                    high_freq_local = 5750;
+                    tone_22k = "auto";
                 }
                 mLnb.updateToDtvkit();
                 return true;
@@ -399,27 +393,10 @@ public class LnbWrap {
             return false;
         }
 
-        public boolean updateLnbTypeFreq(int lowMin, int lowMax, int lowLocal,
-                                      int highMin, int highMax, int highLocal) {
+        public boolean updateLnbTypeFreq(int lowLocal, int highLocal) {
             boolean result = false;
-            if (low_freq_min != lowMin) {
-                low_freq_min = lowMin;
-                result = true;
-            }
-            if (low_freq_max != lowMax) {
-                low_freq_max = lowMax;
-                result = true;
-            }
             if (low_freq_local != lowLocal) {
                 low_freq_local = lowLocal;
-                result = true;
-            }
-            if (high_freq_min != highMin) {
-                high_freq_min = highMin;
-                result = true;
-            }
-            if (high_freq_max != highMax) {
-                high_freq_max = highMax;
                 result = true;
             }
             if (high_freq_local != highLocal) {

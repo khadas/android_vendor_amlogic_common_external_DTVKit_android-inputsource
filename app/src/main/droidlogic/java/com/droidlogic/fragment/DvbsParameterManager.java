@@ -248,10 +248,14 @@ public class DvbsParameterManager {
             int lnbType = lnb.getLnbInfo().getType();
             int lnb_low_freq = lnb.getLnbInfo().lowLocalFreq();
             int lnb_high_freq = lnb.getLnbInfo().highLocalFreq();
-            if (lnbType == 0 || lnbType == 1) {
+            if (lnbType == 0 || lnbType == 3) {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[lnbType]);
-            } else if (lnbType == 3) {
+            } else if (lnbType == 1) {
                 valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[2]);
+            } else if (lnbType == 4) {
+                valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[1]);
+            } else {
+                valueStr = mContext.getString(CustomDialog.DIALOG_SET_SELECT_SINGLE_ITEM_LNB_TYPE_LIST[0]);
             }
         } else if (lnbKeyList[4].equals(parakey)) {
             boolean unicable =  lnb.getUnicable().getOnoff();
@@ -269,9 +273,10 @@ public class DvbsParameterManager {
                 valueStr = lp;
             }
         } else if (lnbKeyList[6].equals(parakey)) {
+            int lnbType = lnb.getLnbInfo().getType();
             String tone22K = lnb.getLnbInfo().get22Khz();
             boolean isSingle = lnb.getLnbInfo().isSingle();
-            if (!isSingle) {
+            if (!isSingle && (lnbType != 4)) {
                 enable_switch = false;
             }
             valueStr = tone22K;
@@ -313,9 +318,13 @@ public class DvbsParameterManager {
         int ret = 0;
         if (lnbKeyList[3].equals(parakey)) {
             ret = lnb.getLnbInfo().getType();
-            if (ret == 3) {
+            if (ret == 1) {
                 ret = 2;
-            } else if (ret > 3) {
+            } else if (ret == 2) {
+                ret = 0;
+            } else if (ret == 4) {
+                ret = 1;
+            } else if (ret > 4) {
                 ret = 0;
             }
         } else if (lnbKeyList[4].equals(parakey)) {

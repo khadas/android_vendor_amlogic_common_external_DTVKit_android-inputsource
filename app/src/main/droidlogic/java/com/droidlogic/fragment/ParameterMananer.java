@@ -516,6 +516,23 @@ public class ParameterMananer {
         Log.d(TAG, "storeDishPosition->" + position);
     }
 
+    public void storeDishPosition(String sateName) {
+        try {
+            JSONArray args1 = new JSONArray();
+            args1.put(sateName);
+            JSONObject resultObj = DtvkitGlueClient.getInstance().request("Dvbs.storeDishPositionForSatellite", args1);
+            if (resultObj != null) {
+                Log.d(TAG, "storeDishPositionForSatellite resultObj:" + resultObj.toString());
+            } else {
+                Log.d(TAG, "storeDishPositionForSatellite then get null");
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "storeDishPositionForSatellite Exception " + e.getMessage() + ", trace=" + e.getStackTrace());
+            e.printStackTrace();
+        }
+        Log.d(TAG, "storeDishPositionForSatellite:" + sateName);
+    }
+
     public void moveDishToPosition(int position) {
         try {
             JSONArray args1 = new JSONArray();
@@ -531,6 +548,23 @@ public class ParameterMananer {
             e.printStackTrace();
         }
         Log.d(TAG, "moveDishToPosition->" + position);
+    }
+
+    public void moveDishToPosition(String sateName) {
+        try {
+            JSONArray args1 = new JSONArray();
+            args1.put(sateName);
+            JSONObject resultObj = DtvkitGlueClient.getInstance().request("Dvbs.moveDishToPositionForSatellite", args1);
+            if (resultObj != null) {
+                Log.d(TAG, "moveDishToPositionForSatellite resultObj:" + resultObj.toString());
+            } else {
+                Log.d(TAG, "moveDishToPositionForSatellite then get null");
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "moveDishToPositionForSatellite Exception " + e.getMessage() + ", trace=" + e.getStackTrace());
+            e.printStackTrace();
+        }
+        Log.d(TAG, "moveDishToPositionForSatellite:" + sateName);
     }
 
     public void enableDishLimits(boolean status) {

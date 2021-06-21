@@ -394,16 +394,23 @@ public class ScanDishSetupFragment extends Fragment {
                 }
                 case ParameterMananer.KEY_LNB_TYPE:
                     if (data != null && "selected".equals(data.getString("action"))) {
-                        int lnbType = data.getInt("position");
-                        if (lnbType == 2) lnbType = 3;
+                        int pos = data.getInt("position");
+                        int lnbType = 0;
+                        if (pos == 1) {
+                            lnbType = 4;
+                        } else if (pos == 2) {
+                            lnbType = 1;
+                        } else {
+                            lnbType = pos;
+                        }
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                 .editLnbType(lnbType);
-                        if (lnbType == 0 || lnbType == 3) {
+                        if (lnbType == 0) {
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                     .editLnb22Khz("false");
-                        } else if (lnbType == 1) {
+                        } else if (lnbType == 1 || lnbType == 4) {
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
                                     .editLnb22Khz("auto");
@@ -412,7 +419,7 @@ public class ScanDishSetupFragment extends Fragment {
                             mCurrentCustomDialog.updateListView(mCurrentCustomDialog.getDialogTitle(), mCurrentCustomDialog.getDialogKey(), data.getInt("position"));
                             //mItemAdapterOption.reFill(mParameterMananer.getDvbsParaManager().getLnbParamsWithId());
                         }
-                        if (data.getInt("position") == 2) {
+                        if (pos == 3) {
                             mCurrentSubCustomDialog = mDialogManager.buildLnbCustomedItemDialog(mSingleSelectDialogCallBack);
                             if (mCurrentSubCustomDialog != null) {
                                 mCurrentSubCustomDialog.showDialog();
@@ -426,15 +433,11 @@ public class ScanDishSetupFragment extends Fragment {
                     if (data != null && "onClick".equals(data.getString("action"))) {
                         if ("ok".equals(data.getString("button"))) {
                             Log.d(TAG, "ok in clicked");
-                            int lowMin = data.getInt("lowmin");
-                            int lowMax = data.getInt("lowmax");
                             int lowLocal = data.getInt("lowlocal");
-                            int highMin = data.getInt("highmin");
-                            int highMax = data.getInt("highmax");
                             int highLocal = data.getInt("highlocal");
                             mParameterMananer.getDvbsParaManager()
                                     .getLnbWrap().getLnbById(lnb).getLnbInfo()
-                                    .updateLnbTypeFreq(lowMin, lowMax, lowLocal, highMin, highMax, highLocal);
+                                    .updateLnbTypeFreq(lowLocal, highLocal);
                             startTune();
                         } else if ("cancel".equals(data.getString("button"))) {
                             Log.d(TAG, "cancel in clicked");
@@ -524,8 +527,6 @@ public class ScanDishSetupFragment extends Fragment {
                     break;
                 case ParameterMananer.KEY_LNB_POWER: {
                     int position = data.getInt("position");
-                    int lnbType = mParameterMananer.getDvbsParaManager()
-                            .getLnbWrap().getLnbById(lnb).getLnbInfo().getType();
                     if ("selected".equals(data.getString("action"))) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
@@ -541,8 +542,6 @@ public class ScanDishSetupFragment extends Fragment {
                 }
                 case ParameterMananer.KEY_22_KHZ: {
                     int position = data.getInt("position");
-                    int lnbType = mParameterMananer.getDvbsParaManager()
-                            .getLnbWrap().getLnbById(lnb).getLnbInfo().getType();
                     if ("selected".equals(data.getString("action"))) {
                         mParameterMananer.getDvbsParaManager()
                                 .getLnbWrap().getLnbById(lnb).getLnbInfo()
@@ -651,33 +650,22 @@ public class ScanDishSetupFragment extends Fragment {
                                 mParameterMananer.dishMove(direction, dishStep);
                                 break;
                             }
-                            case 9: /*save to position*/ {
+                            case 8: /*save to position*/ {
                                 String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
-                                int dishPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
-                                mParameterMananer.getDvbsParaManager().getSatelliteWrap().editDishPos(sateName, dishPos);
-                                mParameterMananer.storeDishPosition(dishPos);
+                                mParameterMananer.storeDishPosition(sateName);
                                 break;
                             }
-                            case 10: /*move to position*/ {
+                            case 9: /*move to position*/ {
                                 String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
-                                int dishPos = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
-                                mParameterMananer.getDvbsParaManager().getSatelliteWrap().editDishPos(sateName, dishPos);
-                                mParameterMananer.moveDishToPosition(dishPos);
+                                mParameterMananer.moveDishToPosition(sateName);
                                 break;
                             }
-                            case 16: /*gotoxx*/ {
+                            case 15: /*gotoxx*/ {
                                 String sateName = mParameterMananer.getDvbsParaManager().getCurrentSatellite();
                                 int locationIndex = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
-                                boolean locationIsEast = mParameterMananer.getDvbsParaManager().getLnbWrap()
-                                        .getLocationInfoByIndex(locationIndex).isLongitudeEast();
-                                int locationLongitude = mParameterMananer.getDvbsParaManager().getLnbWrap()
-                                        .getLocationInfoByIndex(locationIndex).getLongitude();
-                                boolean localtionIsNorth = mParameterMananer.getDvbsParaManager().getLnbWrap()
-                                        .getLocationInfoByIndex(locationIndex).isLatitudeNorth();
-                                int locationLatitude = mParameterMananer.getDvbsParaManager().getLnbWrap()
-                                        .getLocationInfoByIndex(locationIndex).getLatitude();
-                                mParameterMananer.getDvbsParaManager().getLnbWrap().actionToLocation(sateName,
-                                        locationIsEast, locationLongitude, localtionIsNorth, locationLatitude);
+                                String locationName = mParameterMananer.getDvbsParaManager().getLnbWrap()
+                                        .getLocationInfoByIndex(locationIndex).getName();
+                                mParameterMananer.getDvbsParaManager().getLnbWrap().actionToLocation(sateName, locationName);
                                 break;
                             }
                             default:
@@ -785,25 +773,7 @@ public class ScanDishSetupFragment extends Fragment {
                                 mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_step", stepvalue);
                                 break;
                             }
-                            case 8: /*dish position*/ {
-                                int positionvalue = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("dish_pos");
-                                if ("left".equals(data.getString("action"))) {
-                                    if (positionvalue != 0) {
-                                        positionvalue = positionvalue - 1;
-                                    } else {
-                                        positionvalue = 255;
-                                    }
-                                } else {
-                                    if (positionvalue < 255) {
-                                        positionvalue = positionvalue + 1;
-                                    } else {
-                                        positionvalue = 0;
-                                    }
-                                }
-                                mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("dish_pos", positionvalue);
-                                break;
-                            }
-                            case 11: /* location city */ {
+                            case 10: /* location city */ {
                                 int index = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
                                 List<String> locationNameList = mParameterMananer.getDvbsParaManager().getLnbWrap()
                                         .getDiseqcLocationNames();
@@ -824,10 +794,10 @@ public class ScanDishSetupFragment extends Fragment {
                                 mParameterMananer.getDvbsParaManager().setCurrentDiseqcValue("diseqc_location", index);
                                 break;
                             }
-                            case 12: /*location longitude direction*/
-                            case 13: /*Location longitude*/
-                            case 14: /*Location latitude direction*/
-                            case 15: /*Location latitude*/{
+                            case 11: /*location longitude direction*/
+                            case 12: /*Location longitude*/
+                            case 13: /*Location latitude direction*/
+                            case 14: /*Location latitude*/{
                                 int index = mParameterMananer.getDvbsParaManager().getCurrentDiseqcValue("diseqc_location");
                                 List<String> locationNameList = mParameterMananer.getDvbsParaManager().getLnbWrap()
                                         .getDiseqcLocationNames();
@@ -841,11 +811,11 @@ public class ScanDishSetupFragment extends Fragment {
                                                 .getLocationInfoByIndex(index).isLatitudeNorth();
                                         int locationLatitude = mParameterMananer.getDvbsParaManager().getLnbWrap()
                                                 .getLocationInfoByIndex(index).getLatitude();
-                                        if (position == 12) {
+                                        if (position == 11) {
                                             locationIsEast = !locationIsEast;
-                                        } else if (position == 13 || position == 15) {
+                                        } else if (position == 12 || position == 14) {
                                             int value = 0;
-                                            if (position == 13) value = locationLongitude;
+                                            if (position == 12) value = locationLongitude;
                                             else value = locationLatitude;
                                             if ("left".equals(data.getString("action"))) {
                                                 if (value > 0) {
@@ -860,9 +830,9 @@ public class ScanDishSetupFragment extends Fragment {
                                                     value = 0;
                                                 }
                                             }
-                                            if (position == 13) locationLongitude = value;
+                                            if (position == 12) locationLongitude = value;
                                             else locationLatitude = value;
-                                        } else if (position == 14) {
+                                        } else if (position == 13) {
                                             localtionIsNorth = !localtionIsNorth;
                                         }
                                         mParameterMananer.getDvbsParaManager().getLnbWrap().editManualLocation

@@ -38,6 +38,7 @@
     <string name="parameter_lnb_type">LNB Type</string>
     <string name="parameter_lnb_type_5150">5150</string>
     <string name="parameter_lnb_type_9750">9750/10600</string>
+    <string name="parameter_lnb_type_5750">5150/5750</string>
     <string name="parameter_lnb_custom">Customize</string>
     <string name="parameter_lnb_custom_frequency1">Low Band:</string>
     <string name="parameter_lnb_custom_frequency2">High Band:</string>
