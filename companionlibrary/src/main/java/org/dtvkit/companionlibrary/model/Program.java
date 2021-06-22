@@ -390,7 +390,7 @@ public final class Program implements Comparable<Program> {
         } else {
             values.putNull(TvContract.Programs.COLUMN_SHORT_DESCRIPTION);
         }
-        if (!TextUtils.isEmpty(mDescription)) {
+        if (!TextUtils.isEmpty(mLongDescription)) {
             values.put(TvContract.Programs.COLUMN_LONG_DESCRIPTION, mLongDescription);
         } else {
             values.putNull(TvContract.Programs.COLUMN_LONG_DESCRIPTION);
