@@ -9,6 +9,9 @@ import android.content.IntentFilter;
 import android.media.tv.TvContract;
 import android.media.tv.TvInputInfo;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -55,17 +58,22 @@ public class DtvkitDvbsSetup extends Activity {
     private PvrStatusConfirmManager mPvrStatusConfirmManager = null;
     private ParameterMananer mParameterMananer;
 
+    protected HandlerThread mHandlerThread = null;
+    protected Handler mThreadHandler = null;
+
+    private final static int MSG_FINISH_SEARCH = 1;
+    private final static int MSG_ON_SIGNAL = 2;
+
     private final DtvkitGlueClient.SignalHandler mHandler = new DtvkitGlueClient.SignalHandler() {
         @Override
         public void onSignal(String signal, JSONObject data) {
             if (signal.equals("DvbsStatusChanged")) {
                 int progress = getSearchProcess(data);
                 Log.d(TAG, "onSignal progress = " + progress);
-                if (progress < 100) {
-                    getProgressBar().setProgress(progress);
-                    setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress));
-                } else {
-                    onSearchFinished();
+                if (mThreadHandler != null) {
+                    mThreadHandler.removeMessages(MSG_ON_SIGNAL);
+                    Message msg = mThreadHandler.obtainMessage(MSG_ON_SIGNAL, progress, 0, null);
+                    boolean info = mThreadHandler.sendMessageDelayed(msg, 0);
                 }
             }
         }
@@ -111,6 +119,7 @@ public class DtvkitDvbsSetup extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.satsetup);
 
+        initHandler();
         mDataMananer = new DataMananer(this);
         mPvrStatusConfirmManager = new PvrStatusConfirmManager(this, mDataMananer);
         mParameterMananer = new ParameterMananer(this, DtvkitGlueClient.getInstance());
@@ -297,6 +306,68 @@ public class DtvkitDvbsSetup extends Activity {
         });
     }
 
+    private void initHandler() {
+        Log.d(TAG, "initHandler");
+        mHandlerThread = new HandlerThread("DtvkitDvbtSetup");
+        mHandlerThread.start();
+        mThreadHandler = new Handler(mHandlerThread.getLooper(), new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                Log.d(TAG, "mThreadHandler handleMessage " + msg.what + " start");
+                switch (msg.what) {
+                    case MSG_FINISH_SEARCH: {
+                        onSearchFinished();
+                        break;
+                    }
+                    case MSG_ON_SIGNAL: {
+                        dealOnSignal(msg.arg1);
+                        break;
+                    }
+                    default:
+                        break;
+                }
+                Log.d(TAG, "mThreadHandler handleMessage " + msg.what + " over");
+                return true;
+            }
+        });
+    }
+
+    private void dealOnSignal(int progress) {
+        Log.d(TAG, "onSignal progress = " + progress);
+        setSearchProgress(progress);
+        int found = getFoundServiceNumber();
+        setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
+        if (progress >= 100) {
+            sendFinishSearch();
+        }
+    }
+
+    private void sendFinishSearch() {
+        if (mThreadHandler != null) {
+            mThreadHandler.removeMessages(MSG_FINISH_SEARCH);
+            Message mess = mThreadHandler.obtainMessage(MSG_FINISH_SEARCH, 0, 0, null);
+            boolean info = mThreadHandler.sendMessageDelayed(mess, 1000);
+        }
+    }
+
+    private void setSearchProgress(final int progress) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final ProgressBar bar = (ProgressBar) findViewById(R.id.searchprogress);
+                bar.setProgress(progress);
+            }
+        });
+    }
+
+    private void releaseHandler() {
+        Log.d(TAG, "releaseHandler");
+        mHandlerThread.getLooper().quitSafely();
+        mThreadHandler.removeCallbacksAndMessages(null);
+        mHandlerThread = null;
+        mThreadHandler = null;
+    }
+
     private int getFilterServiceTypeInSearch() {
         int ret = 0;
         try {
@@ -454,6 +525,7 @@ public class DtvkitDvbsSetup extends Activity {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        releaseHandler();
         stopMonitoringSearch();
         stopMonitoringSync();
     }
@@ -570,7 +642,7 @@ public class DtvkitDvbsSetup extends Activity {
     }
 
     private void startSearch() {
-        setSearchStatus("Searching");
+        setSearchStatus("Searching", "");
         getProgressBar().setIndeterminate(false);
         startMonitoringSearch();
 
@@ -605,14 +677,14 @@ public class DtvkitDvbsSetup extends Activity {
                 doSearchByThread(args);
             } else {
                 stopMonitoringSearch();
-                setSearchStatus(getString(R.string.invalid_parameter));
+                setSearchStatus(getString(R.string.invalid_parameter), "");
                 enableSearchButton(true);
                 stopSearch(true);
                 return;
             }
         } catch (Exception e) {
             stopMonitoringSearch();
-            setSearchStatus(e.getMessage());
+            setSearchStatus(e.getMessage(), "");
             stopSearch(true);
         }
     }
@@ -755,10 +827,29 @@ public class DtvkitDvbsSetup extends Activity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
-    private void setSearchStatus(String status) {
-        Log.i(TAG, String.format("Search status \"%s\"", status));
-        final TextView text = (TextView) findViewById(R.id.searchstatus);
-        text.setText(status);
+    private void setSearchStatus(final String status) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, String.format("Search status \"%s\"", status));
+                final TextView text = (TextView) findViewById(R.id.searchstatus);
+                text.setText(status);
+            }
+        });
+    }
+
+    private void setSearchStatus(final String status, final String description) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, String.format("Search status \"%s\"", status));
+                final TextView text = (TextView) findViewById(R.id.searchstatus);
+                text.setText(status);
+
+                final TextView text2 = (TextView) findViewById(R.id.description);
+                text2.setText(description);
+            }
+        });
     }
 
     private ProgressBar getProgressBar() {
