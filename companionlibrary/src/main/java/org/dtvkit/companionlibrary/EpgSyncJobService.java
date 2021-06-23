@@ -40,6 +40,10 @@ import android.util.Log;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
+
 import org.dtvkit.companionlibrary.model.Channel;
 import org.dtvkit.companionlibrary.model.EventPeriod;
 import org.dtvkit.companionlibrary.model.Program;
@@ -429,6 +433,20 @@ public abstract class EpgSyncJobService extends JobService {
         private final JobParameters params;
         private String mInputId;
         private boolean mIsSearchedChannel;
+        static final int MSG_SEND_BROADCAST = 1;
+
+        Handler mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                case MSG_SEND_BROADCAST:
+                    finishEpgSync(params);
+                    break;
+                default:
+                    break;
+                }
+            }
+        };
 
         public EpgSyncTask(JobParameters params) {
             this.params = params;
@@ -523,12 +541,18 @@ public abstract class EpgSyncJobService extends JobService {
 
         @Override
         public void onPostExecute(Void success) {
-            finishEpgSync(params);
+            if (mHandler != null) {
+                mHandler.removeMessages(MSG_SEND_BROADCAST);
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SEND_BROADCAST), 1000);
+            }
         }
 
         @Override
         public void onCancelled(Void ignore) {
-            finishEpgSync(params);
+            if (mHandler != null) {
+                mHandler.removeMessages(MSG_SEND_BROADCAST);
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SEND_BROADCAST), 1000);
+            }
         }
 
         private void finishEpgSync(JobParameters jobParams) {
