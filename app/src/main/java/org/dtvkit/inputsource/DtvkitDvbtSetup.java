@@ -902,7 +902,7 @@ public class DtvkitDvbtSetup extends Activity {
         if (mThreadHandler != null) {
             mThreadHandler.removeMessages(MSG_FINISH_SEARCH);
             Message mess = mThreadHandler.obtainMessage(MSG_FINISH_SEARCH, skipConfirmNetwork ? 1 : 0, 0, null);
-            boolean info = mThreadHandler.sendMessageDelayed(mess, 0);
+            boolean info = mThreadHandler.sendMessageDelayed(mess, 1000);
             Log.d(TAG, "sendMessage MSG_FINISH_SEARCH " + info);
         }
     }
@@ -1212,11 +1212,10 @@ public class DtvkitDvbtSetup extends Activity {
         if (signal != null && ((mIsDvbt && signal.equals("DvbtStatusChanged")) || (!mIsDvbt && signal.equals("DvbcStatusChanged")))) {
             int progress = getSearchProcess(data);
             Log.d(TAG, "onSignal progress = " + progress);
-            if (progress < 100) {
-                int found = getFoundServiceNumber();
-                setSearchProgress(progress);
-                setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
-            } else {
+            int found = getFoundServiceNumber();
+            setSearchProgress(progress);
+            setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
+            if (progress >= 100) {
                 //onSearchFinished();
                 sendFinishSearch(false);
             }
