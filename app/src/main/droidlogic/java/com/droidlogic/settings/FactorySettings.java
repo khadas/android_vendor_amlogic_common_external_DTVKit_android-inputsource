@@ -156,7 +156,7 @@ public class FactorySettings {
                     mInput, true, new ComponentName(mContext, DtvkitEpgSync.class), new Bundle());*/
                 Bundle parameters = new Bundle();
                 parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO);
-                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, null);
+                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, "full");
                 EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext, mInput, false,new ComponentName(mContext, DtvkitEpgSync.class), parameters);
            }
         }

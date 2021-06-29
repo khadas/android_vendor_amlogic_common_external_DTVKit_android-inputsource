@@ -163,9 +163,9 @@ public class TvContractUtils {
                 if (uniqueStr == null) {
                     continue;
                 }
-                //factory set will use null signalType to clear all channel in db
+                //factory set will use "full" signalType to clear all channel in db
                 String signalType = extras.getString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, null);
-                if (signalType != null && !isChannelTypeMatchs(updateChannelType, channelType)) {
+                if (!("full".equals(signalType)) && !isChannelTypeMatchs(updateChannelType, channelType)) {
                     if (DEBUG) Log.i(TAG, "Skip unmatch type channels (" + updateChannelType + ":" + channelType + ")");
                     continue;
                 }
