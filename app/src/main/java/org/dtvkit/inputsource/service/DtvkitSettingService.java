@@ -76,10 +76,6 @@ public class DtvkitSettingService extends Service {
         @Override
         public void setPrimarySubtitleLangByPosition(int position) throws RemoteException {
             mParameterManager.setPrimaryTextLangByPosition(position);
-            if (mParameterManager.playerGetSubtitlesOn(0)) {
-                mParameterManager.playerSetSubtitlesOn(false, 0);
-                mParameterManager.playerSetSubtitlesOn(true, 0);
-            }
             updatingGuide();
         }
 
@@ -93,10 +89,6 @@ public class DtvkitSettingService extends Service {
         @Override
         public void setSecondarySubtitleLangByPosition(int position) throws RemoteException {
             mParameterManager.setSecondaryTextLangByPosition(position);
-            if (mParameterManager.playerGetSubtitlesOn(0)) {
-                mParameterManager.playerSetSubtitlesOn(false, 0);
-                mParameterManager.playerSetSubtitlesOn(true, 0);
-            }
             updatingGuide();
         }
 
@@ -137,10 +129,6 @@ public class DtvkitSettingService extends Service {
         @Override
         public void setHearingImpairedSwitchStatus(boolean on) throws RemoteException {
             mParameterManager.setHearingImpairedSwitchStatus(on);
-            if (mParameterManager.playerGetSubtitlesOn(0)) {
-                mParameterManager.playerSetSubtitlesOn(false, 0);
-                mParameterManager.playerSetSubtitlesOn(true, 0);
-            }
         }
 
         @Override

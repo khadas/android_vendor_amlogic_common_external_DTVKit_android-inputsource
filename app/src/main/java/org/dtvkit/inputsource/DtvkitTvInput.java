@@ -272,6 +272,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private AlertDialog mStreamChangeUpdateDialog = null;
 
     private AlarmManager mAlarmManager = null;
+
+    private int mCusFeatureSubtitleCfg = 0;
+
     public DtvkitTvInput() {
         Log.i(TAG, "DtvkitTvInput");
     }
@@ -639,6 +642,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 initFont(); //init closed caption font
             }
         }
+        mCusFeatureSubtitleCfg = getCustomFeatureSubtitleCfg();
 
         Log.d(TAG, "initDtvkitTvInput end");
         mIsInited = true;
@@ -3201,6 +3205,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (playerGetSubtitlesOn()) {
                     playerSetSubtitlesOn(false);//close if opened
                     Log.d(TAG, "selectSubtitleOrTeletext off setSubOff");
+                    if ((mCusFeatureSubtitleCfg & 0x08) == 0x08) {
+                        if (isSubtitleEnabled()) {
+                            enableSubtitle(false);
+                        }
+                    }
                 }
                 if (playerIsTeletextOn()) {
                     boolean setTeleOff = playerSetTeletextOn(false, -1);//close if opened
@@ -3221,6 +3230,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     if (playerIsTeletextOn()) {
                         boolean setTeleOff = playerSetTeletextOn(false, -1);
                         Log.d(TAG, "selectSubtitleOrTeletext onsub setTeleOff = " + setTeleOff);
+                    }
+                    if ((mCusFeatureSubtitleCfg & 0x08) == 0x08) {
+                        if (!isSubtitleEnabled()) {
+                            enableSubtitle(true);
+                        }
                     }
                     if (!playerGetSubtitlesOn()) {
                         playerSetSubtitlesOn(true);
@@ -6914,6 +6928,39 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
         }
         return min_age;
+    }
+
+    private int getCustomFeatureSubtitleCfg() {
+        int ret = 0;
+        try {
+            JSONArray args = new JSONArray();
+            JSONObject cfgs = (JSONObject)(DtvkitGlueClient.getInstance()
+                .request("Dvb.getCustomFeatureCfg", args).get("data"));
+            if (cfgs != null) {
+                ret = cfgs.optInt("subtitle");
+            }
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    private boolean isSubtitleEnabled() {
+        boolean ret = true;
+        try {
+            JSONArray args = new JSONArray();
+            ret = DtvkitGlueClient.getInstance().request("Player.getSubtitleGlobalOnOff", args).getBoolean("data");
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    private void enableSubtitle(boolean enable) {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(enable);
+            DtvkitGlueClient.getInstance().request("Player.setSubtitleGlobalOnOff", args);
+        } catch (Exception e) {
+        }
     }
 
     private void mhegSuspend() {
