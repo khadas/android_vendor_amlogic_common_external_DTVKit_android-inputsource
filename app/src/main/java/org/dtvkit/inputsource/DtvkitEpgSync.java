@@ -187,6 +187,17 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put("video_codec", service.getString("video_codec"));
                 data.put("is_data", service.getBoolean("is_data"));
                 data.put("channel_signal_type", service.getString("sig_name"));
+                data.put("scrambled", service.getBoolean("scrambled"));
+                if (service.has("mod")) {
+                    data.put("modulation", service.getString("mod"));
+                } else {
+                    data.put("modulation", service.getString("auto"));
+                }
+                if (service.has("fec")) {
+                    data.put("fec", service.getString("fec"));
+                } else {
+                    data.put("fec", service.getString("auto"));
+                }
                 if (PropSettingManager.getBoolean(PropSettingManager.CI_PROFILE_ADD_TEST, false) && (i % 4 != 0)) {
                     int countFlag = i % 4;
                     data.put("ci_number", countFlag);
