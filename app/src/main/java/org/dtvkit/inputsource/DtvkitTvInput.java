@@ -2519,6 +2519,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             setOverlayViewEnabled(false);
                             mHardware.setSurface(null, null);
                             if (mSystemControlManager != null) {
+                                mSystemControlManager.SetDtvKitSourceEnable(0);
                                 mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_MPEG), 0, 0);
                             }
                             //sendSetSurfaceMessage(null, null);
@@ -2526,7 +2527,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             mSurface = null;
                             sendDoReleaseMessage();
                             writeSysFs("/sys/class/video/video_inuse", "0");
-                            mSystemControlManager.SetDtvKitSourceEnable(0);
                         }
                     } else {
                         if (mSurface != null && mSurface != surface) {
@@ -2537,11 +2537,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         }
                         mHardware.setSurface(surface, mConfigs[0]);
                         if (mSystemControlManager != null) {
+                            mSystemControlManager.SetDtvKitSourceEnable(1);
                             mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_DVB), 0, 0);
                         }
                         //sendSetSurfaceMessage(surface, mConfigs[0]);
                         mSurface = surface;
-                        mSystemControlManager.SetDtvKitSourceEnable(1);
                     }
                 }
                 //set surface to mediaplayer
