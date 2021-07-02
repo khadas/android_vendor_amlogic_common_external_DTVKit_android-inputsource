@@ -2738,6 +2738,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             mPreviousTunedChannel = mTunedChannel;
             mTunedChannel = getChannel(channelUri);
 
+            mParameterMananer.saveChannelIdForSource(mTunedChannel.getId());
+
             Log.i(TAG, "onTune will be Done in onTuneByHandlerThreadHandle");
             return mTunedChannel != null;
         }

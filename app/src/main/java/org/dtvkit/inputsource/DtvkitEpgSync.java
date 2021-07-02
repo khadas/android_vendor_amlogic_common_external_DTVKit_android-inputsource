@@ -191,12 +191,12 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 if (service.has("mod")) {
                     data.put("modulation", service.getString("mod"));
                 } else {
-                    data.put("modulation", service.getString("auto"));
+                    data.put("modulation", "auto");
                 }
                 if (service.has("fec")) {
                     data.put("fec", service.getString("fec"));
                 } else {
-                    data.put("fec", service.getString("auto"));
+                    data.put("fec", "auto");
                 }
                 if (PropSettingManager.getBoolean(PropSettingManager.CI_PROFILE_ADD_TEST, false) && (i % 4 != 0)) {
                     int countFlag = i % 4;

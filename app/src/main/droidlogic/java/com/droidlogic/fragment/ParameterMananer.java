@@ -134,6 +134,7 @@ public class ParameterMananer {
 
     public static final String SECURITY_PASSWORD  = "security_password";
     public static final String TV_KEY_DTVKIT_SYSTEM = "tv_dtvkit_system";
+    public static final String KEY_LASTWAHTCHED_CHANNELID = "key_lastwatched_channelid";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -2180,7 +2181,13 @@ public class ParameterMananer {
 
     public String getCustomParameter(String key, String defaultJsonValue) {
         String result = null;
-        Log.d(TAG, "getCustomParameter need to add related code for extends key = " + key + ", defaultJsonValue = " + defaultJsonValue);
+        switch (key) {
+            case KEY_LASTWAHTCHED_CHANNELID:
+                result = "" + getChannelIdForSource();
+                break;
+            default:
+                result = defaultJsonValue;
+        }
         return result;
     }
 
@@ -2467,4 +2474,27 @@ public class ParameterMananer {
             saveIntParameters(KEY_UB_FREQUENCY + channel, mDvbsParaManager.getUbFrequency(channel));
         }
     }
+
+    public void saveChannelIdForSource(long channelId) {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(channelId);
+            DtvkitGlueClient.getInstance().request("Dvb.saveDefaultChannelId", args);
+        } catch (Exception e) {
+        }
+    }
+
+    public long getChannelIdForSource() {
+        long channelId = -1;
+
+        try {
+            channelId = DtvkitGlueClient.getInstance()
+                .request("Dvb.getDefaultChannelId", new JSONArray())
+                .getLong("data");
+        } catch (Exception e) {
+        }
+
+        return channelId;
+    }
+
 }

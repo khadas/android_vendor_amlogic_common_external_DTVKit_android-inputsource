@@ -726,6 +726,7 @@ public class DtvkitDvbsSetup extends Activity {
                     mStartSearch = true;
                     mFoundServiceNumber = 0;
                     mServiceList = null;
+                    mParameterMananer.saveChannelIdForSource(-1);
                 } catch (Exception e) {
                     doStopByUiThread(e);
                 }

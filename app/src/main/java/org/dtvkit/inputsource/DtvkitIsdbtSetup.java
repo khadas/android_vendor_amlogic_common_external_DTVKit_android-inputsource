@@ -681,6 +681,7 @@ public class DtvkitIsdbtSetup extends Activity {
                 Log.d(TAG, "command = " + command + ", args = " + args.toString());
                 DtvkitGlueClient.getInstance().request(command, args);
                 mStartSearch = true;
+                mParameterMananer.saveChannelIdForSource(-1);
             } else {
                 stopMonitoringSearch();
                 setSearchStatus("parameter not complete", "");
