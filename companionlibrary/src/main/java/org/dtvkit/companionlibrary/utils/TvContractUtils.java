@@ -165,6 +165,9 @@ public class TvContractUtils {
                 }
                 //factory set will use "full" signalType to clear all channel in db
                 String signalType = extras.getString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, null);
+                if (TextUtils.isEmpty(updateChannelType) && searchSignalTypeToChannelType(signalType) != null) {
+                    updateChannelType = searchSignalTypeToChannelType(signalType);
+                }
                 if (!("full".equals(signalType)) && !isChannelTypeMatchs(updateChannelType, channelType)) {
                     if (DEBUG) Log.i(TAG, "Skip unmatch type channels (" + updateChannelType + ":" + channelType + ")");
                     continue;
@@ -933,6 +936,29 @@ public class TvContractUtils {
             }
         } catch(Exception e) {
             Log.i(TAG, "getIntFromChannelInternalProviderData Exception " + e.getMessage());
+        }
+        return result;
+    }
+
+    private static String searchSignalTypeToChannelType(String searchSignalType) {
+        String result = null;
+
+        if (TextUtils.isEmpty(searchSignalType)) {
+            return null;
+        }
+        switch (searchSignalType) {
+            case "DVB-T":
+                result = "TYPE_DVB_T";
+                break;
+            case "DVB-C":
+                result = "TYPE_DVB_C";
+                break;
+            case "DVB-S":
+                result = "TYPE_DVB_S";
+                break;
+            case "ISDB-T":
+                result = "TYPE_ISDB_T";
+                break;
         }
         return result;
     }

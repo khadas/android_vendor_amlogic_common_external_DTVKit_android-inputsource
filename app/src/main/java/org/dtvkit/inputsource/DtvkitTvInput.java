@@ -4143,6 +4143,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.i(TAG, "DvbUpdatedEventPeriods");
                     ComponentName sync = new ComponentName(mContext, DtvkitEpgSync.class);
                     checkAndUpdateLcn();
+                    int dvbSource = getCurrentDvbSource();
+                    EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSync(mContext, mInputId, false, sync);
                 }
                 else if (signal.equals("DvbUpdatedEventNow"))
@@ -4150,6 +4152,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.i(TAG, "DvbUpdatedEventNow");
                     ComponentName sync = new ComponentName(mContext, DtvkitEpgSync.class);
                     checkAndUpdateLcn();
+                    int dvbSource = getCurrentDvbSource();
+                    EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSync(mContext, mInputId, true, sync);
                     //notify update parent contrl
                     if (mHandlerThreadHandle != null) {
@@ -4162,6 +4166,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.i(TAG, "DvbUpdatedChannel");
                     ComponentName sync = new ComponentName(mContext, DtvkitEpgSync.class);
                     checkAndUpdateLcn();
+                    int dvbSource = getCurrentDvbSource();
+                    EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSync(mContext, mInputId, false, false, sync);
                 }
                 else if (signal.equals("CiplusUpdateService"))
@@ -4169,6 +4175,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     //update CiOpSearchRequest search result
                     Log.i(TAG, "CiplusUpdateService");
                     ComponentName sync = new ComponentName(mContext, DtvkitEpgSync.class);
+                    int dvbSource = getCurrentDvbSource();
+                    EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSync(mContext, mInputId, false, false, sync);
                     //notify update result after 3s
                     if (mHandlerThreadHandle != null) {
@@ -8071,6 +8079,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     Log.d(TAG, "showSearchConfirmDialog need to stop search");
                     setup.stopSearch();
                     EpgSyncJobService.cancelAllSyncRequests(DtvkitTvInput.this);
+                    int dvbSource = getCurrentDvbSource();
+                    EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(DtvkitTvInput.this, mInputId, true, new ComponentName(DtvkitTvInput.this, DtvkitEpgSync.class), null);
                     mDvbNetworkChangeSearchStatus = false;
                     mMainDvbChannel = null;

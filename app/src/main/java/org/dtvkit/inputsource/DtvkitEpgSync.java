@@ -187,11 +187,11 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                 data.put("video_codec", service.getString("video_codec"));
                 data.put("is_data", service.getBoolean("is_data"));
                 data.put("channel_signal_type", service.getString("sig_name"));
-                data.put("scrambled", service.getBoolean("scrambled"));
+                data.put("scrambled", service.getBoolean("scrambled")?1:0);//to match with droidlogic_tv.jar
                 if (service.has("mod")) {
-                    data.put("modulation", service.getString("mod"));
+                    data.put("modulation", parseModulationInt(service.getString("mod")));
                 } else {
-                    data.put("modulation", "auto");
+                    data.put("modulation", parseModulationInt("auto"));
                 }
                 if (service.has("fec")) {
                     data.put("fec", service.getString("fec"));
@@ -611,5 +611,28 @@ public class DtvkitEpgSync extends EpgSyncJobService {
             }*/
         }
         return result;
+    }
+
+    private int parseModulationInt(String modulation) {
+        /*modulation int values refs to: droidlogic_tv.jar: TvChannelParams.java*/
+        int mod = 6;//MODULATION_QAM_AUTO
+        if (TextUtils.isEmpty(modulation)) {
+            return mod;
+        }
+        switch (modulation) {
+            case "qpsk":
+                mod = 0;//MODULATION_QPSK
+                break;
+            case "16qam":
+                mod = 1;//MODULATION_QAM_16
+                break;
+            case "8psk":
+                mod = 9;//MODULATION_PSK_8
+                break;
+            default:
+                mod = 6;//MODULATION_QAM_AUTO
+                break;
+        }
+        return mod;
     }
 }
