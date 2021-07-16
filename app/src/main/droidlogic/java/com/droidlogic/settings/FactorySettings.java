@@ -73,9 +73,11 @@ public class FactorySettings {
                     }
                     case MSG_DO_IMPORT_CHANNEL: {
                         ret = doImportChannels();
-                        if (ret)
-                            mThreadHandler.sendEmptyMessageDelayed(MSG_SYNC, 100);
-                        else {
+                        if (ret) {
+                            Message message = mThreadHandler.obtainMessage(MSG_SYNC);
+                            message.arg1 = 0;//isrestore
+                            mThreadHandler.sendMessageDelayed(message, 100);
+                        } else {
                             Message message = mThreadHandler.obtainMessage(MSG_FINISH);
                             message.arg1 = 0;
                             mThreadHandler.sendMessageDelayed(message, 100);
@@ -98,9 +100,11 @@ public class FactorySettings {
                     }
                     case MSG_DO_REST_TO_DEFAULT: {
                         ret = doRestoreDefaults();
-                        if (ret)
-                            mThreadHandler.sendEmptyMessageDelayed(MSG_SYNC, 100);
-                        else {
+                        if (ret) {
+                            Message message = mThreadHandler.obtainMessage(MSG_SYNC);
+                            message.arg1 = 1;//isrestore
+                            mThreadHandler.sendMessageDelayed(message, 100);
+                        } else {
                             Message message = mThreadHandler.obtainMessage(MSG_FINISH);
                             message.arg1 = 0;
                             mThreadHandler.sendMessageDelayed(message, 100);
@@ -108,7 +112,8 @@ public class FactorySettings {
                         break;
                     }
                     case MSG_SYNC: {
-                        startSync();
+                        boolean isDvbs = (msg.arg1 == 1);
+                        startSync(isDvbs);
                         break;
                     }
                     case MSG_FINISH: {
@@ -145,10 +150,11 @@ public class FactorySettings {
         }
     };
 
-    private void startSync() {
+    private void startSync(boolean isDvbs) {
         synchronized (this) {
             if (!mStartSync) {
                 mStartSync = true;
+                String signalType = isDvbs ? "DVB-S" : "full";
                 LocalBroadcastManager.getInstance(mContext).registerReceiver(syncReceiver,
                         new IntentFilter(EpgSyncJobService.ACTION_SYNC_STATUS_CHANGED));
                 EpgSyncJobService.cancelAllSyncRequests(mContext);
@@ -156,7 +162,7 @@ public class FactorySettings {
                     mInput, true, new ComponentName(mContext, DtvkitEpgSync.class), new Bundle());*/
                 Bundle parameters = new Bundle();
                 parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO);
-                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, "full");
+                parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, signalType);
                 EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(mContext, mInput, false,new ComponentName(mContext, DtvkitEpgSync.class), parameters);
            }
         }
@@ -222,6 +228,9 @@ public class FactorySettings {
         importSatellites.setOnClickListener(listener);
         restoreToDefault.setOnClickListener(listener);
         exportChannels.requestFocus();
+        if (mParameterManager.getCurrentDvbSource() != ParameterMananer.SIGNAL_QPSK) {
+            restoreToDefault.setVisibility(View.GONE);
+        }
 
         alert.setView(dialogView);
         WindowManager.LayoutParams params = alert.getWindow().getAttributes();
@@ -276,11 +285,12 @@ public class FactorySettings {
     }
 
     private boolean doRestoreDefaults() {
+        //dvbs restore only, reset satellites
         boolean ret = false;
         synchronized (this) {
             Log.d(TAG, "doRestoreDefaults");
             if (mParameterManager != null) {
-                ret = mParameterManager.restoreToDefault();
+                ret = mParameterManager.restSatellites();
             }
         }
         return ret;

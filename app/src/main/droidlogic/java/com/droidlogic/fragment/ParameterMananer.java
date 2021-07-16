@@ -2363,6 +2363,22 @@ public class ParameterMananer {
         return result;
     }
 
+    public boolean restSatellites() {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(ConstantManager.DTVKIT_SATELLITE_DATA);
+            args.put(ConstantManager.DTVKIT_LNBS_DATA);
+            args.put(ConstantManager.DTVKIT_LOCATION_DATA);
+            result = DtvkitGlueClient.getInstance().request("Dvbs.resetSatellites", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "restSatellites = " + e.getMessage());
+        }
+        mDataMananer.saveIntParameters(DataMananer.KEY_SEARCH_MODE, 0);
+
+        return result;
+    }
+
     public boolean restoreToDefault() {
         boolean result = false;
         String defaultCountry = "deu"; //todo: not defined in trunk, so use german here
@@ -2473,6 +2489,18 @@ public class ParameterMananer {
             //only support 8 brands for unicable
             saveIntParameters(KEY_UB_FREQUENCY + channel, mDvbsParaManager.getUbFrequency(channel));
         }
+    }
+
+    public int getCurrentDvbSource() {
+        int source = ParameterMananer.SIGNAL_COFDM;
+        try {
+            JSONObject sourceReq = DtvkitGlueClient.getInstance().request("Dvb.GetDvbSource", new JSONArray());
+            if (sourceReq != null) {
+                source = sourceReq.optInt("data");
+            }
+        } catch (Exception e) {
+        }
+        return source;
     }
 
     public void saveChannelIdForSource(long channelId) {

@@ -134,7 +134,7 @@
     <string name="strExport">Export</string>
     <string name="strImport">Import</string>
     <string name="strFactorySettings">Factory Settings</string>
-    <string name="strRestoreToDefault">Restore to Default</string>
+    <string name="strRestoreToDefault">DVBS Reset</string>
 
     <!-- password dialog-->
     <string name="please_enter_pin">Please enter your PIN</string>
