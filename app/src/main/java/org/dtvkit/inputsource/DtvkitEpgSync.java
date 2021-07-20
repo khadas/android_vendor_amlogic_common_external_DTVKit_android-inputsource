@@ -145,13 +145,17 @@ public class DtvkitEpgSync extends EpgSyncJobService {
     }
 
     @Override
-    public List<Channel> getChannels() {
+    public List<Channel> getChannels(boolean syncCurrent) {
         List<Channel> channels = new ArrayList<>();
 
-        Log.i(TAG, "Get channels for epg sync");
+        Log.i(TAG, "Get channels for epg sync, current: " + syncCurrent);
 
         try {
-            JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.getListOfServices", new JSONArray());
+            String request = "Dvb.getListOfServices";
+            if (!syncCurrent) {
+                request = "Dvb.getFullListOfServices";
+            }
+            JSONObject obj = DtvkitGlueClient.getInstance().request(request, new JSONArray());
 
             Log.i(TAG, "getChannels=" + obj.toString());
 

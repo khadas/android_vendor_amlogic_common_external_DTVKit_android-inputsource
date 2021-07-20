@@ -163,7 +163,7 @@ public abstract class EpgSyncJobService extends JobService {
      *
      * @return The list of channels for your app.
      */
-    public abstract List<Channel> getChannels();
+    public abstract List<Channel> getChannels(boolean syncCurrent);
 
     /**
      * Returns the programs that will appear for each channel.
@@ -457,6 +457,11 @@ public abstract class EpgSyncJobService extends JobService {
             PersistableBundle extras = params.getExtras();
             mInputId = extras.getString(BUNDLE_KEY_INPUT_ID);
             mIsSearchedChannel = extras.getBoolean(BUNDLE_KEY_SYNC_SEARCHED_CHANNEL, false);
+            String syncSignalType = extras.getString(BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE);
+            boolean syncCurrent = true;
+            if ("full".equals(syncSignalType)) {
+                syncCurrent = false;
+            }
 
             if (mInputId == null) {
                 broadcastError(ERROR_INPUT_ID_NULL);
@@ -467,7 +472,7 @@ public abstract class EpgSyncJobService extends JobService {
                 broadcastError(ERROR_EPG_SYNC_CANCELED);
                 return null;
             }
-            List<Channel> tvChannels = getChannels();
+            List<Channel> tvChannels = getChannels(syncCurrent);
             TvContractUtils.updateChannels(mContext, mInputId, mIsSearchedChannel, tvChannels, mChannelTypeFilter, extras);
             LongSparseArray<Channel> channelMap = TvContractUtils.buildChannelMap(
                     mContext.getContentResolver(), mInputId);
