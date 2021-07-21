@@ -374,7 +374,7 @@ public class DtvkitDvbScanSelect extends Activity {
                 posistion = 2;
                 break;
             case ParameterMananer.SIGNAL_ISDBT:
-                posistion = 4;
+                posistion = 3;
                 break;
             case ParameterMananer.SIGNAL_ANALOG:
                 //not supported now, will correct to dvbt
