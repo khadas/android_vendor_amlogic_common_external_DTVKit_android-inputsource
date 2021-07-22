@@ -60,7 +60,9 @@ public class ConstantManager {
     public static final String CONSTANT_UND_FLAG = "und";//undefined flag
     public static final String CONSTANT_UND_VALUE = "Undefined";
     public static final String CONSTANT_QAD = "qad";
+    public static final String CONSTANT_NAR = "nar";
     public static final String CONSTANT_FRENCH = "french";
+    public static final String CONSTANT_NAR_VALUE = "Narrative";
 
     //add for trackinfo
     public static final String SYS_VIDEO_DECODE_PATH = "/sys/class/vdec/vdec_status";

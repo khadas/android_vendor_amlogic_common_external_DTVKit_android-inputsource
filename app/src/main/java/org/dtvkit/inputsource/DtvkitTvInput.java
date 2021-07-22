@@ -274,6 +274,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private AlarmManager mAlarmManager = null;
 
     private int mCusFeatureSubtitleCfg = 0;
+    private int mCusFeatureAudioCfg = 0;
 
     public DtvkitTvInput() {
         Log.i(TAG, "DtvkitTvInput");
@@ -643,6 +644,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
         }
         mCusFeatureSubtitleCfg = getCustomFeatureSubtitleCfg();
+        mCusFeatureAudioCfg = getCustomFeatureAudioCfg();
 
         Log.d(TAG, "initDtvkitTvInput end");
         mIsInited = true;
@@ -5986,13 +5988,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 TvTrackInfo.Builder track = new TvTrackInfo.Builder(TvTrackInfo.TYPE_AUDIO, Integer.toString(audioStream.getInt("index")));
                 Bundle bundle = new Bundle();
                 String audioLang = ISO639Data.parse(audioStream.getString("language"));
-                if (TextUtils.isEmpty(audioLang) || ConstantManager.CONSTANT_UND_FLAG.equals(audioLang)) {
-                    audioLang = ConstantManager.CONSTANT_UND_VALUE + ((undefinedIndex>0)?undefinedIndex:"");
-                    undefinedIndex++;
-                } else if (ConstantManager.CONSTANT_QAA.equalsIgnoreCase(audioLang)) {
-                    audioLang = ConstantManager.CONSTANT_ORIGINAL_AUDIO;
-                } else if (ConstantManager.CONSTANT_QAD.equalsIgnoreCase(audioLang)) {
-                    audioLang = ConstantManager.CONSTANT_FRENCH;
+                if ((mCusFeatureAudioCfg & 0x04) == 0) {
+                    //trunk need trans und to "undefined", qaa to "original", qad and nar to "narrative"
+                    if (TextUtils.isEmpty(audioLang) || ConstantManager.CONSTANT_UND_FLAG.equals(audioLang)) {
+                        audioLang = ConstantManager.CONSTANT_UND_VALUE + ((undefinedIndex>0)?undefinedIndex:"");
+                        undefinedIndex++;
+                    } else if (ConstantManager.CONSTANT_QAA.equalsIgnoreCase(audioLang)) {
+                        audioLang = ConstantManager.CONSTANT_ORIGINAL_AUDIO;
+                    } else if (ConstantManager.CONSTANT_QAD.equalsIgnoreCase(audioLang)) {
+                        audioLang = ConstantManager.CONSTANT_NAR_VALUE;
+                    } else if (ConstantManager.CONSTANT_NAR.equalsIgnoreCase(audioLang)) {
+                        audioLang = ConstantManager.CONSTANT_NAR_VALUE;
+                    }
                 }
                 track.setLanguage(audioLang);
                 bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD, false);
@@ -6948,6 +6955,20 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 .request("Dvb.getCustomFeatureCfg", args).get("data"));
             if (cfgs != null) {
                 ret = cfgs.optInt("subtitle");
+            }
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    private int getCustomFeatureAudioCfg() {
+        int ret = 0;
+        try {
+            JSONArray args = new JSONArray();
+            JSONObject cfgs = (JSONObject)(DtvkitGlueClient.getInstance()
+                .request("Dvb.getCustomFeatureCfg", args).get("data"));
+            if (cfgs != null) {
+                ret = cfgs.optInt("audio");
             }
         } catch (Exception e) {
         }
