@@ -176,6 +176,7 @@ static void postSubtitleDataEx(int type, int width, int height, int dst_x, int d
                    dst_width, dst_height, array);
                 env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 0, NULL);
                 env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 9999, NULL);
+                env->DeleteLocalRef(array);
             } else {
                 env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, width, height, dst_x, dst_y,
                    dst_width, dst_height, NULL);
