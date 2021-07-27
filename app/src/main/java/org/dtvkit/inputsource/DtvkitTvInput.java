@@ -86,6 +86,7 @@ import android.os.SystemProperties;
 import android.widget.Toast;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.dtvkit.companionlibrary.EpgSyncJobService;
 import org.dtvkit.companionlibrary.model.Channel;
@@ -275,6 +276,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     private int mCusFeatureSubtitleCfg = 0;
     private int mCusFeatureAudioCfg = 0;
+
+    private boolean mCusEnableDtvAutoTime = false;
+    private AutoTimeManager mAutoTimeManager = null;
 
     public DtvkitTvInput() {
         Log.i(TAG, "DtvkitTvInput");
@@ -645,6 +649,29 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
         mCusFeatureSubtitleCfg = getCustomFeatureSubtitleCfg();
         mCusFeatureAudioCfg = getCustomFeatureAudioCfg();
+        mCusEnableDtvAutoTime = (getCustomFeatureAutoTimeCfg() > 0);
+        if (mCusEnableDtvAutoTime) {
+            AutoTimeManager.AutoManagerCallback autoManagerCallback = new AutoTimeManager.AutoManagerCallback() {
+                @Override
+                public long getDtvRealTime() {
+                    return getDtvUTCTime();
+                }
+                @Override
+                public void enableDtvTimeSync(boolean enable) {
+                    enableDtvAutoTimeSync(enable);
+                }
+                @Override
+                public void onTimeChangedBySystem() {
+                    Log.d(TAG, "System time changed by network or manual, disable dtv time.");
+                    enableDtvAutoTimeSync(false);
+                    //if (getMainTunerSession() != null) {
+                    //    getMainTunerSession().onTimeChangedBySystem();
+                    //}
+                }
+            };
+            mAutoTimeManager = new AutoTimeManager(DtvkitTvInput.this, autoManagerCallback);
+            mAutoTimeManager.start();
+        }
 
         Log.d(TAG, "initDtvkitTvInput end");
         mIsInited = true;
@@ -818,6 +845,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         unregisterReceiver(mAutomaticSearchingReceiver);
         unregisterReceiver(mCiTestBroadcastReceiver);
         unregisterReceiver(mStorageEventReceiver);
+        if (mAutoTimeManager != null) {
+            mAutoTimeManager.release();
+        }
         mContentResolver.unregisterContentObserver(mContentObserver);
         mContentResolver.unregisterContentObserver(mRecordingsContentObserver);
         DtvkitGlueClient.getInstance().unregisterSignalHandler(mRecordingManagerHandler);
@@ -6969,6 +6999,42 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 .request("Dvb.getCustomFeatureCfg", args).get("data"));
             if (cfgs != null) {
                 ret = cfgs.optInt("audio");
+            }
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    private int getCustomFeatureAutoTimeCfg() {
+        int ret = 0;
+        try {
+            JSONArray args = new JSONArray();
+            JSONObject cfgs = (JSONObject)(DtvkitGlueClient.getInstance()
+                .request("Dvb.getCustomFeatureCfg", args).get("data"));
+            if (cfgs != null) {
+                ret = cfgs.optInt("time");
+            }
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+
+    private void enableDtvAutoTimeSync(boolean enable) {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(enable);
+            DtvkitGlueClient.getInstance().request("Dvb.SetDTVTimeAutoSyncEnable", args);
+        } catch (Exception e) {
+        }
+    }
+
+    private long getDtvUTCTime() {
+        long ret = 0;
+        try {
+            JSONObject time = DtvkitGlueClient.getInstance()
+                .request("Dvb.GetDTVRealTime", new JSONArray());
+            if (time != null) {
+                ret = time.optLong("data");
             }
         } catch (Exception e) {
         }
