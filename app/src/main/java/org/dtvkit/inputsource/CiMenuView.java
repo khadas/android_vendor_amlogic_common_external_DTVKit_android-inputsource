@@ -421,16 +421,17 @@ public class CiMenuView extends LinearLayout {
                     enquiryEditText.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            sendEnquiryResponse(enquiryEditText.getText().toString());
+                            sendEnquiryResponse(enquiryEditText.getText().toString(), true);
                         }
                     });
                 }
             });
         }
 
-        private void sendEnquiryResponse(final String response) {
+        private void sendEnquiryResponse(final String response, boolean response_ok) {
             JSONArray args = new JSONArray();
             args.put(response);
+            args.put(response_ok);
 
             try {
                 JSONObject obj = DtvkitGlueClient.getInstance().request("Dvb.setCiEnquiryResponse", args);
