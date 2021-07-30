@@ -135,6 +135,7 @@ public class ParameterMananer {
     public static final String SECURITY_PASSWORD  = "security_password";
     public static final String TV_KEY_DTVKIT_SYSTEM = "tv_dtvkit_system";
     public static final String KEY_LASTWAHTCHED_CHANNELID = "key_lastwatched_channelid";
+    public static final String KEY_ACTIVE_RECORD_COUNT = "key_active_record_count";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -2185,6 +2186,9 @@ public class ParameterMananer {
             case KEY_LASTWAHTCHED_CHANNELID:
                 result = "" + getChannelIdForSource();
                 break;
+            case KEY_ACTIVE_RECORD_COUNT:
+                result = String.valueOf(recordingGetNumActiveRecordings());
+                break;
             default:
                 result = defaultJsonValue;
         }
@@ -2523,6 +2527,42 @@ public class ParameterMananer {
         }
 
         return channelId;
+    }
+
+    private int recordingGetNumActiveRecordings() {
+        int numRecordings = 0;
+        JSONArray activeRecordings = recordingGetActiveRecordings();
+        if (activeRecordings != null) {
+            numRecordings = activeRecordings.length();
+        }
+        return numRecordings;
+    }
+
+    private JSONObject recordingGetStatus() {
+        JSONObject response = null;
+        try {
+            JSONArray args = new JSONArray();
+            response = DtvkitGlueClient.getInstance().request("Recording.getStatus", args).getJSONObject("data");
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+        return response;
+    }
+
+    private JSONArray recordingGetActiveRecordings() {
+        return recordingGetActiveRecordings(recordingGetStatus());
+    }
+
+    private JSONArray recordingGetActiveRecordings(JSONObject recordingStatus) {
+        JSONArray activeRecordings = null;
+        if (recordingStatus != null) {
+             try {
+                 activeRecordings = recordingStatus.getJSONArray("activerecordings");
+             } catch (JSONException e) {
+                 Log.e(TAG, e.getMessage());
+             }
+        }
+        return activeRecordings;
     }
 
 }

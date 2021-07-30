@@ -1733,6 +1733,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         }
                         case MSG_RECORD_ONSTOP:{
                             doStopRecording();
+                            doRelease();
                             break;
                         }
                         case MSG_RECORD_UPDATE_RECORDING:{
@@ -1742,7 +1743,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             break;
                         }
                         case MSG_RECORD_ONRELEASE:{
-                            doRelease();
                             break;
                         }
                         case MSG_RECORD_DO_FINALRELEASE:{
@@ -3616,6 +3616,21 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 } else {
                     Log.d(TAG, "do private cmd:"+ action + " none");
                 }
+            } else if ("force_stop_record".equals(action)) {
+                JSONArray activeRecordings = null;
+                String uri = null;
+                activeRecordings = recordingGetActiveRecordings();
+                if (activeRecordings != null) {
+                    for (int i = 0; i < activeRecordings.length(); i++) {
+                        try {
+                            uri = activeRecordings.getJSONObject(i).getString("uri");
+                        } catch (JSONException e) {
+                            Log.e(TAG, e.getMessage());
+                        }
+                    }
+                 }
+                 if (uri != null)
+                    recordingStopRecording(uri);
             }
         }
 
