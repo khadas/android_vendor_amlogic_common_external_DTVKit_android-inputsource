@@ -2572,6 +2572,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             //sendSetSurfaceMessage(null, null);
                         }
                         mHardware.setSurface(surface, mConfigs[0]);
+                        setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
                         if (mSystemControlManager != null) {
                             mSystemControlManager.SetDtvKitSourceEnable(1);
                             mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_DVB), 0, 0);
