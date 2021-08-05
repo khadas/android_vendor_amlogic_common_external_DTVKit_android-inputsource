@@ -402,7 +402,9 @@ public class TvContractUtils {
         for (int i = 0; i < USER_SETTING_FLAG_KEY.length; i++) {
             try {
                 tempStr = (String)child.get(USER_SETTING_FLAG_KEY[i]);
-                if (tempStr == null) {
+                if (Channel.KEY_HIDDEN.equals(USER_SETTING_FLAG_KEY[i])) {
+                    tempStr = (String)internalProviderData.get(USER_SETTING_FLAG_KEY[i]);
+                } else if (tempStr == null) {
                     tempStr = USER_SETTING_FLAG_DEFAULT[i];
                 }
                 if (DEBUG) {
