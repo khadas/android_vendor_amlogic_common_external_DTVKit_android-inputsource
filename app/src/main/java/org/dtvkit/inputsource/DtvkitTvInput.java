@@ -69,8 +69,11 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.LongSparseArray;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.view.KeyEvent;
 import android.os.HandlerThread;
 import android.text.TextUtils;
@@ -964,12 +967,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         private RelativeLayout mRelativeLayout;
         private CCSubtitleView mCCSubView = null;
         private SubtitleServerView mSubServerView = null;
+        private TextView mCasOsm;
         private int w;
         private int h;
 
         private boolean mhegTookKey = false;
         private KeyEvent lastMhegKey = null;
         final private static int MHEG_KEY_INTERVAL = 65;
+        private int mCasOsmDisplayMode = 0;
 
         public DtvkitOverlayView(Context context,       Handler mainHandler) {
             super(context);
@@ -980,11 +985,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             ciOverlayView = new CiMenuView(getContext());
             mSubServerView = new SubtitleServerView(getContext(), mainHandler);
             mCCSubView     = new CCSubtitleView(getContext());
+            mCasOsm = new TextView(getContext());
             this.addView(mSubServerView);
             this.addView(nativeOverlayView);
             this.addView(mCCSubView);
             this.addView(ciOverlayView);
             initRelativeLayout();
+            this.addView(mCasOsm);
         }
 
         public void destroy() {
@@ -1159,6 +1166,66 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             }
         }
 
+        public void prepareCasWindow(String msg, int osdMode, int anchor_x,
+            int anchor_y, int w, int h, int bg, int alpah, int fg) {
+            if (mCasOsm != null) {
+                FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) mCasOsm.getLayoutParams();
+                if (osdMode == 8 || w == 0 || h == 0) {
+                    layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                } else {
+                    layoutParams.width = w;
+                    layoutParams.height = h;
+                }
+                layoutParams.gravity = Gravity.NO_GRAVITY;
+                float ax = (float)(anchor_x);
+                float ay = (float)(anchor_y);
+                float tx = (float)(this.w);
+                float ty = (float)(this.h);
+                if (ax/tx > 0.3 && ax/tx < 0.7) {
+                    layoutParams.gravity |= Gravity.CENTER_HORIZONTAL;
+                } else if (ax/tx <= 0.3) {
+                    layoutParams.gravity |= Gravity.LEFT;
+                } else if (ax/tx >= 0.7) {
+                    layoutParams.gravity |= Gravity.RIGHT;
+                }
+                if (ay/ty > 0.3 && ay/ty < 0.7) {
+                    layoutParams.gravity |= Gravity.CENTER_VERTICAL;
+                } else if (ay/ty <= 0.3) {
+                    layoutParams.gravity |= Gravity.TOP;
+                } else if (ay/ty >= 0.7) {
+                    layoutParams.gravity |= Gravity.BOTTOM;
+                }
+                mCasOsm.setLayoutParams(layoutParams);
+
+                mCasOsm.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+                mCasOsm.setTypeface(Typeface.DEFAULT_BOLD);
+                mCasOsm.setTextColor(Color.WHITE);
+
+                mCasOsm.setText(msg);
+                mCasOsm.setVisibility(View.GONE);
+            }
+        }
+
+        public void showCasMessage(int displayMode) {
+            if (mCasOsm != null) {
+                mCasOsm.setVisibility(View.VISIBLE);
+                mCasOsmDisplayMode = displayMode;
+            }
+        }
+
+        public void clearCasView() {
+            if (mCasOsm != null) {
+                mCasOsm.setText("");
+                mCasOsm.setVisibility(View.GONE);
+                mCasOsmDisplayMode = 0;
+            }
+        }
+
+        public int getCasOsmDisplayMode() {
+            return mCasOsmDisplayMode;
+        }
+
         public boolean checkMhegKeyLimit(KeyEvent event) {
             if (lastMhegKey == null)
                 return false;
@@ -1179,6 +1246,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mhegTookKey = true;
                 result = true;
                 lastMhegKey = event;
+            }
+            else if (mCasOsm.getVisibility() == View.VISIBLE && ((mCasOsmDisplayMode&0x1) == 0)) {
+                clearCasView();
+                result = true;
             }
             else {
                 mhegTookKey = false;
@@ -3631,6 +3702,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                  }
                  if (uri != null)
                     recordingStopRecording(uri);
+            } else if ("cas_request".equals(action)) {
+                onCasRequest(data);
             }
         }
 
@@ -4517,6 +4590,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 else if (signal.equals("SubtitleOpened"))
                 {
                     mMainHandle.sendEmptyMessageDelayed(MSG_EVENT_SUBTITLE_OPENED, 2000);
+                } else if (signal.equals("cas")) {
+                    processCasEvents(data);
                 }
             }
         };
@@ -4588,6 +4663,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
         protected static final int MSG_SHOW_TUNING_IMAGE = 20;
         protected static final int MSG_HIDE_TUNING_IMAGE = 21;
+
+        protected static final int MSG_CAS_OSM_PREPARE_WINDOW = 30;
+        protected static final int MSG_CAS_OSM_WINDOW_SHOW    = 31;
+        protected static final int MSG_CAS_OSM_WINDOW_CLEAR   = 32;
 
         protected void initWorkThread() {
             Log.d(TAG, "initWorkThread");
@@ -5037,6 +5116,39 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     case MSG_CI_UPDATE_PROFILE_CONFIRM:
                         showOpSearchConfirmDialog(DtvkitTvInput.this, msg.arg1);
                         break;
+                    case MSG_CAS_OSM_PREPARE_WINDOW:
+                        if (mView != null) {
+                            Bundle args = (Bundle)(msg.obj);
+                            String text = args.getString("msg", "");
+                            int mode = args.getInt("mode", 0);
+                            int x = args.getInt("anchor_x", 0);
+                            int y = args.getInt("anchor_y", 0);
+                            int w = args.getInt("w", 0);
+                            int h = args.getInt("h", 0);
+                            int bg = args.getInt("bg", 0);
+                            int alpha = args.getInt("alpah", 0);
+                            int fg = args.getInt("fg", 0);
+                            mView.prepareCasWindow(text, mode, x, y, w, h, bg, alpha, fg);
+                        }
+                        break;
+                    case MSG_CAS_OSM_WINDOW_SHOW:
+                        if (mView != null) {
+                            Bundle args = (Bundle)(msg.obj);
+                            int mode = args.getInt("mode", 0);
+                            int duration = args.getInt("duration", 0);
+                            mView.showCasMessage(mode);
+                            if (duration > 0) {
+                                removeMessages(MSG_CAS_OSM_WINDOW_CLEAR);
+                                sendEmptyMessageDelayed(MSG_CAS_OSM_WINDOW_CLEAR, duration);
+                            }
+                        }
+                        break;
+                    case MSG_CAS_OSM_WINDOW_CLEAR:
+                        if (mView != null) {
+                            mView.clearCasView();
+                        }
+                        break;
+
                     default:
                         Log.d(TAG, "MainHandler default");
                         break;
@@ -5499,6 +5611,72 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         private void sendBundleToAppByTif(String action, Bundle event) {
             Log.d(TAG, "sendBundleToAppByTif action = " + action + ", event = " + event);
             notifySessionEvent(action, event);
+        }
+
+        private void processCasEvents(JSONObject event) {
+            JSONObject casEvent = null;
+            try {
+                String casString = (String)(event.get("CasJsonString"));
+                if (!TextUtils.isEmpty(casString)) {
+                    casEvent = new JSONObject(casString.trim());
+                }
+            } catch (Exception e) {
+            }
+            if (casEvent != null) {
+                String type = casEvent.optString("type");
+                if ("OsdAttr".equals(type)) {
+                    if (mMainHandle != null) {
+                        mMainHandle.removeMessages(MSG_CAS_OSM_PREPARE_WINDOW);
+                        Message message = mMainHandle.obtainMessage(MSG_CAS_OSM_PREPARE_WINDOW);
+                        Bundle args = new Bundle();
+                        args.putString("msg", casEvent.optString("osdContent", ""));
+                        args.putInt("mode", casEvent.optInt("osdMode", 0));
+                        args.putInt("anchor_x", casEvent.optInt("osdX", 0));
+                        args.putInt("anchor_y", casEvent.optInt("osdY", 0));
+                        args.putInt("w", casEvent.optInt("osdW", 0));
+                        args.putInt("h", casEvent.optInt("osdH", 0));
+                        args.putInt("bg", casEvent.optInt("osdBackground", 0));
+                        args.putInt("alpah", casEvent.optInt("osdAlpha", 0));
+                        args.putInt("fg", casEvent.optInt("osdForeground", 0));
+                        message.obj = (Object)(args);
+                        mMainHandle.sendMessage(message);
+                    }
+                } else if ("OsdDisplay".equals(type)) {
+                    if (mMainHandle != null) {
+                        mMainHandle.removeMessages(MSG_CAS_OSM_WINDOW_CLEAR);
+                        mMainHandle.removeMessages(MSG_CAS_OSM_WINDOW_SHOW);
+                        Message message = mMainHandle.obtainMessage(MSG_CAS_OSM_WINDOW_SHOW);
+                        Bundle args = new Bundle();
+                        args.putInt("mode", casEvent.optInt("osdDisplayMode", 0));
+                        args.putInt("duration", casEvent.optInt("osdDisplayDuration", 0));
+                        message.obj = (Object)(args);
+                        mMainHandle.sendMessage(message);
+                    }
+                } else {
+                    if ("DscState".equals(type)) {
+                        int state = casEvent.optInt("DscState", 0);
+                        int scrambledMsg = state + MSG_SHOW_SCAMBLEDTEXT;
+                        if (mMainHandle != null) {
+                            mMainHandle.sendEmptyMessage(scrambledMsg);
+                        }
+                    }
+                    Bundle bundle = new Bundle();
+                    bundle.putString("cas", casEvent.toString());
+                    notifySessionEvent("cas_event", bundle);
+                }
+            }
+        }
+
+        private void onCasRequest(Bundle request) {
+            if (mParameterMananer != null) {
+                String casInputJson = request.getString("CasJsonString");
+                String ret = mParameterMananer.casSessionRequest(casInputJson);
+                if (!TextUtils.isEmpty(ret)) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("cas", ret.trim());
+                    notifySessionEvent("cas_event", bundle);
+                }
+            }
         }
     }
 

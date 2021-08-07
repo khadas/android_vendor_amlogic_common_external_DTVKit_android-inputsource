@@ -2182,6 +2182,10 @@ public class ParameterMananer {
 
     public String getCustomParameter(String key, String defaultJsonValue) {
         String result = null;
+        if (TextUtils.isEmpty(key)) {
+            return result;
+        }
+
         switch (key) {
             case KEY_LASTWAHTCHED_CHANNELID:
                 result = "" + getChannelIdForSource();
@@ -2191,7 +2195,9 @@ public class ParameterMananer {
                 break;
             default:
                 result = defaultJsonValue;
+                break;
         }
+
         return result;
     }
 
@@ -2563,6 +2569,25 @@ public class ParameterMananer {
              }
         }
         return activeRecordings;
+    }
+
+    public String casSessionRequest(String request) {
+        String result = null;
+
+        if (TextUtils.isEmpty(request)) {
+            return result;
+        }
+        JSONArray args = new JSONArray();
+        String cmd = "Player.setCADescramblerIoctl";
+        try
+        {
+            args.put(request);
+            JSONObject obj =  DtvkitGlueClient.getInstance().request(cmd, args);
+            result = obj.optString("data", "");
+        } catch (Exception e) {
+        }
+
+        return result;
     }
 
 }
