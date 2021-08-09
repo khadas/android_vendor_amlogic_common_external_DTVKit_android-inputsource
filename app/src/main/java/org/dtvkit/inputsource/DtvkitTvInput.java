@@ -298,14 +298,17 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (action.equals(TvInputManager.ACTION_BLOCKED_RATINGS_CHANGED)
                    || action.equals(TvInputManager.ACTION_PARENTAL_CONTROLS_ENABLED_CHANGED)) {
                 boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
-                Log.d(TAG, "BLOCKED_RATINGS_CHANGED isParentControlEnabled = " + isParentControlEnabled);
-                //use osd to hide video instead
-                /*if (isParentControlEnabled != getParentalControlOn()) {
+                int rating = getCurrentMinAgeByBlockedRatings();
+                Log.d(TAG, "BLOCKED_RATINGS_CHANGED isParentControlEnabled = " + isParentControlEnabled
+                    + ", Rating = " + rating);
+                if (isParentControlEnabled != getParentalControlOn()) {
                     setParentalControlOn(isParentControlEnabled);
                 }
-                if (isParentControlEnabled && mSession != null) {
-                    mSession.syncParentControlSetting();
-                }*/
+                if (rating >= 4 && rating <= 18) {
+                    if (getParentalControlAge() != rating && isParentControlEnabled) {
+                        setParentalControlAge(rating);
+                    }
+                }
             }
         }
     };
@@ -1020,6 +1023,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             this.addView(ciOverlayView);
             initRelativeLayout();
             this.addView(mCasOsm);
+            mCasOsm.setVisibility(View.GONE);
         }
 
         public void destroy() {
@@ -1032,7 +1036,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void hideOverLay() {
-            if (mSubServerView != null) {
+            /*if (mSubServerView != null) {
                 mSubServerView.setVisibility(View.GONE);
             }
             if (nativeOverlayView != null) {
@@ -1050,13 +1054,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
             if (mCCSubView != null) {
                 mCCSubView.hide();
-            }
+            }*/
 
             setVisibility(View.GONE);
         }
 
         public void showOverLay() {
-            if (mSubServerView != null) {
+            /*if (mSubServerView != null) {
                 mSubServerView.setVisibility(View.VISIBLE);
             }
 
@@ -1075,7 +1079,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
             if (mCCSubView != null) {
                 mCCSubView.setVisibility(View.VISIBLE);
-            }
+            }*/
             setVisibility(View.VISIBLE);
         }
 
@@ -2540,7 +2544,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         protected Handler mMainHandle = null;
         private boolean mIsMain = false;
         private final CaptioningManager mCaptioningManager;
-        private boolean mKeyUnlocked = false;
         private boolean mBlocked = false;
         private int mSignalStrength = 0;
         private int mSignalQuality = 0;
@@ -2852,6 +2855,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         public boolean onTune(Uri channelUri) {
             Log.i(TAG, "onTune " + channelUri + ", index = " + mCurrentDtvkitTvInputSessionIndex);
             if (ContentUris.parseId(channelUri) == -1) {
+                playerSetServiceMute(true);
                 Log.e(TAG, "DtvkitTvInputSession onTune invalid channelUri = " + channelUri);
                 return false;
             }
@@ -2860,17 +2864,21 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mMainHandle.removeMessages(MSG_SET_TELETEXT_MIX_NORMAL);
                 mMainHandle.sendEmptyMessage(MSG_SET_TELETEXT_MIX_NORMAL);
             }
-            if (mHandlerThreadHandle != null) {
-                mHandlerThreadHandle.removeMessages(MSG_ON_TUNE);
-                Message mess = mHandlerThreadHandle.obtainMessage(MSG_ON_TUNE, 0, 0, channelUri);
-                boolean info = mHandlerThreadHandle.sendMessage(mess);
-                Log.d(TAG, "sendMessage " + info);
-            }
 
             mPreviousTunedChannel = mTunedChannel;
-            mTunedChannel = getChannel(channelUri);
+            Channel targetChannel = getChannel(channelUri);
+            mTunedChannel = (targetChannel != null) ? targetChannel : getFirstChannel();
 
-            mParameterMananer.saveChannelIdForSource(mTunedChannel.getId());
+            if (mTunedChannel != null) {
+                mParameterMananer.saveChannelIdForSource(mTunedChannel.getId());
+
+                if (mHandlerThreadHandle != null) {
+                    mHandlerThreadHandle.removeMessages(MSG_ON_TUNE);
+                    Message mess = mHandlerThreadHandle.obtainMessage(MSG_ON_TUNE, 0, 0, TvContract.buildChannelUri(mTunedChannel.getId()));
+                    boolean info = mHandlerThreadHandle.sendMessage(mess);
+                    Log.d(TAG, "sendMessage " + info);
+                }
+            }
 
             Log.i(TAG, "onTune will be Done in onTuneByHandlerThreadHandle");
             return mTunedChannel != null;
@@ -3035,27 +3043,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             //comment it as need add pip
             //writeSysFs("/sys/class/video/video_global_output", "0");
 
-            mKeyUnlocked = false;
             mDvbNetworkChangeSearchStatus = false;
-            //parent control may need separate stream time for main and pip
-            if (mTvInputManager != null) {
-                boolean parentControlSwitch = mTvInputManager.isParentalControlsEnabled();
-                if (parentControlSwitch) {
-                    //init it to wait for update
-                    mBlocked = true;
-                    updateParentalControlExt();
-                } else {
-                    mBlocked=  false;
-                    notifyContentAllowed();
-                }
-                /*boolean parentControlStatus = getParentalControlOn();
-                if (parentControlSwitch != parentControlStatus) {
-                    setParentalControlOn(parentControlSwitch);
-                }
-                if (parentControlSwitch) {
-                    syncParentControlSetting();
-                }*/
-            }
             mAudioADAutoStart = mDataMananer.getIntParameters(DataMananer.TV_KEY_AD_SWITCH) == 1;
             if (mAudioADAutoStart) {
                 setAdFunction(MSG_MIX_AD_SWITCH_ENABLE, 1);
@@ -3079,10 +3067,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 playResult = playerPlay(INDEX_FOR_PIP, dvbUri, mAudioADAutoStart, true, 0, "", "").equals("ok");
             }
             if (playResult) {
-                if (mHandlerThreadHandle != null) {
-                    mHandlerThreadHandle.removeMessages(MSG_CHECK_PARENTAL_CONTROL);
-                    mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_CHECK_PARENTAL_CONTROL, MSG_CHECK_PARENTAL_CONTROL_PERIOD);
-                }
                 /*
                 if (!getFeatureSupportCaptioningManager() || (mCaptioningManager != null && mCaptioningManager.isEnabled())) {
                     playerSetSubtitlesOn(true);
@@ -3241,7 +3225,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         public void onSetStreamVolume(float volume) {
             Log.i(TAG, "onSetStreamVolume " + volume + ", mute " + (volume == 0.0f) + "index = " + mCurrentDtvkitTvInputSessionIndex);
             //playerSetVolume((int) (volume * 100));
-            if (!getFeatureSupportFullPipFccArchitecture()) {
+            //dtvkit handle stream mute/unmute
+            /*if (!getFeatureSupportFullPipFccArchitecture()) {
                 if (mHandlerThreadHandle != null) {
                     mHandlerThreadHandle.removeMessages(MSG_ENABLE_VIDEO);
                     Message mess = mHandlerThreadHandle.obtainMessage(MSG_ENABLE_VIDEO, (volume == 0.0f ? 0 : 1), 0);
@@ -3254,7 +3239,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mHandlerThreadHandle.removeMessages(MSG_BLOCK_MUTE_OR_UNMUTE);
                 Message mess = mHandlerThreadHandle.obtainMessage(MSG_BLOCK_MUTE_OR_UNMUTE, (volume == 0.0f ? 1 : 0), 0);
                 mHandlerThreadHandle.sendMessageDelayed(mess, MSG_BLOCK_MUTE_OR_UNMUTE_PERIOD);
-            }
+            }*/
         }
 
         @Override
@@ -3732,6 +3717,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     recordingStopRecording(uri);
             } else if ("cas_request".equals(action)) {
                 onCasRequest(data);
+            } else if ("block_channel".equals(action)) {
+                boolean lock = data.getBoolean("is_locked");
+                long channelId = data.getLong("channel_id");
+                requestBlockChannel(channelId, lock);
+            } else if ("unblockContent".equals(action)) {
+                onUnblockContent(TvContentRating.createRating("com.android.tv", "DVB", "DVB_0"));
             }
         }
 
@@ -4129,6 +4120,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                     Log.d(TAG, "on signal dvbtimeshifting null mTunedChannel");
                                 }
                             }
+                            if (mMainHandle != null) {
+                                mMainHandle.removeMessages(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                Message msg = mMainHandle.obtainMessage(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                msg.arg1 = 1;
+                                mMainHandle.sendMessageDelayed(msg, 100);
+                            }
                             playerState = PlayerState.PLAYING;
                             break;
                         case "blocked":
@@ -4137,6 +4134,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                 Rating = String.format("DVB_%d", data.getInt("rating"));
                             } catch (JSONException ignore) {
                                 Log.e(TAG, ignore.getMessage());
+                            }
+                            if (mMainHandle != null) {
+                                mMainHandle.removeMessages(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                Message msg = mMainHandle.obtainMessage(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                msg.arg1 = 0;
+                                mMainHandle.sendMessageDelayed(msg, 0);
                             }
                             notifyContentBlocked(TvContentRating.createRating("com.android.tv", "DVB", Rating));
                             break;
@@ -4204,11 +4207,15 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                            if (mTunedChannel != null) {
                                 if (mTunedChannel.getServiceType().equals(TvContract.Channels.SERVICE_TYPE_AUDIO)) {
                                     notifyVideoUnavailable(TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY);
-                                } else {
-                                    notifyVideoAvailable();
                                 }
                             } else {
                                 Log.d(TAG, "on signal starting null mTunedChannel");
+                            }
+                            if (mMainHandle != null) {
+                                mMainHandle.removeMessages(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                Message msg = mMainHandle.obtainMessage(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                msg.arg1 = 1;
+                                mMainHandle.sendMessageDelayed(msg, 100);
                             }
                            break;
                         case "scambled":
@@ -4304,11 +4311,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     int dvbSource = getCurrentDvbSource();
                     EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
                     EpgSyncJobService.requestImmediateSync(mContext, mInputId, true, sync);
-                    //notify update parent contrl
-                    if (mHandlerThreadHandle != null) {
-                        mHandlerThreadHandle.removeMessages(MSG_CHECK_PARENTAL_CONTROL);
-                        mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_CHECK_PARENTAL_CONTROL, MSG_CHECK_PARENTAL_CONTROL_PERIOD);
-                    }
                 }
                 else if (signal.equals("DvbUpdatedChannel"))
                 {
@@ -4688,6 +4690,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         protected static final int MSG_SET_TELETEXT_MIX_SEPARATE = 8;
         protected static final int MSG_FILL_SURFACE = 9;
         protected static final int MSG_EVENT_SUBTITLE_OPENED = 10;
+        protected static final int MSG_EVENT_SHOW_HIDE_OVERLAY = 11;
 
         protected static final int MSG_SHOW_TUNING_IMAGE = 20;
         protected static final int MSG_HIDE_TUNING_IMAGE = 21;
@@ -4723,11 +4726,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             }
                             break;
                         case MSG_CHECK_PARENTAL_CONTROL:
-                            updateParentalControlExt();
-                            if (mHandlerThreadHandle != null) {
-                                mHandlerThreadHandle.removeMessages(MSG_CHECK_PARENTAL_CONTROL);
-                                mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_CHECK_PARENTAL_CONTROL, MSG_CHECK_PARENTAL_CONTROL_PERIOD);
-                            }
+                            /* dtvkit handle this*/
                             break;
                         case MSG_BLOCK_MUTE_OR_UNMUTE:
                             boolean mute = msg.arg1 == 0 ? false : true;
@@ -4758,11 +4757,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             }
                             break;
                         case MSG_ENABLE_VIDEO:
-                             writeSysFs("/sys/class/video/video_global_output", msg.arg1 == 1 ? "1" : "0");
+                            //use dtvkit video mute
+                            //writeSysFs("/sys/class/video/video_global_output", msg.arg1 == 1 ? "1" : "0");
                             break;
                         case MSG_SET_UNBLOCK:
                             if (msg.obj != null && msg.obj instanceof TvContentRating) {
                                 setUnBlock((TvContentRating)msg.obj);
+                            }
+                            if (mMainHandle != null) {
+                                mMainHandle.removeMessages(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                Message message = mMainHandle.obtainMessage(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                                message.arg1 = 1;
+                                mMainHandle.sendMessageDelayed(message, 0);
                             }
                             break;
                         case MSG_CHECK_REC_PATH:
@@ -4928,86 +4934,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             return age;
         }
 
-        private void updateParentalControlExt() {
-            int age = 0;
-            int rating;
-            boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
-            Log.d(TAG, "updateParentalControlExt isParentControlEnabled = " + isParentControlEnabled + ", mKeyUnlocked = " + mKeyUnlocked);
-            if (isParentControlEnabled && !mKeyUnlocked) {
-                try {
-                    JSONArray args = new JSONArray();
-                    rating = getCurrentMinAgeByBlockedRatings();
-                    age = recordedProgram == null ? getContentRatingsOfCurrentProgram() : getContentRatingsOfCurrentPlayingRecordedProgram();
-                    Log.e(TAG, "updateParentalControlExt current program age["+ age +"] setting_rating[" +rating+ "]");
-                    if ((rating < 4 || rating > 18 || age < rating) && mBlocked)
-                    {
-                        notifyContentAllowed();
-                        //change mute status by application
-                        //setBlockMute(false);
-                        mBlocked = false;
-                    }
-                    else if (rating >= 4 && rating <= 18 && (age > rating || (!getCurrentCountryIsNordig() && age == rating)))
-                    {
-                        String Rating = "";
-                        Rating = String.format("DVB_%d", age);
-                        notifyContentBlocked(TvContentRating.createRating("com.android.tv", "DVB", Rating));
-                        if (!mBlocked)
-                        {
-                            //change mute status by application
-                            //setBlockMute(true);
-                            mBlocked = true;
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "updateParentalControlExt = " + e.getMessage());
-                }
-            }
-            else if (mBlocked)
-            {
-                notifyContentAllowed();
-                //change mute status by application
-                //setBlockMute(false);
-                mBlocked = false;
-            }
-        }
-
-        //use osd to hide video instead
-        /*private void updateParentalControl() {
-            int age = 0;
-            int rating;
-            int pc_age;
-            boolean isParentControlEnabled = mTvInputManager.isParentalControlsEnabled();
-            if (isParentControlEnabled) {
-                try {
-                    JSONArray args = new JSONArray();
-                    //age = DtvkitGlueClient.getInstance().request("Player.getCurrentProgramRatingAge", args).getInt("data");
-                    rating = getCurrentMinAgeByBlockedRatings();
-                    pc_age = getParentalControlAge();
-                    age = recordedProgram == null ? getContentRatingsOfCurrentProgram() : getContentRatingsOfCurrentPlayingRecordedProgram();
-                    Log.e(TAG, "updateParentalControl current program age["+ age +"] setting_rating[" +rating+ "] pc_age[" +pc_age+ "]");
-                    if (getParentalControlOn()) {
-                        if (rating < 4 || rating > 18 || age == 0) {
-                            setParentalControlOn(false);
-                            notifyContentAllowed();
-                        }else if (rating >= 4 && rating <= 18 && age >= rating) {
-                            if (pc_age != rating)
-                                setParentalControlAge(rating);
-                            }
-                    }else {
-                        if (rating >= 4 && rating <= 18 && age != 0) {
-                            Log.e(TAG, "P_C false, but age isn't 0, so set P_C enbale rating:" + rating);
-                            if (pc_age != rating || age >= rating) {
-                                setParentalControlOn(true);
-                                setParentalControlAge(rating);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "updateParentalControl = " + e.getMessage());
-                }
-            }
-        }*/
-
         private void setBlockMute(boolean mute) {
             Log.d(TAG, "setBlockMute = " + mute + ", index = " + mCurrentDtvkitTvInputSessionIndex + ", mIsPip = " + mIsPip);
             if (!getFeatureSupportFullPipFccArchitecture()) {
@@ -5023,10 +4949,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
         private void setUnBlock(TvContentRating unblockedRating) {
             Log.i(TAG, "setUnBlock " + unblockedRating);
-            mKeyUnlocked = true;
-            mBlocked = false;
-            //hide by osd instead
-            //setParentalControlOn(false);
+            requestUnblockContent();
             notifyContentAllowed();
         }
 
@@ -5140,6 +5063,16 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         break;
                     case MSG_EVENT_SUBTITLE_OPENED:
                         initSubtitleOrTeletextIfNeed();
+                        break;
+                    case MSG_EVENT_SHOW_HIDE_OVERLAY:
+                        if (mView != null) {
+                            boolean show = (msg.arg1 == 1);
+                            if (show) {
+                                mView.showOverLay();
+                            } else {
+                                mView.hideOverLay();
+                            }
+                        }
                         break;
                     case MSG_CI_UPDATE_PROFILE_CONFIRM:
                         showOpSearchConfirmDialog(DtvkitTvInput.this, msg.arg1);
@@ -5395,10 +5328,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (playerPlay(INDEX_FOR_MAIN, recordedProgram.getRecordingDataUri(), mAudioADAutoStart, false, 0, "", "").equals("ok"))
                 {
                     notifyChannelRetuned(uri);
-                    if (mHandlerThreadHandle != null) {
-                        mHandlerThreadHandle.removeMessages(MSG_CHECK_PARENTAL_CONTROL);
-                        mHandlerThreadHandle.sendEmptyMessageDelayed(MSG_CHECK_PARENTAL_CONTROL, MSG_CHECK_PARENTAL_CONTROL_PERIOD);
-                    }
                 }
                 else
                 {
@@ -5706,6 +5635,27 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 }
             }
         }
+
+        private void requestBlockChannel(long channelId, boolean isLocked) {
+            Channel channel = getChannel(channelId);
+            if (channel != null) {
+                String dvbUri = getChannelInternalDvbUri(channel);
+                if (mParameterMananer != null) {
+                    mParameterMananer.setChannelBlock(isLocked, dvbUri);
+                    if (mTunedChannel != null && (mTunedChannel.getId() == channelId)) {
+                        if (mMainHandle != null) {
+                            mMainHandle.removeMessages(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                            Message msg = mMainHandle.obtainMessage(MSG_EVENT_SHOW_HIDE_OVERLAY);
+                            msg.arg1 = isLocked ? 0 : 1;
+                            mMainHandle.sendMessageDelayed(msg, 0);
+                        }
+                        if (!isLocked) {
+                            notifyContentAllowed();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private boolean resetRecordingPath() {
@@ -5744,6 +5694,27 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         } else {
             return null;
         }
+    }
+
+    private Channel getChannel(long channelId) {
+        if (mChannels != null) {
+            return mChannels.get(channelId);
+        } else {
+            return null;
+        }
+    }
+
+    private Channel getFirstChannel() {
+        if (mChannels != null && mChannels.size() > 0) {
+            String signalType = dvbSourceToChannelTypeString(getCurrentDvbSource());
+            for (int i = 0; i < mChannels.size(); i++) {
+                Channel channel = (Channel)(mChannels.valueAt(i));
+                if (channel != null && channel.getType().contains(signalType)) {
+                    return channel;
+                }
+            }
+        }
+        return null;
     }
 
     private String getChannelInternalDvbUri(Channel channel) {
@@ -5842,6 +5813,24 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
         Log.d(TAG, "playerGetMute result = " + result);
         return result;
+    }
+
+    private void playerSetServiceMute(boolean mute) {
+        playerSetServiceMute(mute, INDEX_FOR_MAIN);
+    }
+
+    private void playerSetServiceMute(boolean mute, int index) {
+        synchronized (mLock) {
+            try {
+                JSONArray args = new JSONArray();
+                args.put(index);
+                args.put(0);
+                args.put(mute);
+                DtvkitGlueClient.getInstance().request("Player.setServiceMute", args);
+            } catch (Exception e) {
+                Log.e(TAG, "playerSetServiceMute = " + e.getMessage());
+            }
+        }
     }
 
     private void playerSetSubtitlesOn(boolean on) {
@@ -7174,6 +7163,16 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             Log.i(TAG, "setParentalControlOn:" + parentalctrl_enabled);
         } catch (Exception e) {
             Log.e(TAG, "setParentalControlOn " + e.getMessage());
+        }
+    }
+
+    private void requestUnblockContent() {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(INDEX_FOR_MAIN);//PIP dosnot not allow to unblock
+            DtvkitGlueClient.getInstance().request("Player.unblock", args);
+        } catch (Exception e) {
+            Log.e(TAG, "requestUnblockContent " + e.getMessage());
         }
     }
 

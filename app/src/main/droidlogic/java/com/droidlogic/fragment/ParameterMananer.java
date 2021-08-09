@@ -137,6 +137,8 @@ public class ParameterMananer {
     public static final String KEY_LASTWAHTCHED_CHANNELID = "key_lastwatched_channelid";
     public static final String KEY_ACTIVE_RECORD_COUNT = "key_active_record_count";
     public static final String KEY_RESET_DEFAULT_AUDIO_STREAM = "key_reset_default_audio_stream";
+    public static final String KEY_SET_CHANNEL_BLOCKED = "key_set_channel_blocked";
+    public static final String KEY_SET_CHANNEL_UNBLOCKED = "key_set_channel_unblocked";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -195,6 +197,12 @@ public class ParameterMananer {
     public static final String TV_ADTV_KEY = "ADTVInputService";
     public static final String TV_AV1_KEY = "AV1InputService";
     public static final String TV_AV2_KEY = "AV2InputService";
+
+    public static final int TV_SIG_TUNE_UNLOCKED = 0;
+    public static final int TV_SIG_TUNE_LOCKED = 1;
+    public static final int TV_SIG_PARENTAL_LOCKED = 2;
+    public static final int TV_SIG_SCRAMBLED = 4;
+    public static final int TV_SIG_CHANNEL_LOCKED = 5;
 
     public ParameterMananer(Context context, DtvkitGlueClient client) {
         this.mContext = context;
@@ -2624,4 +2632,26 @@ public class ParameterMananer {
             Log.i(TAG, "resetToDefaultAudioStream Exception = " + e.getMessage());
         }
     }
+
+    public void setChannelBlock(boolean block, String dvbUri) {
+        JSONArray args = new JSONArray();
+        try
+        {
+            args.put(dvbUri);
+            args.put(block);
+            DtvkitGlueClient.getInstance().request("Dvb.setServiceBlocked", args);
+        } catch (Exception e) {
+        }
+    }
+
+    public int getTvSignalStatus() {
+        int ret = 0;
+        try {
+            JSONObject obj = DtvkitGlueClient.getInstance().request("Msg.getSignalStatusMsg", new JSONArray());
+            ret = obj.optInt("data", 0);
+        } catch (Exception e) {
+        }
+        return 0;
+    }
+
 }
