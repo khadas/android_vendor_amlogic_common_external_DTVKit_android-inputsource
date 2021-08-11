@@ -6254,10 +6254,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     }
                 }
                 track.setLanguage(audioLang);
+                track.setDescription(audioStream.getString("message"));
                 bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD, false);
                 if (audioStream.getBoolean("ad")) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        track.setDescription("AD");
                         bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD, true);
                     }
                 }

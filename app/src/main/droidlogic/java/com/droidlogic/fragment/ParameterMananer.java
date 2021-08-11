@@ -136,6 +136,7 @@ public class ParameterMananer {
     public static final String TV_KEY_DTVKIT_SYSTEM = "tv_dtvkit_system";
     public static final String KEY_LASTWAHTCHED_CHANNELID = "key_lastwatched_channelid";
     public static final String KEY_ACTIVE_RECORD_COUNT = "key_active_record_count";
+    public static final String KEY_RESET_DEFAULT_AUDIO_STREAM = "key_reset_default_audio_stream";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -2203,6 +2204,17 @@ public class ParameterMananer {
 
     public void setCustomParameter(String key, String newJsonValues) {
         Log.d(TAG, "setCustomParameter need to add related code for extends key = " + key + ", newJsonValues = " + newJsonValues);
+        if (TextUtils.isEmpty(key)) {
+            return;
+        }
+
+        switch (key) {
+            case KEY_RESET_DEFAULT_AUDIO_STREAM:
+                resetToDefaultAudioStream();
+                break;
+            default:
+                break;
+        }
     }
 
     public boolean playerGetSubtitlesOn(int index) {
@@ -2603,4 +2615,13 @@ public class ParameterMananer {
         }
     }
 
+    private void resetToDefaultAudioStream () {
+        try {
+            JSONArray args = new JSONArray();
+            DtvkitGlueClient.getInstance().request("Player.resetToDefaultAudioStream", args);
+            Log.d(TAG, "resetToDefaultAudioStream");
+        } catch (Exception e) {
+            Log.i(TAG, "resetToDefaultAudioStream Exception = " + e.getMessage());
+        }
+    }
 }
