@@ -3595,39 +3595,39 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (actiondown) {
                     playerNotifyTeletextEvent(23);
                 }
-            } else if ("mix_video".equals(action) && data != null) {
+            }else if ("clock".equals(action) && data != null) {
+                boolean actiondown = data.getBoolean("clock", false);
+                Log.d(TAG, "do private cmd: clock: "+ actiondown);
+                if (actiondown) {
+                    playerNotifyTeletextEvent(24);
+                }
+            }  else if ("mix_video".equals(action) && data != null) {
                 boolean actiondown = data.getBoolean("mix_video", false);
                 Log.d(TAG, "do private cmd: mix_video: "+ actiondown);
                 if (actiondown) {
-                    playerNotifyTeletextEvent(24);
+                    playerNotifyTeletextEvent(25);
                 }
             } else if ("double_height".equals(action) && data != null) {
                 boolean actiondown = data.getBoolean("double_height", false);
                 Log.d(TAG, "do private cmd: double_height: "+ actiondown);
                 if (actiondown) {
-                    playerNotifyTeletextEvent(25);
+                    playerNotifyTeletextEvent(26);
                 }
             } else if ("double_scroll_up".equals(action) && data != null) {
                 boolean actiondown = data.getBoolean("double_scroll_up", false);
                 Log.d(TAG, "do private cmd: double_scroll_up: "+ actiondown);
                 if (actiondown) {
-                    playerNotifyTeletextEvent(26);
+                    playerNotifyTeletextEvent(27);
                 }
             } else if ("double_scroll_down".equals(action) && data != null) {
                 boolean actiondown = data.getBoolean("double_scroll_down", false);
                 Log.d(TAG, "do private cmd: double_scroll_down: "+ actiondown);
                 if (actiondown) {
-                    playerNotifyTeletextEvent(27);
+                    playerNotifyTeletextEvent(28);
                 }
             } else if ("timer".equals(action) && data != null) {
                 boolean actiondown = data.getBoolean("timer", false);
                 Log.d(TAG, "do private cmd: timer: "+ actiondown);
-                if (actiondown) {
-                    playerNotifyTeletextEvent(28);
-                }
-            }  else if ("clock".equals(action) && data != null) {
-                boolean actiondown = data.getBoolean("clock", false);
-                Log.d(TAG, "do private cmd: clock: "+ actiondown);
                 if (actiondown) {
                     playerNotifyTeletextEvent(29);
                 }
