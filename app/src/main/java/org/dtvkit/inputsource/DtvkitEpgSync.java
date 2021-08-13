@@ -633,6 +633,27 @@ public class DtvkitEpgSync extends EpgSyncJobService {
             case "8psk":
                 mod = 9;//MODULATION_PSK_8
                 break;
+            case "16apsk":
+                mod = 10;//MODULATION_APSK_16
+                break;
+            case "32apsk":
+                mod = 11;//MODULATION_APSK_32
+                break;
+            case "dqpsk":
+                mod = 12;//MODULATION_DQPSK
+                break;
+            case "32qam":
+                mod = 2;//MODULATION_QAM_32
+                break;
+            case "64qam":
+                mod = 3;//MODULATION_QAM_64
+                break;
+            case "128qam":
+                mod = 4;//MODULATION_QAM_128
+                break;
+            case "256qam":
+                mod = 5;//MODULATION_QAM_256
+                break;
             default:
                 mod = 6;//MODULATION_QAM_AUTO
                 break;
