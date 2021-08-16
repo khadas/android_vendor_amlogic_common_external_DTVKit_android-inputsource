@@ -324,14 +324,25 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     sendEmptyMessageToInputThreadHandler(MSG_CHECK_TV_PROVIDER_READY);
                 } else if (Intent.ACTION_SCREEN_OFF.equals(action)
                     || Intent.ACTION_SHUTDOWN.equals(action)) {
-                    if (mParameterMananer != null) {
+                    Boolean isInteractive = isPowerInterActive(context);
+                    Log.d(TAG, "onReceive ACTION_SCREEN_OFF, isInteractive = " + isInteractive);
+                    if (mParameterMananer != null && !isInteractive) {
                         acquireProfileWakeLock(context);
                         mParameterMananer.noticeStandby();
                         releaseProfileWakeLock();
                     }
                 } else if (Intent.ACTION_SCREEN_ON.equals(action)) {
-                    if (mParameterMananer != null) {
+                    Boolean isInteractive = isPowerInterActive(context);
+                    Log.d(TAG, "onReceive ACTION_SCREEN_ON, isInteractive = " + isInteractive);
+                    if (mParameterMananer != null && isInteractive) {
                         mParameterMananer.noticeResume();
+                    }
+                } else if (Intent.ACTION_SHUTDOWN.equals(action)) {
+                    Log.d(TAG, "onReceive ACTION_SHUTDOWN");
+                    if (mParameterMananer != null) {
+                        acquireProfileWakeLock(context);
+                        mParameterMananer.noticeStandby();
+                        releaseProfileWakeLock();
                     }
                 }
             }
@@ -8712,4 +8723,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
     }
 
+    private Boolean isPowerInterActive(Context context) {
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        return powerManager.isInteractive();
+    }
 }
