@@ -602,17 +602,16 @@ public class DtvkitEpgSync extends EpgSyncJobService {
     private String getDtvkitChannelUri(Channel channel) {
         String result = null;
         if (channel != null) {
-            result = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
-            //uncomment it if unique id feature has been enabled and uri can represent a channel at that time
-            /*
             try {
                 InternalProviderData data = channel.getInternalProviderData();
                 if (data != null) {
                     result = (String)data.get(Channel.KEY_DTVKIT_URI);
+                } else {
+                    result = String.format("dvb://%04x.%04x.%04x", channel.getOriginalNetworkId(), channel.getTransportStreamId(), channel.getServiceId());
                 }
             } catch (Exception e) {
                 Log.e(TAG, "getDtvkitChannelUri Exception = " + e.getMessage());
-            }*/
+            }
         }
         return result;
     }

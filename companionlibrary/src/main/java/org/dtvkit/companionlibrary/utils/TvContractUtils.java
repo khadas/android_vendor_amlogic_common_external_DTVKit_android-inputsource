@@ -428,11 +428,11 @@ public class TvContractUtils {
     public static String getUniqueStrForChannel(InternalProviderData internalProviderData, String channelType, int originalNetworkId, int transportStreamId, int serviceId, int frequency, String ciNumber, String rawDisplayNumber) {
         String result = null;
         try {
-            result = channelType + "-" + String.valueOf(frequency / 1000000) + "-" + rawDisplayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
-            //uncomment it if unique id feature has been enabled and uri can represent a channel at that time
-            /*if (internalProviderData != null) {
+            if (internalProviderData != null) {
                 result = (String)internalProviderData.get(Channel.KEY_DTVKIT_URI);
-            }*/
+            } else {
+                result = channelType + "-" + String.valueOf(frequency / 1000000) + "-" + rawDisplayNumber + "-" + String.valueOf(originalNetworkId) + "-" + String.valueOf(transportStreamId) + "-" + String.valueOf(serviceId) + "-" + ciNumber;
+            }
         } catch (Exception e) {
             Log.d(TAG, "getUniqueStrForChannel Exception = " + e.getMessage());
         }
