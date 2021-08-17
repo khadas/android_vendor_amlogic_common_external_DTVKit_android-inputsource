@@ -425,6 +425,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                         request.putLong(ConstantManager.VALUE_CI_PLUS_CHANNEL, intent.getLongExtra(ConstantManager.VALUE_CI_PLUS_CHANNEL, -1));
                                         request.putString(ConstantManager.VALUE_CI_PLUS_TUNE_TYPE, intent.getStringExtra(ConstantManager.VALUE_CI_PLUS_TUNE_TYPE));
                                         request.putString(ConstantManager.CI_PLUS_COMMAND, ConstantManager.VALUE_CI_PLUS_COMMAND_HOST_CONTROL);
+                                        request.putInt(ConstantManager.VALUE_CI_PLUS_TUNE_QUIETLY, intent.getIntExtra(ConstantManager.VALUE_CI_PLUS_TUNE_QUIETLY, 0));
                                         mainSession.sendBundleToAppByTif(action, request);
                                     }
                                     break;
@@ -4348,11 +4349,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     //tuned by dtvkit directly and then notify app
                     int s_id = 0, t_id = 0, onet_id = 0;
                     String tune_type = "";
+                    int tune_quietly = 0;
                     try {
                         s_id = data.getInt("s_id");
                         t_id = data.getInt("t_id");
                         onet_id = data.getInt("onet_id");
                         tune_type = data.getString("tune_type");
+                        tune_quietly = data.getInt("tune_quietly");
                     } catch (JSONException e) {
                         Log.e(TAG, "CiTuneServiceInfo JSONException = " + e.getMessage());
                     }
@@ -4364,6 +4367,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             channelBundle.putString(ConstantManager.CI_PLUS_COMMAND, ConstantManager.VALUE_CI_PLUS_COMMAND_HOST_CONTROL);
                             channelBundle.putString(ConstantManager.VALUE_CI_PLUS_TUNE_TYPE, ConstantManager.VALUE_CI_PLUS_TUNE_TYPE_SERVICE);
                             channelBundle.putLong(ConstantManager.VALUE_CI_PLUS_CHANNEL, foundChannelById.getId());
+                            channelBundle.putInt(ConstantManager.VALUE_CI_PLUS_TUNE_QUIETLY, tune_quietly);
                             sendBundleToAppByTif(ConstantManager.ACTION_CI_PLUS_INFO, channelBundle);
                         } else {
                             Log.d(TAG, "CiTuneServiceInfo hasn't found such channel");
@@ -4374,6 +4378,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         channelBundle.putString(ConstantManager.CI_PLUS_COMMAND, ConstantManager.VALUE_CI_PLUS_COMMAND_HOST_CONTROL);
                         channelBundle.putString(ConstantManager.VALUE_CI_PLUS_TUNE_TYPE, ConstantManager.VALUE_CI_PLUS_TUNE_TYPE_TRANSPORT);
                         channelBundle.putLong(ConstantManager.VALUE_CI_PLUS_CHANNEL, -1);
+                        channelBundle.putInt(ConstantManager.VALUE_CI_PLUS_TUNE_QUIETLY, 0);
                         sendBundleToAppByTif(ConstantManager.ACTION_CI_PLUS_INFO, channelBundle);
                     }
                 }
@@ -6809,7 +6814,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             args.put(ciNumber);
             args.put(profileName);
             args.put(profileVersion);
-            DtvkitGlueClient.getInstance().request("Player.notifyCiProfileEvent", args);
+            DtvkitGlueClient.getInstance().request("Dvb.notifyCiProfileEvent", args);
             result = true;
         } catch (Exception e) {
             Log.e(TAG, "playerNotifyCiProfileEvent = " + e.getMessage());

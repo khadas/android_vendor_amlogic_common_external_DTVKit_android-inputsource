@@ -108,6 +108,7 @@ public class ConstantManager {
     public static final String VALUE_CI_PLUS_TUNE_TYPE = "tune_type";
     public static final String VALUE_CI_PLUS_TUNE_TYPE_SERVICE = "service_tune";
     public static final String VALUE_CI_PLUS_TUNE_TYPE_TRANSPORT= "transport_tune";
+    public static final String VALUE_CI_PLUS_TUNE_QUIETLY = "tune_quietly";
     public static final String VALUE_CI_PLUS_EVENT_DETAIL = "event_detail";
     public static final String VALUE_CI_CARD_SLOT = "ci_card_slot";
     public static final String VALUE_CI_CAM_CARD_ID = "ci_cam_card_id";
