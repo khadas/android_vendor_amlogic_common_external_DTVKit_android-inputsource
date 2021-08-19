@@ -1352,6 +1352,53 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
     };
 
+    private void updateRcordsFromDisk(ArrayList<RecordedProgram> recordingsInDB, JSONArray recordings) {
+        ArrayList<ContentProviderOperation> ops = new ArrayList();
+
+        InternalProviderData data = new InternalProviderData();
+        for (RecordedProgram rec : recordingsInDB) {
+            Log.d(TAG, "db: " + rec.getRecordingDataUri());
+            ops.add(ContentProviderOperation.newDelete(
+                                TvContract.buildRecordedProgramUri(rec.getId()))
+                                .build());
+        }
+        if (recordings != null) {
+            for (int i = 0; i < recordings.length(); i++) {
+                try {
+                    if (data != null) {
+                        data.put(RecordedProgram.RECORD_FILE_PATH, mDataMananer.getStringParameters(DataMananer.KEY_PVR_RECORD_PATH));
+                    }
+                    RecordedProgram recording = new RecordedProgram.Builder()
+                        .setInputId(mInputId)
+                        .setRecordingDataUri(recordings.getJSONObject(i).getString("uri"))
+                        .setRecordingDataBytes(Long.valueOf(recordings.getJSONObject(i).getString("size")))
+                        .setTitle(recordings.getJSONObject(i).getString("service"))
+                        .setStartTimeUtcMillis(Long.valueOf(recordings.getJSONObject(i).getString("date"))*1000)
+                        .setEndTimeUtcMillis(Long.valueOf(recordings.getJSONObject(i).getString("date"))*1000 + Long.valueOf(recordings.getJSONObject(i).getString("length"))*1000)
+                        .setRecordingDurationMillis(Long.valueOf(recordings.getJSONObject(i).getString("length"))*1000)
+                        .setInternalProviderData(data)
+                        .build();
+
+                ops.add(ContentProviderOperation
+                        .newInsert(TvContract.RecordedPrograms.CONTENT_URI)
+                        .withValues(recording.toContentValues())
+                        .build());
+                } catch (JSONException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+            try {
+                mContentResolver.applyBatch(TvContract.AUTHORITY, ops);
+                //notify it as background process can receive it imediately
+                if (isSdkAfterAndroidQ()) {
+                    getContentResolver().notifyChange(TvContract.RecordedPrograms.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "recordings DB update failed.");
+            }
+        }
+    }
+
     private void syncRecordingProgramsWithDtvkit(JSONObject data) {
         ArrayList<RecordedProgram> recordingsInDB = new ArrayList();
         ArrayList<RecordedProgram> recordingsResetInvalidInDB = new ArrayList();
@@ -1379,56 +1426,17 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
         for (int i = 0; i < recordings.length(); i++) {
             try {
-                Log.d(TAG, "dtvkit: " + recordings.getJSONObject(i).getString("uri"));
+                Log.d(TAG, "dtvkit uri: " + recordings.getJSONObject(i).getString("uri"));
             } catch (JSONException e) {
                 Log.d(TAG, e.getMessage());
             }
         }
-
-        if (recordingsInDB.size() != 0) {
-            for (RecordedProgram recording : recordingsInDB) {
-                String uri = recording.getRecordingDataUri();
-                if (checkDtvkitRecordingsExists(uri, recordings)) {
-                    if (recording.getRecordingDataBytes() <= 0) {
-                        Log.d(TAG, "make recording valid: "+uri);
-                        recordingsResetValidInDB.add(recording);
-                    }
-                } else {
-                    if (recording.getRecordingDataBytes() > 0) {
-                        Log.d(TAG, "make recording invalid: "+uri);
-                        recordingsResetInvalidInDB.add(recording);
-                    }
-                }
-            }
-
-            ArrayList<ContentProviderOperation> ops = new ArrayList();
-            for (RecordedProgram recording : recordingsResetInvalidInDB) {
-                Uri uri = TvContract.buildRecordedProgramUri(recording.getId());
-                String dataUri = recording.getRecordingDataUri();
-                ContentValues update = new ContentValues();
-                update.put(TvContract.RecordedPrograms.COLUMN_RECORDING_DATA_BYTES, 0l);
-                ops.add(ContentProviderOperation.newUpdate(uri)
-                    .withValues(update)
-                    .build());
-            }
-            for (RecordedProgram recording : recordingsResetValidInDB) {
-                Uri uri = TvContract.buildRecordedProgramUri(recording.getId());
-                String dataUri = recording.getRecordingDataUri();
-                ContentValues update = new ContentValues();
-                update.put(TvContract.RecordedPrograms.COLUMN_RECORDING_DATA_BYTES, 1024 * 1024l);
-                ops.add(ContentProviderOperation.newUpdate(uri)
-                    .withValues(update)
-                    .build());
-            }
-            try {
-                mContentResolver.applyBatch(TvContract.AUTHORITY, ops);
-                //notify it as background process can receive it imediately
-                if (isSdkAfterAndroidQ()) {
-                    getContentResolver().notifyChange(TvContract.RecordedPrograms.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "recordings DB update failed.");
-            }
+        if (recordings.length() == 0) {
+            mContentResolver.delete(TvContract.RecordedPrograms.CONTENT_URI, "_id!=-1", null);
+            Log.e(TAG, "delete recordings in tv.db");
+        } else if (recordings.length() != recordingsInDB.size()) {
+            Log.e(TAG, "sync recordings from disk to tv.db");
+            updateRcordsFromDisk(recordingsInDB, recordings);
         }
     }
 
