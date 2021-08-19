@@ -5108,7 +5108,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             mView.showCasMessage(mode);
                             if (duration > 0) {
                                 removeMessages(MSG_CAS_OSM_WINDOW_CLEAR);
-                                sendEmptyMessageDelayed(MSG_CAS_OSM_WINDOW_CLEAR, duration);
+                                sendEmptyMessageDelayed(MSG_CAS_OSM_WINDOW_CLEAR, duration*1000);
                             }
                         }
                         break;
