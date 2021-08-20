@@ -8296,6 +8296,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                 if (channelUri != null) {
                                     updateSession.onTune(channelUri);
                                     updateSession.notifyChannelRetuned(channelUri);
+                                    updateSession.notifySessionEvent(ConstantManager.EVENT_CHANNEL_LIST_UPDATED, new Bundle());
                                     Log.d(TAG, "onMessageCallback notifyChannelRetuned " + channelUri);
                                 } else {
                                     mDvbNetworkChangeSearchStatus = false;
@@ -8325,6 +8326,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                     Uri restoreUri = TvContract.buildChannelUri(restoreChannel.getId());
                                     restoreSession.onTune(restoreUri);
                                     restoreSession.notifyChannelRetuned(restoreUri);
+                                    restoreSession.notifySessionEvent(ConstantManager.EVENT_CHANNEL_LIST_UPDATED, new Bundle());
                                     Log.d(TAG, "onMessageCallback restoreSession notifyChannelRetuned " + restoreUri);
                                 } else {
                                     restoreChannel = null;
@@ -8349,6 +8351,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                         Uri restoreUri = TvContract.buildChannelUri(restoreChannel.getId());
                                         restoreSession.onTune(restoreUri);
                                         restoreSession.notifyChannelRetuned(restoreUri);
+                                        restoreSession.notifySessionEvent(ConstantManager.EVENT_CHANNEL_LIST_UPDATED, new Bundle());
                                         Log.d(TAG, "onMessageCallback restoreSession new channel notifyChannelRetuned " + restoreUri);
                                     } else {
                                         Uri restoreUri = TvContract.buildChannelUri(-1);
