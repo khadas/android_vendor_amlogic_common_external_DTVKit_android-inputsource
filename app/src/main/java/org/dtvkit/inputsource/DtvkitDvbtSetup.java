@@ -803,6 +803,22 @@ public class DtvkitDvbtSetup extends Activity {
         return result;
     }
 
+    private String getFreqOfChannelId() {
+        String result = null;
+        int index = mIsDvbt ? mDataMananer.getIntParameters(DataMananer.KEY_SEARCH_DVBT_CHANNEL_NAME) :
+                mDataMananer.getIntParameters(DataMananer.KEY_SEARCH_DVBC_CHANNEL_NAME);
+        List<String> list = mParameterMananer.getChannelTable(mParameterMananer.getCurrentCountryCode(), mIsDvbt, mDataMananer.getIntParameters(DataMananer.KEY_DVBT_TYPE) == 1);
+        String channelInfo = (index < list.size()) ? list.get(index) : null;
+        if (channelInfo != null) {
+            String[] parameter = channelInfo.split(",");//first number, second string, third number
+            if (parameter != null && parameter.length == 3 && TextUtils.isDigitsOnly(parameter[2])) {
+                result = parameter[2];
+                Log.d(TAG, "getChannelIndex channel index = " + parameter[0] + ", name = " + parameter[1] + ", freq = " + parameter[2]);
+            }
+        }
+        return result;
+    }
+
     private void sendStartSearch() {
         if (mThreadHandler != null) {
             mThreadHandler.removeMessages(MSG_START_SEARCH);
@@ -1067,6 +1083,11 @@ public class DtvkitDvbtSetup extends Activity {
             parameters.putBoolean(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_LCN_CONFLICT, false);
         }
         int searchmode = mDataMananer.getIntParameters(DataMananer.KEY_PUBLIC_SEARCH_MODE);
+        int isfrequencysearch = mDataMananer.getIntParameters(DataMananer.KEY_IS_FREQUENCY);
+        if (DataMananer.VALUE_PUBLIC_SEARCH_MODE_AUTO != searchmode) {
+            String freq = (DataMananer.VALUE_FREQUENCY_MODE == isfrequencysearch) ? (getParameter() + "000") : getFreqOfChannelId();
+            parameters.putInt(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_FREQUENCY, Integer.valueOf(freq));
+        }
         parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_MODE, DataMananer.VALUE_PUBLIC_SEARCH_MODE_AUTO == searchmode ? EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_AUTO : EpgSyncJobService.BUNDLE_VALUE_SYNC_SEARCHED_MODE_MANUAL);
         parameters.putString(EpgSyncJobService.BUNDLE_KEY_SYNC_SEARCHED_SIGNAL_TYPE, mIsDvbt ? "DVB-T" : "DVB-C");
         EpgSyncJobService.requestImmediateSyncSearchedChannelWitchParameters(this, inputId, (mFoundServiceNumber > 0),new ComponentName(this, DtvkitEpgSync.class), parameters);
