@@ -1129,6 +1129,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void hideScrambledText() {
+            try{
+                DtvkitTvInputSession mainSession = getMainTunerSession();
+                mainSession.mView.mSubServerView.clearSubtitle();
+            }catch(Exception e){
+                Log.e(TAG, e.getMessage());
+            }
             if (mText != null && mRelativeLayout != null) {
                 Log.d(TAG, "hideText");
                 mText.setText("");
@@ -1153,6 +1159,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void hideTuningImage() {
+            try{
+                DtvkitTvInputSession mainSession = getMainTunerSession();
+                mainSession.mView.mSubServerView.clearSubtitle();
+            }catch(Exception e){
+                Log.e(TAG, e.getMessage());
+            }
             if (mTuningImage != null && mRelativeLayout != null) {
                 Log.d(TAG, "hideTuningImage");
                 if (mTuningImage.getVisibility() != View.GONE) {
@@ -2829,9 +2841,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 if (getFeatureSupportPip()) {
                     mIsPip = params.getBoolean("is_pip");
                 }
+                //DtvkitTvInputSession mainSession = getMainTunerSession();
+                //mainSession.mView.mSubServerView.clearSubtitle();
                 String previous = params.getString("previous_buffer_uri");
                 String next = params.getString("next_buffer_uri");
-                Log.d(TAG, "onTune previous = " + previous + ", channelUri = " + channelUri + ", next = " + next);
+                Log.d(TAG, "test onTune previous = " + previous + ", channelUri = " + channelUri + ", next = " + next);
                 if (getFeatureSupportFcc()) {
                     mPreviousBufferUri = previous != null ? Uri.parse(previous) : null;
                     mNextBufferUri = next != null ? Uri.parse(next) : null;
@@ -5895,7 +5909,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 args.put(uri_cache1);
                 args.put(uri_cache2);
                 Log.d(TAG, "player.play: "+dvbUri);
-
                 JSONObject resp = DtvkitGlueClient.getInstance().request("Player.play", args);
                 boolean ok = resp.optBoolean("data");
                 if (ok)
