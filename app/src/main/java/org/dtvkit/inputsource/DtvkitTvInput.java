@@ -5639,8 +5639,9 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
         private void onCasRequest(Bundle request) {
             if (mParameterMananer != null) {
+                long session = request.getLong("session");
                 String casInputJson = request.getString("CasJsonString");
-                String ret = mParameterMananer.casSessionRequest(casInputJson);
+                String ret = mParameterMananer.casSessionRequest(session, casInputJson);
                 if (!TextUtils.isEmpty(ret)) {
                     Bundle bundle = new Bundle();
                     bundle.putString("cas", ret.trim());

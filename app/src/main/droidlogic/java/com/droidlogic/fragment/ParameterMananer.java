@@ -2591,7 +2591,7 @@ public class ParameterMananer {
         return activeRecordings;
     }
 
-    public String casSessionRequest(String request) {
+    public String casSessionRequest(long session, String request) {
         String result = null;
 
         if (TextUtils.isEmpty(request)) {
@@ -2602,6 +2602,7 @@ public class ParameterMananer {
         try
         {
             args.put(request);
+            args.put(session);
             JSONObject obj =  DtvkitGlueClient.getInstance().request(cmd, args);
             result = obj.optString("data", "");
         } catch (Exception e) {
