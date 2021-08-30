@@ -242,9 +242,9 @@ public abstract class EpgSyncJobService extends JobService {
         // whether the both programs have the same program ID if your EPG supports any ID for
         // the programs.
         return oldProgram.getTitle() != null
-                && oldProgram.getTitle().equals(newProgram.getTitle())
-                && oldProgram.getStartTimeUtcMillis() <= newProgram.getEndTimeUtcMillis()
-                && newProgram.getStartTimeUtcMillis() <= oldProgram.getEndTimeUtcMillis();
+                /*&& oldProgram.getTitle().equals(newProgram.getTitle())*/
+                && oldProgram.getStartTimeUtcMillis() < newProgram.getEndTimeUtcMillis()
+                && newProgram.getStartTimeUtcMillis() < oldProgram.getEndTimeUtcMillis();
     }
 
     /** Send the job to JobScheduler. */
