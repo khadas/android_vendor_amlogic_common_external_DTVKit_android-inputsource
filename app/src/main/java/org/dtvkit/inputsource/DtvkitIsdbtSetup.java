@@ -16,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Button;
@@ -90,6 +91,7 @@ public class DtvkitIsdbtSetup extends Activity {
             String status = intent.getStringExtra(EpgSyncJobService.SYNC_STATUS);
             if (status.equals(EpgSyncJobService.SYNC_FINISHED)) {
                 setSearchStatus("Finished", "");
+                setStrengthAndQualityStatus("","");
                 mStartSync = false;
                 //finish();
                 sendFinish();
@@ -128,6 +130,7 @@ public class DtvkitIsdbtSetup extends Activity {
         mParameterMananer = new ParameterMananer(this, DtvkitGlueClient.getInstance());
         final View startSearch = findViewById(R.id.terrestrialstartsearch);
         final View stopSearch = findViewById(R.id.terrestrialstopsearch);
+        EditText public_type_edit = (EditText)findViewById(R.id.public_typein_edit);
 
         startSearch.setEnabled(true);
         startSearch.setOnClickListener(new View.OnClickListener() {
@@ -171,6 +174,32 @@ public class DtvkitIsdbtSetup extends Activity {
 
         initOrUpdateView(true);
         initHandler();
+
+        public_type_edit.addTextChangedListener(new TextWatcher(){
+            private String mText;
+            private int mCursor;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){ }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start, int before, int count){
+                Log.i(TAG,"text[" + text.toString() + "] start[" + start + "] count[" + count +"]");
+                mCursor = start;
+                mText = text.toString();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (!mText.equals("") && mCursor == 0) {
+                    public_type_edit.removeTextChangedListener(this);
+                    int index = public_type_edit.getSelectionStart();
+                    s.insert(index, ".143");
+                    public_type_edit.addTextChangedListener(this);
+                    public_type_edit.setSelection(1);
+                }
+            }
+        });
     }
 
     @Override
@@ -729,6 +758,7 @@ public class DtvkitIsdbtSetup extends Activity {
         mStartSearch = false;
         enableStopSearchButton(false);
         setSearchStatus("Finishing search", "");
+        setStrengthAndQualityStatus("","");
         setSearchProgressIndeterminate(true);
         stopMonitoringSearch();
         try {
@@ -747,6 +777,7 @@ public class DtvkitIsdbtSetup extends Activity {
             mFoundServiceNumber = mServiceList.length();
         }
         setSearchStatus("Updating guide", "");
+        setStrengthAndQualityStatus("","");
         startMonitoringSync();
         // By default, gets all channels and 1 hour of programs (DEFAULT_IMMEDIATE_EPG_DURATION_MILLIS)
         EpgSyncJobService.cancelAllSyncRequests(this);
@@ -795,6 +826,21 @@ public class DtvkitIsdbtSetup extends Activity {
 
                 final TextView text2 = (TextView) findViewById(R.id.description);
                 text2.setText(description);
+            }
+        });
+    }
+
+    private void setStrengthAndQualityStatus(final String sstatus, final String qstatus) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, String.format("Strength: %s", sstatus));
+                final TextView strengthText = (TextView) findViewById(R.id.strengthstatus);
+                strengthText.setText(sstatus);
+
+                Log.i(TAG, String.format("Quality: %s", qstatus));
+                final TextView qualityText = (TextView) findViewById(R.id.qualitystatus);
+                qualityText.setText(qstatus);
             }
         });
     }
@@ -899,10 +945,13 @@ public class DtvkitIsdbtSetup extends Activity {
         if (signal != null && signal.equals("IsdbtStatusChanged")) {
             int progress = getSearchProcess(data);
             Log.d(TAG, "onSignal progress = " + progress);
+            int sstatus = mParameterMananer.getStrengthStatus();
+            int qstatus = mParameterMananer.getQualityStatus();
             if (progress < 100) {
                 int found = getFoundServiceNumber();
                 setSearchProgress(progress);
                 setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
+                setStrengthAndQualityStatus(String.format(Locale.ENGLISH, "Strength: %d%%", sstatus), String.format(Locale.ENGLISH, "Quality: %d%%", qstatus));
             } else {
                 //onSearchFinished();
                 sendFinishSearch();

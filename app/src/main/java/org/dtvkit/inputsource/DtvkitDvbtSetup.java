@@ -97,6 +97,7 @@ public class DtvkitDvbtSetup extends Activity {
             String status = intent.getStringExtra(EpgSyncJobService.SYNC_STATUS);
             if (status.equals(EpgSyncJobService.SYNC_FINISHED)) {
                 setSearchStatus("Finished", "");
+                setStrengthAndQualityStatus("","");
                 mStartSync = false;
                 //finish();
                 sendFinish();
@@ -1013,6 +1014,7 @@ public class DtvkitDvbtSetup extends Activity {
         mStartSearch = false;
         enableStopSearchButton(false);
         setSearchStatus("Finishing search", "");
+        setStrengthAndQualityStatus("","");
         setSearchProgressIndeterminate(true);
         stopMonitoringSearch();
 
@@ -1070,6 +1072,7 @@ public class DtvkitDvbtSetup extends Activity {
             mFoundServiceNumber = mServiceList.length();
         }
         setSearchStatus("Updating guide", "");
+        setStrengthAndQualityStatus("","");
         startMonitoringSync();
         // By default, gets all channels and 1 hour of programs (DEFAULT_IMMEDIATE_EPG_DURATION_MILLIS)
         EpgSyncJobService.cancelAllSyncRequests(this);
@@ -1123,6 +1126,21 @@ public class DtvkitDvbtSetup extends Activity {
                 final TextView text2 = (TextView) findViewById(R.id.description);
                 text2.setText(description);
             }
+        });
+    }
+
+    private void setStrengthAndQualityStatus(final String sstatus, final String qstatus) {
+        runOnUiThread(new Runnable() {
+           @Override
+           public void run() {
+               Log.i(TAG, String.format("Strength: %s", sstatus));
+               final TextView strengthText = (TextView) findViewById(R.id.strengthstatus);
+               strengthText.setText(sstatus);
+
+               Log.i(TAG, String.format("Quality: %s", qstatus));
+               final TextView qualityText = (TextView) findViewById(R.id.qualitystatus);
+               qualityText.setText(qstatus);
+           }
         });
     }
 
@@ -1229,6 +1247,9 @@ public class DtvkitDvbtSetup extends Activity {
             int found = getFoundServiceNumber();
             setSearchProgress(progress);
             setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
+            int sstatus = mParameterMananer.getStrengthStatus();
+            int qstatus = mParameterMananer.getQualityStatus();
+            setStrengthAndQualityStatus(String.format(Locale.ENGLISH, "Strength: %d%%", sstatus), String.format(Locale.ENGLISH, "Quality: %d%%", qstatus));
             if (progress >= 100) {
                 //onSearchFinished();
                 sendFinishSearch(false);

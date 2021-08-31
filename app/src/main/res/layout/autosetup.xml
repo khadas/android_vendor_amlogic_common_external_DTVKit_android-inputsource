@@ -372,6 +372,19 @@
             android:layout_marginTop="10dp"
             android:text="@string/strSearchDvbcDescription"
             android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/strengthstatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/qualitystatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp" />
+
     </LinearLayout>
 
 </LinearLayout>

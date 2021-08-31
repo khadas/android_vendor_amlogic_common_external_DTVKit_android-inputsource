@@ -87,6 +87,7 @@ public class DtvkitDvbsSetup extends Activity {
           if (status.equals(EpgSyncJobService.SYNC_FINISHED))
           {
              setSearchStatus("Finished");
+             setStrengthAndQualityStatus("",  "");
              mStartSync = false;
              finish();
           }
@@ -336,7 +337,10 @@ public class DtvkitDvbsSetup extends Activity {
         Log.d(TAG, "onSignal progress = " + progress);
         setSearchProgress(progress);
         int found = getFoundServiceNumber();
+        int sstatus = mParameterMananer.getStrengthStatus();
+        int qstatus = mParameterMananer.getQualityStatus();
         setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
+        setStrengthAndQualityStatus(String.format(Locale.ENGLISH, "Strength: %d%%", sstatus), String.format(Locale.ENGLISH, "Quality: %d%%", qstatus));
         if (progress >= 100) {
             sendFinishSearch();
         }
@@ -643,6 +647,7 @@ public class DtvkitDvbsSetup extends Activity {
 
     private void startSearch() {
         setSearchStatus("Searching", "");
+        setStrengthAndQualityStatus("Strength:",  "Quality:");
         getProgressBar().setIndeterminate(false);
         startMonitoringSearch();
 
@@ -678,6 +683,7 @@ public class DtvkitDvbsSetup extends Activity {
             } else {
                 stopMonitoringSearch();
                 setSearchStatus(getString(R.string.invalid_parameter), "");
+                setStrengthAndQualityStatus("",  "");
                 enableSearchButton(true);
                 stopSearch(true);
                 return;
@@ -685,6 +691,7 @@ public class DtvkitDvbsSetup extends Activity {
         } catch (Exception e) {
             stopMonitoringSearch();
             setSearchStatus(e.getMessage(), "");
+            setStrengthAndQualityStatus("",  "");
             stopSearch(true);
         }
     }
@@ -694,6 +701,7 @@ public class DtvkitDvbsSetup extends Activity {
         enableSearchButton(true);
         enableStopButton(false);
         setSearchStatus("Finishing search");
+        setStrengthAndQualityStatus("",  "");
         getProgressBar().setIndeterminate(sync);
         stopMonitoringSearch();
         try {
@@ -743,6 +751,7 @@ public class DtvkitDvbsSetup extends Activity {
             public void run() {
                 stopMonitoringSearch();
                 setSearchStatus(e.getMessage());
+                setStrengthAndQualityStatus("",  "");
             }
         });
     }
@@ -780,6 +789,7 @@ public class DtvkitDvbsSetup extends Activity {
         enableStopButton(false);
         enableSetupButton(false);
         setSearchStatus("Finishing search");
+        setStrengthAndQualityStatus("",  "");
         getProgressBar().setIndeterminate(true);
         stopMonitoringSearch();
         try {
@@ -901,4 +911,20 @@ public class DtvkitDvbsSetup extends Activity {
         }
         return result;
     }
+
+    private void setStrengthAndQualityStatus(final String sstatus, final String qstatus) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, String.format("Strength: %s", sstatus));
+                final TextView strengthText = (TextView) findViewById(R.id.strengthstatus);
+                strengthText.setText(sstatus);
+
+                Log.i(TAG, String.format("Quality: %s", qstatus));
+                final TextView qualityText = (TextView) findViewById(R.id.qualitystatus);
+                qualityText.setText(qstatus);
+            }
+        });
+    }
 }
+
