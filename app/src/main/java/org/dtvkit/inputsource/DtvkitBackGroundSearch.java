@@ -137,6 +137,19 @@ public class DtvkitBackGroundSearch {
         }
     }
 
+    private JSONArray initAutoScanParameter() {
+        JSONArray args = new JSONArray();
+        if (mIsDvbt) {
+            args.put(true);// retune
+            args.put(false);//nit
+        } else {
+            args.put("full");// dvbc scan sub type
+            args.put("");//dvbc operator,backgroud search cannot get operators, use default
+            args.put(true);//retune
+        }
+        return args;
+    }
+
     public void startBackGroundAutoSearch() {
         startMonitoringSearch();
         mFoundServiceNumber = 0;
@@ -150,10 +163,10 @@ public class DtvkitBackGroundSearch {
         }
 
         try {
-            JSONArray args = new JSONArray();
+            JSONArray args = initAutoScanParameter();
             args.put(true);
             if (args != null) {
-                String command = (mIsDvbt ? "Dvbt.startSearch" : "Dvbc.startSearch");
+                String command = (mIsDvbt ? "Dvbt.startSearch" : "Dvbc.startSearchEx");
                 Log.d(TAG, "startBackGroundAutoSearch command = " + command + ", args = " + args.toString());
                 DtvkitGlueClient.getInstance().request(command, args);
                 mStartSearch = true;

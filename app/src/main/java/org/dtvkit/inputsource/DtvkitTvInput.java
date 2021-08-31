@@ -3066,13 +3066,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     userDataStatus(true);
                     playerInitAssociateDualSupport();
                 }
-
+                /*
                 try {
                     String signalType = tunedChannel.getInternalProviderData().get("channel_signal_type").toString();
                     mParameterMananer.saveStringParameters(ParameterMananer.AUTO_SEARCHING_SIGNALTYPE, signalType);
                 } catch(Exception e) {
                     Log.i(TAG, "SignalType Exception " + e.getMessage());
                 }
+                */
             } else {
                 DtvkitGlueClient.getInstance().unregisterSignalHandler(mHandler);
                 mTunedChannel = null;
@@ -5684,7 +5685,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private Channel getChannel(Uri channelUri) {
-        if (mChannels != null) {
+        if (mChannels != null && mChannels.size() > 0) {
             return mChannels.get(ContentUris.parseId(channelUri));
         } else {
             return null;
@@ -5692,7 +5693,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     private Channel getChannel(long channelId) {
-        if (mChannels != null) {
+        if (mChannels != null && mChannels.size() > 0) {
             return mChannels.get(channelId);
         } else {
             return null;
@@ -8472,6 +8473,53 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
     }
 
+    private void showAutomaticSearchConfirmDialog(final Context context, boolean isDvbt) {
+        if (context == null) {
+            return;
+        }
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        final AlertDialog alert = builder.create();
+        final View dialogView = View.inflate(context, R.layout.confirm_search, null);
+        final TextView title = (TextView) dialogView.findViewById(R.id.dialog_title);
+        final Button confirm = (Button) dialogView.findViewById(R.id.confirm);
+        final Button cancel = (Button) dialogView.findViewById(R.id.cancel);
+
+        title.setText(R.string.notice_automatic_scan);
+        confirm.requestFocus();
+        cancel.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alert.dismiss();
+            }
+        });
+        confirm.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alert.dismiss();
+                Intent intent = new Intent();
+                if (mTvInputInfo != null) {
+                    intent.putExtra(TvInputInfo.EXTRA_INPUT_ID, mTvInputInfo.getId());
+                }
+                intent.setClassName(DataMananer.KEY_PACKAGE_NAME, DataMananer.KEY_ACTIVITY_DVBT);
+                intent.putExtra(DataMananer.KEY_IS_DVBT, isDvbt);
+                intent.putExtra(DataMananer.KEY_START_SCAN_FOR_AUTOMATIC, true);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
+            }
+        });
+        //prevent exit key
+        alert.setCancelable(false);
+        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        alert.setView(dialogView);
+        alert.show();
+        WindowManager.LayoutParams params = alert.getWindow().getAttributes();
+        params.width = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 500, context.getResources().getDisplayMetrics());
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        alert.getWindow().setAttributes(params);
+        alert.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+    }
+
     @RequiresApi(Build.VERSION_CODES.N)
     public class AutomaticSearchingReceiver extends BroadcastReceiver {
         private static final String TAG = "AutomaticSearchingReceiver";
@@ -8490,7 +8538,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             Log.d(TAG, "Automatic searching action =" + action);
             if (action.equals(intenAction)) {
                 int mode  = mParameterMananer.getIntParameters(mParameterMananer.AUTO_SEARCHING_MODE);
-                Log.d(TAG, "mode = " + mode);
+                int dvbSource = getCurrentDvbSource();
+                Log.d(TAG, "mode = " + mode + ", signal type= " + dvbSource);
+                if (dvbSource != ParameterMananer.SIGNAL_COFDM
+                    && dvbSource != ParameterMananer.SIGNAL_QAM) {
+                    Log.d(TAG, "only dvbt/c will do automatic search.");
+                    return;
+                }
                 //if need to light the screen please run the interface below
                 if (mode == 2) {//operate mode
                     checkSystemWakeUp(context);
@@ -8503,6 +8557,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 String strReptition = intent.getStringExtra("repetition");
                 int repetition = Integer.parseInt(strReptition);
                 setNextAlarm(context);
+
+                if (mode == 2) {
+                    showAutomaticSearchConfirmDialog(context, dvbSource == ParameterMananer.SIGNAL_COFDM);
+                    return;
+                }
                 final DtvkitBackGroundSearch.BackGroundSearchCallback bgcallback = new DtvkitBackGroundSearch.BackGroundSearchCallback() {
                     @Override
                     public void onMessageCallback(JSONObject mess) {
@@ -8533,19 +8592,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
                 String signalType = "";
                 boolean bIsDvbt = false;
-                signalType = mParameterMananer.getStringParameters(mParameterMananer.AUTO_SEARCHING_SIGNALTYPE);
-                Log.d(TAG, "signalType = " + signalType);
-                switch(signalType) {
-                    case "DVB-T":
-                    case "DVB-T2":
-                        bIsDvbt = true;
-                    break;
-                    case "DVB-C":
-                        bIsDvbt = false;
-                    break;
-                    default:
-                        bIsDvbt = true;
-                    break;
+                if (dvbSource == ParameterMananer.SIGNAL_COFDM) {
+                    bIsDvbt = true;
+                } else if (dvbSource == ParameterMananer.SIGNAL_QAM) {
+                    bIsDvbt = false;
                 }
                 DtvkitBackGroundSearch dtvkitBgSearch = new DtvkitBackGroundSearch(context, bIsDvbt, mInputId, bgcallback);
                 dtvkitBgSearch.startBackGroundAutoSearch();

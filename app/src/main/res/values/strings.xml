@@ -97,6 +97,7 @@
     <string name="time_setting">Time:</string>
     <string name="dvb_network_change_search_no_result">has not searched new channel !</string>
     <string name="dvb_network_change_search_channel_unavailable">has not searched more new channel !</string>
+    <string name="notice_automatic_scan">It\'s time to do automatic searching with operator mode, scanning now?</string>
 
     <!-- pvr record delete -->
     <string name="pvr_record_confirm_delete_schedule">Please delete pvr schedules files firstly!</string>

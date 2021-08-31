@@ -132,6 +132,7 @@ public class DataMananer {
 
     public static final String KEY_SELECT_SEARCH_ACTIVITY = "search_activity";
     public static final String KEY_IS_DVBT = "is_dvbt";
+    public static final String KEY_START_SCAN_FOR_AUTOMATIC = "start_scan_for_automatic";
     public static final String KEY_PACKAGE_NAME = "org.dtvkit.inputsource";
     public static final String KEY_ACTIVITY_DVBT = "org.dtvkit.inputsource.DtvkitDvbtSetup";
     public static final String KEY_ACTIVITY_DVBS = "org.dtvkit.inputsource.DtvkitDvbsSetup";
