@@ -1135,7 +1135,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 }
         }
 
-        public void showScrambledText(String text) {
+        public void showScrambledText(String text, boolean isPip) {
             if (mText != null && mRelativeLayout != null) {
                 Log.d(TAG, "showText");
                 mText.setText(text);
@@ -1143,7 +1143,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     mText.setVisibility(View.VISIBLE);
                 }
                 //display black background
-                showTuningImage(null);
+                if (isPip)
+                    showTuningImage(null);
             }
         }
 
@@ -5014,7 +5015,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         break;
                     case MSG_SHOW_SCAMBLEDTEXT:
                         if (mView != null) {
-                            mView.showScrambledText(getString(R.string.play_scrambled));
+                            mView.showScrambledText(getString(R.string.play_scrambled), mIsPip);
                         }
                         break;
                     case MSG_HIDE_SCAMBLEDTEXT:
