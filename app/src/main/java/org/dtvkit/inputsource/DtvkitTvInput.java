@@ -3215,7 +3215,21 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         @Override
         public void onSetStreamVolume(float volume) {
             Log.i(TAG, "onSetStreamVolume " + volume + ", mute " + (volume == 0.0f) + "index = " + mCurrentDtvkitTvInputSessionIndex);
-            //playerSetVolume((int) (volume * 100));
+            if (getFeatureSupportFullPipFccArchitecture()) {
+                if (mIsPip) {
+                    if (volume == 0.0f) {
+                        playerSetPipMute(true);
+                    } else {
+                        playerSetPipMute(false);
+                    }
+                } else {
+                    if (volume == 0.0f) {
+                        playerSetMute(true);
+                    } else {
+                        playerSetMute(false);
+                    }
+                }
+            }
             //dtvkit handle stream mute/unmute
             /*if (!getFeatureSupportFullPipFccArchitecture()) {
                 if (mHandlerThreadHandle != null) {
