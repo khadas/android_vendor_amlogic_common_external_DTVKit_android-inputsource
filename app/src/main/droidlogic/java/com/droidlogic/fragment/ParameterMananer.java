@@ -2610,20 +2610,6 @@ public class ParameterMananer {
         return result;
     }
 
-    public void noticeStandby() {
-        try {
-            DtvkitGlueClient.getInstance().request("Player.enterStandby", new JSONArray());
-        } catch (Exception e) {
-        }
-    }
-
-    public void noticeResume() {
-        try {
-            DtvkitGlueClient.getInstance().request("Player.leaveStandby", new JSONArray());
-        } catch (Exception e) {
-        }
-    }
-
     private void resetToDefaultAudioStream () {
         try {
             JSONArray args = new JSONArray();

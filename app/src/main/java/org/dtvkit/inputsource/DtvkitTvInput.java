@@ -282,8 +282,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     private boolean mCusEnableDtvAutoTime = false;
     private AutoTimeManager mAutoTimeManager = null;
-    private static final String PROFILE_WAKE_LOCK_NAME = "dtv_profile_lock";
-    private PowerManager.WakeLock mProfileWakeLock = null;
 
 
     public DtvkitTvInput() {
@@ -325,28 +323,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 } else if (action.equals(Intent.ACTION_BOOT_COMPLETED )) {
                     Log.d(TAG, "onReceive ACTION_BOOT_COMPLETED");
                     sendEmptyMessageToInputThreadHandler(MSG_CHECK_TV_PROVIDER_READY);
-                } else if (Intent.ACTION_SCREEN_OFF.equals(action)
-                    || Intent.ACTION_SHUTDOWN.equals(action)) {
-                    Boolean isInteractive = isPowerInterActive(context);
-                    Log.d(TAG, "onReceive ACTION_SCREEN_OFF, isInteractive = " + isInteractive);
-                    if (mParameterMananer != null && !isInteractive) {
-                        acquireProfileWakeLock(context);
-                        mParameterMananer.noticeStandby();
-                        releaseProfileWakeLock();
-                    }
+                } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+                    CiPowerMonitor.getInstance(context).onReceiveScreenOff();
                 } else if (Intent.ACTION_SCREEN_ON.equals(action)) {
-                    Boolean isInteractive = isPowerInterActive(context);
-                    Log.d(TAG, "onReceive ACTION_SCREEN_ON, isInteractive = " + isInteractive);
-                    if (mParameterMananer != null && isInteractive) {
-                        mParameterMananer.noticeResume();
-                    }
-                } else if (Intent.ACTION_SHUTDOWN.equals(action)) {
-                    Log.d(TAG, "onReceive ACTION_SHUTDOWN");
-                    if (mParameterMananer != null) {
-                        acquireProfileWakeLock(context);
-                        mParameterMananer.noticeStandby();
-                        releaseProfileWakeLock();
-                    }
+                    CiPowerMonitor.getInstance(context).onReceiveScreenOn();
                 }
             }
         }
@@ -8714,34 +8694,5 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         params.height = WindowManager.LayoutParams.WRAP_CONTENT;
         alert.getWindow().setAttributes(params);
         alert.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-    }
-
-    private  synchronized void acquireProfileWakeLock(Context context) {
-        if (mProfileWakeLock == null) {
-            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-            mProfileWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PROFILE_WAKE_LOCK_NAME);
-            if (mProfileWakeLock != null) {
-                Log.d(TAG, "acquireWakeLock " + PROFILE_WAKE_LOCK_NAME + " " + mProfileWakeLock);
-                if (mProfileWakeLock.isHeld()) {
-                    mProfileWakeLock.release();
-                }
-                mProfileWakeLock.acquire();
-            }
-        }
-    }
-
-    private synchronized void releaseProfileWakeLock() {
-        if (mProfileWakeLock != null) {
-            Log.d(TAG, "releaseWakeLock " + PROFILE_WAKE_LOCK_NAME + " " + mProfileWakeLock);
-            if (mProfileWakeLock.isHeld()) {
-                mProfileWakeLock.release();
-            }
-            mProfileWakeLock = null;
-        }
-    }
-
-    private Boolean isPowerInterActive(Context context) {
-        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        return powerManager.isInteractive();
     }
 }
