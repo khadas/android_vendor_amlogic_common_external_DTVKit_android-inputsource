@@ -3444,8 +3444,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (mHandlerThreadHandle != null) {
                 mHandlerThreadHandle.removeMessages(MSG_SET_UNBLOCK);
                 Message mess = mHandlerThreadHandle.obtainMessage(MSG_SET_UNBLOCK,unblockedRating);
-                boolean result = mHandlerThreadHandle.sendMessage(mess);
-                Log.d(TAG, "onUnblockContent sendMessage result " + result);
+                mHandlerThreadHandle.sendMessage(mess);
             }
         }
 
@@ -4958,7 +4957,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
         private void setUnBlock(TvContentRating unblockedRating) {
             Log.i(TAG, "setUnBlock " + unblockedRating);
-            requestUnblockContent();
+            if (!getFeatureSupportFullPipFccArchitecture()) {
+                requestUnblockContent(0);
+            } else {
+                requestUnblockContent(mIsPip? INDEX_FOR_PIP : INDEX_FOR_MAIN);
+            }
             notifyContentAllowed();
         }
 
@@ -7176,10 +7179,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
     }
 
-    private void requestUnblockContent() {
+    private void requestUnblockContent(int index) {
         try {
             JSONArray args = new JSONArray();
-            args.put(INDEX_FOR_MAIN);//PIP dosnot not allow to unblock
+            args.put(index);
             DtvkitGlueClient.getInstance().request("Player.unblock", args);
         } catch (Exception e) {
             Log.e(TAG, "requestUnblockContent " + e.getMessage());
