@@ -4551,6 +4551,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                            } else {
                                Log.d(TAG, "AppVideoPosition crop:("+crop+")");
                                SysContManager.writeSysFs("/sys/class/video/crop", crop);
+                               playerSetVideoCrop(INDEX_FOR_MAIN, voff0, hoff0, voff1, hoff1);
                            }
                        Log.d(TAG, "AppVideoPosition layoutSurface("+left+","+top+","+right+","+bottom+")(LTRB)");
                        layoutSurface(left,top,right,bottom);
@@ -5765,6 +5766,22 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         } catch (InternalProviderData.ParseException e) {
             Log.e(TAG, "getChannelInternalDvbUri ParseException = " + e.getMessage());
             return "dvb://current";
+        }
+    }
+
+    private void playerSetVideoCrop(int index, int voff0, int hoff0, int voff1, int hoff1) {
+        synchronized (mLock) {
+            try {
+                JSONArray args = new JSONArray();
+                args.put(index);
+                args.put(voff0);
+                args.put(hoff0);
+                args.put(voff1);
+                args.put(hoff1);
+                DtvkitGlueClient.getInstance().request("Player.setVideoWindow", args);
+            } catch (Exception e) {
+                Log.e(TAG, "playerSetVideoWindow = " + e.getMessage());
+            }
         }
     }
 
