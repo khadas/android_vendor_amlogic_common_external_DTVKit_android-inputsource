@@ -429,6 +429,19 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                                         mainSession.sendBundleToAppByTif(action, request);
                                     }
                                     break;
+                                case ConstantManager.VALUE_CI_PLUS_COMMAND_PVRPLAYBACK_STATUS:
+                                    //playback license
+                                    //am broadcast -a "ci_plus_info" --es command "PvrPlaybackStatus" --es tips "stop for no license" --ei errcode 1
+                                    showToast(ConstantManager.VALUE_CI_PLUS_COMMAND_PVRPLAYBACK_STATUS);
+                                    if (mainSession != null) {
+                                        Bundle request = new Bundle();
+                                        request.putString(ConstantManager.CI_PLUS_COMMAND, ConstantManager.VALUE_CI_PLUS_COMMAND_PVRPLAYBACK_STATUS);
+                                        request.putString("playback", intent.getStringExtra("tips"));
+                                        request.putInt("errcode", intent.getIntExtra("errcode", 0));
+                                        mainSession.sendBundleToAppByTif(action, request);
+                                    }
+
+                                    break;
                                 default:
                                     break;
                             }
@@ -4447,6 +4460,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     } catch (Exception e) {
                         Log.d(TAG, "IgnoreUserInput Exception = " + e.getMessage());
                     }
+                }
+                else if (signal.equals(ConstantManager.VALUE_CI_PLUS_COMMAND_PVRPLAYBACK_STATUS)) {
+                    //Ciplus license status, only for playback
+                    Bundle playbackBundle = new Bundle();
+                    playbackBundle.putString(ConstantManager.CI_PLUS_COMMAND, ConstantManager.VALUE_CI_PLUS_COMMAND_PVRPLAYBACK_STATUS);
+                    playbackBundle.putString("playback", data.optString("playback", ""));
+                    playbackBundle.putInt("errcode", data.optInt("errcode", 0));
+                    sendBundleToAppByTif(ConstantManager.ACTION_CI_PLUS_INFO, playbackBundle);
                 }
                 else if (signal.equals("DvbNetworkChange") || signal.equals("DvbUpdatedService"))
                 {
