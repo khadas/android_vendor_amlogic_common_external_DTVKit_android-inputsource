@@ -23,6 +23,8 @@ class CiPowerMonitor {
     private static final String PROFILE_WAKE_LOCK_NAME = "dtvkit:dtv_ciplus_lock";
     private PowerManager.WakeLock mProfileWakeLock = null;
     private Handler mHandler;
+    private final static int MAX_CI_CAM_POWER_TIMEOUT = 240;
+
     private final DtvkitGlueClient.SignalHandler mSignalHandler = new DtvkitGlueClient.SignalHandler() {
         @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
@@ -90,7 +92,7 @@ class CiPowerMonitor {
                 Log.d(TAG, "timeout, release wakelock and go on");
                 stopCiplusPowerdownMonitor();
             }
-        }, 35*1000);
+        }, MAX_CI_CAM_POWER_TIMEOUT*1000);
     }
 
     private void stopTimeoutHandler() {
