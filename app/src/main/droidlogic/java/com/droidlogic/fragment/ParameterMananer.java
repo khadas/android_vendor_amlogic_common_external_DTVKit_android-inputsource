@@ -139,6 +139,7 @@ public class ParameterMananer {
     public static final String KEY_RESET_DEFAULT_AUDIO_STREAM = "key_reset_default_audio_stream";
     public static final String KEY_SET_CHANNEL_BLOCKED = "key_set_channel_blocked";
     public static final String KEY_SET_CHANNEL_UNBLOCKED = "key_set_channel_unblocked";
+    public static final String KEY_SET_GET_SPOKEN_SUBTITLE_ON = "key_set_get_set_spoken_subtitle_on";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -2202,6 +2203,13 @@ public class ParameterMananer {
             case KEY_ACTIVE_RECORD_COUNT:
                 result = String.valueOf(recordingGetNumActiveRecordings());
                 break;
+            case KEY_SET_GET_SPOKEN_SUBTITLE_ON:
+                if (playergetSpokenSubtitleOn()) {
+                    result = "on";
+                } else {
+                    result = "off";
+                }
+                break;
             default:
                 result = defaultJsonValue;
                 break;
@@ -2220,6 +2228,8 @@ public class ParameterMananer {
             case KEY_RESET_DEFAULT_AUDIO_STREAM:
                 resetToDefaultAudioStream();
                 break;
+            case KEY_SET_GET_SPOKEN_SUBTITLE_ON:
+                playersetSpokenSubtitleOn(newJsonValues.equals("on") ? true : false);
             default:
                 break;
         }
@@ -2641,4 +2651,29 @@ public class ParameterMananer {
         return 0;
     }
 
+    private boolean playersetSpokenSubtitleOn(boolean on) {
+        try {
+            JSONArray args = new JSONArray();
+            args.put(0);
+            args.put(on);
+            DtvkitGlueClient.getInstance().request("Player.setSpokenSubtitleOn", args);
+        } catch (Exception e) {
+            Log.e(TAG, "setSpokenSubtitleOn = " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    private boolean playergetSpokenSubtitleOn() {
+        boolean result = false;
+        try {
+            JSONArray args = new JSONArray();
+            args.put(0);
+            result = DtvkitGlueClient.getInstance().request("Player.getSpokenSubtitleOn", args).getBoolean("data");
+        } catch (Exception e) {
+            Log.e(TAG, "getSpokenSubtitleOn = " + e.getMessage());
+            return result;
+        }
+        return result;
+    }
 }
