@@ -54,7 +54,11 @@ DTVKitHidlClient::DTVKitHidlClient(connect_type_t type): mType(type)
 {
     mDTVKitServer = getDTVKitService();
     mDTVKitHidlCallback = new DTVKitHidlCallback(this);
-    mDTVKitServer->setCallback(mDTVKitHidlCallback, static_cast<DTVKitConnectType>(type));
+    Return<void> ret = mDTVKitServer->setCallback(mDTVKitHidlCallback, static_cast<DTVKitConnectType>(type));
+    if (!ret.isOk()) {
+        ALOGE("Failed to setCallback.");
+        return;
+    }
 }
 
 DTVKitHidlClient::~DTVKitHidlClient()
@@ -73,7 +77,11 @@ void DTVKitHidlClient::reconnect()
     mDTVKitServer.clear();
     //reconnect to server
     mDTVKitServer = getDTVKitService();
-    mDTVKitServer->setCallback(mDTVKitHidlCallback, static_cast<DTVKitConnectType>(mType));
+    Return<void> ret = mDTVKitServer->setCallback(mDTVKitHidlCallback, static_cast<DTVKitConnectType>(mType));
+    if (!ret.isOk()) {
+        ALOGE("Failed to reconnect setCallback.");
+        return;
+    }
 }
 
 void DTVKitHidlClient::disconnect()
@@ -89,19 +97,29 @@ void DTVKitHidlClient::setListener(const sp<DTVKitListener> &listener)
 std::string DTVKitHidlClient::request(const std::string& resource, const std::string& json) {
     Mutex::Autolock _l(mLock);
     std::string result;
-    mDTVKitServer->request(resource, json, [&](const std::string& res) {
+    Return<void> ret = mDTVKitServer->request(resource, json, [&](const std::string& res) {
         result = res;
     });
+    if (!ret.isOk()) {
+        ALOGE("Failed to request.");
+        return result;
+    }
 
     return result;
 }
 
 void DTVKitHidlClient::setAfd(int player, int afd) {
-    mDTVKitServer->setAfd(player, afd);
+    Return<void> ret = mDTVKitServer->setAfd(player, afd);
+    if (!ret.isOk()) {
+        ALOGE("Failed to setAfd.");
+    }
 }
 
 void DTVKitHidlClient::setSubtitleFlag(int flag) {
-    mDTVKitServer->setSubtitleFlag(flag);
+    Return<void> ret = mDTVKitServer->setSubtitleFlag(flag);
+    if (!ret.isOk()) {
+        ALOGE("Failed to setSubtitleFlag.");
+    }
 }
 
 Return<void> DTVKitHidlClient::DTVKitHidlCallback::notifyCallback(const DTVKitHidlParcel& hidlParcel) {
