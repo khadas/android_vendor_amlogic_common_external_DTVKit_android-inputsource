@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource.service;
+package com.droidlogic.dtvkit.inputsource.service;
 
 import android.app.Service;
 import android.content.Intent;
@@ -8,12 +8,12 @@ import android.provider.Settings;
 import android.util.Log;
 import android.content.ComponentName;
 
-import org.dtvkit.IDtvkitSetting;
-import org.dtvkit.companionlibrary.utils.TvContractUtils;
+import com.droidlogic.dtvkit.IDtvkitSetting;
+import com.droidlogic.dtvkit.companionlibrary.utils.TvContractUtils;
 import com.droidlogic.fragment.ParameterMananer;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
-import org.dtvkit.companionlibrary.EpgSyncJobService;
-import org.dtvkit.inputsource.DtvkitEpgSync;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.inputsource.DtvkitEpgSync;
 import com.droidlogic.settings.SysSettingManager;
 
 import java.io.File;
@@ -144,7 +144,7 @@ public class DtvkitSettingService extends Service {
 
     private void updatingGuide() {
         EpgSyncJobService.cancelAllSyncRequests(this);
-        String inputId = "org.dtvkit.inputsource/.DtvkitTvInput/HW19";
+        String inputId = "com.droidlogic.dtvkit.inputsource/.DtvkitTvInput/HW19";
         EpgSyncJobService.requestImmediateSync(this, inputId, true, new ComponentName(this, DtvkitEpgSync.class));
     }
 

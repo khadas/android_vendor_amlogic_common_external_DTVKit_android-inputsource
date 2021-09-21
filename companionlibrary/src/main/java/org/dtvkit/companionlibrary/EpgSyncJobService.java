@@ -16,7 +16,7 @@
  * Modifications copyright (C) 2018 DTVKit
  */
 
-package org.dtvkit.companionlibrary;
+package com.droidlogic.dtvkit.companionlibrary;
 
 import android.app.job.JobInfo;
 import android.app.job.JobParameters;
@@ -44,10 +44,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import org.dtvkit.companionlibrary.model.Channel;
-import org.dtvkit.companionlibrary.model.EventPeriod;
-import org.dtvkit.companionlibrary.model.Program;
-import org.dtvkit.companionlibrary.utils.TvContractUtils;
+import com.droidlogic.dtvkit.companionlibrary.model.Channel;
+import com.droidlogic.dtvkit.companionlibrary.model.EventPeriod;
+import com.droidlogic.dtvkit.companionlibrary.model.Program;
+import com.droidlogic.dtvkit.companionlibrary.utils.TvContractUtils;
 
 import java.util.ArrayList;
 import java.util.List;

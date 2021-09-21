@@ -16,7 +16,7 @@ import java.io.File;
 import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.app.FileListManager;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class SysSettingManager {
 

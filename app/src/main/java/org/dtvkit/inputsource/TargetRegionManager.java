@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.AlertDialog;
 import android.content.Context;

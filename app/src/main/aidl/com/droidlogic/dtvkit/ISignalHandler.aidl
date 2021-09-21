@@ -1,5 +1,5 @@
 // ISignalHandler.aidl
-package org.dtvkit;
+package com.droidlogic.dtvkit;
 
 interface ISignalHandler {
     void signal(String signal, String json);

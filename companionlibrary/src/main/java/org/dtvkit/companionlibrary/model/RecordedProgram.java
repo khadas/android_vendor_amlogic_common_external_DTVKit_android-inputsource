@@ -15,7 +15,7 @@
  *
  * Modifications copyright (C) 2018 DTVKit
  */
-package org.dtvkit.companionlibrary.model;
+package com.droidlogic.dtvkit.companionlibrary.model;
 
 import android.annotation.TargetApi;
 import android.content.ContentValues;
@@ -26,7 +26,7 @@ import android.media.tv.TvInputService;
 import android.os.Build;
 import android.text.TextUtils;
 
-import org.dtvkit.companionlibrary.utils.TvContractUtils;
+import com.droidlogic.dtvkit.companionlibrary.utils.TvContractUtils;
 
 import java.util.Objects;
 

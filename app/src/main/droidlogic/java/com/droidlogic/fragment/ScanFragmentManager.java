@@ -7,7 +7,7 @@ import android.app.FragmentTransaction;
 import android.os.Handler;
 import android.util.Log;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class ScanFragmentManager {
     private static final String TAG = "ScanFragmentManager";

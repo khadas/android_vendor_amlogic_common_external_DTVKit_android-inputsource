@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -32,7 +32,7 @@ import android.view.WindowManager;
 import android.util.TypedValue;
 import android.os.Handler;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,7 +44,7 @@ import java.util.List;
 import com.droidlogic.fragment.ParameterMananer;
 import com.droidlogic.settings.ConstantManager;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
-import org.dtvkit.companionlibrary.model.Channel;
+import com.droidlogic.dtvkit.companionlibrary.model.Channel;
 
 public class DtvkitBackGroundSearch {
     private static final String TAG = "DtvkitBackGroundSearch";

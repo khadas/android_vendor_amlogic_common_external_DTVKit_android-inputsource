@@ -50,14 +50,14 @@ import com.droidlogic.app.SystemControlManager;
 import com.droidlogic.fragment.ParameterMananer;
 
 import org.droidlogic.dtvkit.DtvkitGlueClient;
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 import android.content.ComponentName;
 import android.media.tv.TvInputInfo;
-import org.dtvkit.companionlibrary.EpgSyncJobService;
-import org.dtvkit.inputsource.DtvkitEpgSync;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.inputsource.DtvkitEpgSync;
 
-//import org.dtvkit.inputsource.AutomaticSearchingReceiver;
+//import com.droidlogic.dtvkit.inputsource.AutomaticSearchingReceiver;
 
 import com.droidlogic.settings.SysSettingManager;
 import com.droidlogic.settings.PropSettingManager;
@@ -93,7 +93,7 @@ public class DtvkitDvbSettings extends Activity {
     protected static final int PERIOD_SHOW_DONE_TIME_OUT = 10000;
     protected static final int PERIOD_RIGHT_NOW = 0;
 
-    private String intenAction = "org.dtvkit.inputsource.AutomaticSearching";
+    private String intenAction = "com.droidlogic.dtvkit.inputsource.AutomaticSearching";
     private int mAutoSearchingMode = 0;
     private int mRepetition        = 0;
     private String mHour           = "4";

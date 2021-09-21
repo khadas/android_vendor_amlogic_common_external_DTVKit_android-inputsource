@@ -16,7 +16,7 @@
  * Modifications copyright (C) 2018 DTVKit
  */
 
-package org.dtvkit.companionlibrary.model;
+package com.droidlogic.dtvkit.companionlibrary.model;
 
 public final class EventPeriod {
     private String mDvbUri;

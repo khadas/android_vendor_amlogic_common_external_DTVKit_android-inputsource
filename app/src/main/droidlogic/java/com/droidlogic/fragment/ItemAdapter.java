@@ -10,7 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class ItemAdapter extends BaseAdapter {
 

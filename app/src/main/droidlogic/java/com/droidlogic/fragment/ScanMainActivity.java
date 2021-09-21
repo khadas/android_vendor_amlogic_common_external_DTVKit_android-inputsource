@@ -22,7 +22,7 @@ import android.widget.Toast;
 
 import com.droidlogic.fragment.dialog.DialogManager;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 
 public class ScanMainActivity extends Activity {

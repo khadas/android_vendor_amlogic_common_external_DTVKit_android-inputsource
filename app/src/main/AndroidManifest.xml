@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.dtvkit.inputsource">
+    package="com.droidlogic.dtvkit.inputsource">
     <uses-feature
         android:name="android.software.live_tv"
         android:required="true" />
@@ -114,14 +114,14 @@
             android:name=".services.CaSettingService"
             android:exported="true">
             <intent-filter android:priority="1">
-                <action android:name="org.dtvkit.inputsource.services.CaSettingService" />
+                <action android:name="com.droidlogic.dtvkit.inputsource.services.CaSettingService" />
             </intent-filter>
         </service>
         <service
             android:name=".service.DtvkitSettingService"
             android:exported="true">
             <intent-filter>
-                <action android:name="org.dtvkit.inputsource.service.DtvkitSettingService" />
+                <action android:name="com.droidlogic.dtvkit.inputsource.service.DtvkitSettingService" />
             </intent-filter>
         </service>
     </application>

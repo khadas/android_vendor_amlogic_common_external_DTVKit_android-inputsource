@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.media.tv.TvContract;
 import android.media.tv.TvContentRating;
@@ -6,11 +6,11 @@ import android.net.Uri;
 import android.util.Log;
 import android.text.TextUtils;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
-import org.dtvkit.companionlibrary.model.Channel;
-import org.dtvkit.companionlibrary.model.EventPeriod;
-import org.dtvkit.companionlibrary.model.InternalProviderData;
-import org.dtvkit.companionlibrary.model.Program;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.model.Channel;
+import com.droidlogic.dtvkit.companionlibrary.model.EventPeriod;
+import com.droidlogic.dtvkit.companionlibrary.model.InternalProviderData;
+import com.droidlogic.dtvkit.companionlibrary.model.Program;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 import com.droidlogic.settings.PropSettingManager;
 

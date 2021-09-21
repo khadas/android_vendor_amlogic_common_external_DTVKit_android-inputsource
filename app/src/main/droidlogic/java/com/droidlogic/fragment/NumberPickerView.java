@@ -15,7 +15,7 @@ import android.widget.OverScroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class NumberPickerView extends FrameLayout {
     private static final String TAG = NumberPickerView.class.getSimpleName();

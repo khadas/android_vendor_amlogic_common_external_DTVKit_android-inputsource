@@ -16,7 +16,7 @@
  * Modifications copyright (C) 2018 DTVKit
  */
 
-package org.dtvkit.companionlibrary.model;
+package com.droidlogic.dtvkit.companionlibrary.model;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -25,7 +25,7 @@ import android.media.tv.TvContract;
 import android.os.Build;
 import android.text.TextUtils;
 
-import org.dtvkit.companionlibrary.utils.CollectionUtils;
+import com.droidlogic.dtvkit.companionlibrary.utils.CollectionUtils;
 
 /**
  * A convenience class to create and insert channel entries into the database.

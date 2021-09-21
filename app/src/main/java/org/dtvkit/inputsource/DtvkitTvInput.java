@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -91,12 +91,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
-import org.dtvkit.companionlibrary.model.Channel;
-import org.dtvkit.companionlibrary.model.InternalProviderData;
-import org.dtvkit.companionlibrary.model.Program;
-import org.dtvkit.companionlibrary.model.RecordedProgram;
-import org.dtvkit.companionlibrary.utils.TvContractUtils;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.model.Channel;
+import com.droidlogic.dtvkit.companionlibrary.model.InternalProviderData;
+import com.droidlogic.dtvkit.companionlibrary.model.Program;
+import com.droidlogic.dtvkit.companionlibrary.model.RecordedProgram;
+import com.droidlogic.dtvkit.companionlibrary.utils.TvContractUtils;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -249,7 +249,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private static String unZipDirStr = "vendorfont";
     private static String uncryptDirStr = "font";
     private static String fonts = "font";
-    private String intenAction = "org.dtvkit.inputsource.AutomaticSearching";
+    private String intenAction = "com.droidlogic.dtvkit.inputsource.AutomaticSearching";
     private AutomaticSearchingReceiver mAutomaticSearchingReceiver = null;
     public final int SUBCTL_HK_DVBSUB = 0x02;
     public final int SUBCTL_HK_TTXSUB = 0x04;
@@ -8525,8 +8525,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     }
 
     /*
-    private static final String CA_SETTING_SERVICE_PACKAGE_NAME ="org.dtvkit.inputsource";
-    private static final String CA_SETTING_SERVICE_ACTION ="org.dtvkit.inputsource.services.CaSettingService";
+    private static final String CA_SETTING_SERVICE_PACKAGE_NAME ="com.droidlogic.dtvkit.inputsource";
+    private static final String CA_SETTING_SERVICE_ACTION ="com.droidlogic.dtvkit.inputsource.services.CaSettingService";
     private void startCaSettingServices () {
         Intent intent = new Intent();
         intent.setPackage(CA_SETTING_SERVICE_PACKAGE_NAME);

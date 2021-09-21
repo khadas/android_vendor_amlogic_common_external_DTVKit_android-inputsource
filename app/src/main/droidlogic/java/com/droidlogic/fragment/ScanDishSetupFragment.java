@@ -40,11 +40,11 @@ import android.os.Message;
 import android.widget.Toast;
 import android.content.ComponentName;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 
-import org.dtvkit.inputsource.DtvkitEpgSync;
-import org.dtvkit.inputsource.R;
-import org.dtvkit.inputsource.R.color;
+import com.droidlogic.dtvkit.inputsource.DtvkitEpgSync;
+import com.droidlogic.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R.color;
 
 public class ScanDishSetupFragment extends Fragment {
 

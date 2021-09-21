@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -42,7 +42,7 @@ import com.droidlogic.settings.ConstantManager;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 import com.droidlogic.fragment.ParameterMananer;
 import com.droidlogic.fragment.PasswordCheckUtil;
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 
 public class DtvkitDvbScanSelect extends Activity {
     private static final String TAG = "DtvkitDvbScanSelect";

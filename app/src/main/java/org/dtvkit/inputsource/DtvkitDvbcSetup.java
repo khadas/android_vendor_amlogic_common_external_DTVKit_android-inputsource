@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -18,7 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

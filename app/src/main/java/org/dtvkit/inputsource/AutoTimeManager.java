@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;

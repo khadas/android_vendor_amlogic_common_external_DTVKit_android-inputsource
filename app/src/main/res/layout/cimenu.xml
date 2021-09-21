@@ -25,7 +25,7 @@
             android:background="#06516e"
             android:textSize="24sp" />
 
-        <org.dtvkit.inputsource.MaxHeightScrollView
+        <com.droidlogic.dtvkit.inputsource.MaxHeightScrollView
             android:id="@+id/scrollContainer"
             android:layout_width="600dp"
             android:layout_height="wrap_content"
@@ -37,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
             </LinearLayout>
-        </org.dtvkit.inputsource.MaxHeightScrollView>
+        </com.droidlogic.dtvkit.inputsource.MaxHeightScrollView>
 
         <TextView
             android:id="@+id/textViewMenuFooter"

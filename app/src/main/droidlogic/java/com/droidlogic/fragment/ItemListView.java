@@ -27,7 +27,7 @@ import com.droidlogic.fragment.ItemAdapter.ItemDetail;
 
 import java.util.LinkedList;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 import org.droidlogic.dtvkit.DtvkitGlueClient;
 
 public class ItemListView extends ListView implements OnItemSelectedListener {

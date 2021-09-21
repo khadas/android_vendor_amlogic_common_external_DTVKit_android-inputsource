@@ -19,7 +19,7 @@ import android.widget.TextView;
 import com.droidlogic.fragment.ParameterMananer;
 //import com.droidlogic.fragment.R;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class DialogItemListView extends ListView implements OnItemSelectedListener/*, AdapterView.OnItemClickListener, , View.OnFocusChangeListener*/ {
     private static final String TAG = "DialogItemListView";

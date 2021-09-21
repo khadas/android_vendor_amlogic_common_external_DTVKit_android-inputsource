@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class PasswordCheckUtil {
     public static final String TAG = "PasswordCheckUtil";

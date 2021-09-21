@@ -21,9 +21,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import java.util.List;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
-import org.dtvkit.inputsource.DtvkitEpgSync;
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.inputsource.DtvkitEpgSync;
+import com.droidlogic.dtvkit.inputsource.R;
 import com.droidlogic.fragment.ParameterMananer;
 
 public class FactorySettings {

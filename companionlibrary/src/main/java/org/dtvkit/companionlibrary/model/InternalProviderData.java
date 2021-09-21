@@ -16,12 +16,12 @@
  * Modifications copyright (C) 2018 DTVKit
  */
 
-package org.dtvkit.companionlibrary.model;
+package com.droidlogic.dtvkit.companionlibrary.model;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import org.dtvkit.companionlibrary.utils.TvContractUtils;
+import com.droidlogic.dtvkit.companionlibrary.utils.TvContractUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

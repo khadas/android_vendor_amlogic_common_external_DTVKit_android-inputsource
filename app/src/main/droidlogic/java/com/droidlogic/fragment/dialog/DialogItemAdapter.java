@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.util.LinkedList;
 import java.util.regex.Pattern;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class DialogItemAdapter extends BaseAdapter {
 

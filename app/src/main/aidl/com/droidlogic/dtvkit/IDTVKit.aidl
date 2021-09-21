@@ -1,8 +1,8 @@
 // IDTVKit.aidl
-package org.dtvkit;
+package com.droidlogic.dtvkit;
 
-import org.dtvkit.ISignalHandler;
-import org.dtvkit.IOverlayTarget;
+import com.droidlogic.dtvkit.ISignalHandler;
+import com.droidlogic.dtvkit.IOverlayTarget;
 
 interface IDTVKit {
     String request(String method, String json);

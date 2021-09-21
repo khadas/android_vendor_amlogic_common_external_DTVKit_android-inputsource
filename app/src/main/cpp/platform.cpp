@@ -133,7 +133,7 @@ using namespace android;
 
 #endif
 
-extern "C" JNIEXPORT jboolean JNICALL Java_org_dtvkit_inputsource_Platform_setNativeSurface(JNIEnv *env, jclass thiz, jobject surface)
+extern "C" JNIEXPORT jboolean JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_setNativeSurface(JNIEnv *env, jclass thiz, jobject surface)
 {
    if (set != JNI_TRUE)
    {
@@ -167,7 +167,7 @@ extern "C" JNIEXPORT jboolean JNICALL Java_org_dtvkit_inputsource_Platform_setNa
    return set;
 }
 
-extern "C" JNIEXPORT void JNICALL Java_org_dtvkit_inputsource_Platform_unsetNativeSurface(JNIEnv* env, jclass thiz) {
+extern "C" JNIEXPORT void JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_unsetNativeSurface(JNIEnv* env, jclass thiz) {
    if (set == JNI_TRUE)
    {
       #ifdef PLATFORM_BROADCOM
@@ -178,18 +178,18 @@ extern "C" JNIEXPORT void JNICALL Java_org_dtvkit_inputsource_Platform_unsetNati
    }
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_dtvkit_inputsource_Platform_getNativeSurfaceX(JNIEnv *env, jobject instance) {
+extern "C" JNIEXPORT jint JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_getNativeSurfaceX(JNIEnv *env, jobject instance) {
    return surface_x;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_dtvkit_inputsource_Platform_getNativeSurfaceY(JNIEnv *env, jobject instance) {
+extern "C" JNIEXPORT jint JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_getNativeSurfaceY(JNIEnv *env, jobject instance) {
    return surface_y;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_dtvkit_inputsource_Platform_getNativeSurfaceWidth(JNIEnv *env, jobject instance) {
+extern "C" JNIEXPORT jint JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_getNativeSurfaceWidth(JNIEnv *env, jobject instance) {
    return surface_width;
 }
 
-extern "C" JNIEXPORT jint JNICALL Java_org_dtvkit_inputsource_Platform_getNativeSurfaceHeight(JNIEnv *env, jobject instance) {
+extern "C" JNIEXPORT jint JNICALL Java_com.droidlogic.dtvkit_inputsource_Platform_getNativeSurfaceHeight(JNIEnv *env, jobject instance) {
    return surface_height;
 }

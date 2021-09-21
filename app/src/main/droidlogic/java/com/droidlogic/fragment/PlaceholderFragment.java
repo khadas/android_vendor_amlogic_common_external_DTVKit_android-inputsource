@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 public class PlaceholderFragment extends Fragment {
 
@@ -55,7 +55,7 @@ public class PlaceholderFragment extends Fragment {
                 try {
                     Intent intent = getActivity().getIntent();
                     //intent.setClassName("com.android.tv", "com.android.tv.droidlogic.ChannelSearchActivity");
-                    intent.setClassName("org.dtvkit.inputsource", "org.dtvkit.inputsource.DtvkitDvbsSetup");
+                    intent.setClassName("com.droidlogic.dtvkit.inputsource", "com.droidlogic.dtvkit.inputsource.DtvkitDvbsSetup");
                     getActivity().startActivityForResult(intent, ScanMainActivity.REQUEST_CODE_START_SETUP_ACTIVITY);
                     Log.d(TAG, "ScanChannelFragment");
                 } catch (ActivityNotFoundException e) {

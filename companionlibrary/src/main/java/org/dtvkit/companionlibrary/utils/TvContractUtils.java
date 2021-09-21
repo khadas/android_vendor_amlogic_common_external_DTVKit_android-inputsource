@@ -16,7 +16,7 @@
  * Modifications copyright (C) 2018 DTVKit
  */
 
-package org.dtvkit.companionlibrary.utils;
+package com.droidlogic.dtvkit.companionlibrary.utils;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -40,10 +40,10 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.PersistableBundle;
 
-import org.dtvkit.companionlibrary.model.Channel;
-import org.dtvkit.companionlibrary.model.Program;
-import org.dtvkit.companionlibrary.model.InternalProviderData;
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.model.Channel;
+import com.droidlogic.dtvkit.companionlibrary.model.Program;
+import com.droidlogic.dtvkit.companionlibrary.model.InternalProviderData;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +62,7 @@ import java.util.Collections;
  * Static helper methods for working with {@link android.media.tv.TvContract}.
  */
 public class TvContractUtils {
-    public static final String PREFERENCES_FILE_KEY = "org.dtvkit.companionlibrary";
+    public static final String PREFERENCES_FILE_KEY = "com.droidlogic.dtvkit.companionlibrary";
     private static final String TAG = "TvContractUtils";
     private static final boolean DEBUG = true;
     private static final int BATCH_OPERATION_COUNT = 50;

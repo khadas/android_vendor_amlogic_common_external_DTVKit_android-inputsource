@@ -1,5 +1,5 @@
 // ILanguageSetting.aidl
-package org.dtvkit;
+package com.droidlogic.dtvkit;
 
 // Declare any non-default types here with import statements
 

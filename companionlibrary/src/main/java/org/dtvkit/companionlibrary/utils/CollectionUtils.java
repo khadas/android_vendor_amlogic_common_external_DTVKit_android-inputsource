@@ -15,7 +15,7 @@
  *
  * Modifications copyright (C) 2018 DTVKit
  */
-package org.dtvkit.companionlibrary.utils;
+package com.droidlogic.dtvkit.companionlibrary.utils;
 
 import java.util.Arrays;
 /**

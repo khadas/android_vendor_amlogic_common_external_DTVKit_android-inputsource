@@ -24,9 +24,9 @@ import android.util.Log;
 import android.os.Build.VERSION;
 
 import org.droidlogic.dtvkit.DtvkitGlueClient;
-import org.dtvkit.inputsource.DataMananer;
-import org.dtvkit.inputsource.ISO639Data;
-import org.dtvkit.inputsource.TargetRegionManager;
+import com.droidlogic.dtvkit.inputsource.DataMananer;
+import com.droidlogic.dtvkit.inputsource.ISO639Data;
+import com.droidlogic.dtvkit.inputsource.TargetRegionManager;
 
 import com.droidlogic.app.DataProviderManager;
 import com.droidlogic.settings.ConstantManager;

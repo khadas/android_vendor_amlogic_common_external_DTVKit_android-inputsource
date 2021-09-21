@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -133,10 +133,10 @@ public class DataMananer {
     public static final String KEY_SELECT_SEARCH_ACTIVITY = "search_activity";
     public static final String KEY_IS_DVBT = "is_dvbt";
     public static final String KEY_START_SCAN_FOR_AUTOMATIC = "start_scan_for_automatic";
-    public static final String KEY_PACKAGE_NAME = "org.dtvkit.inputsource";
-    public static final String KEY_ACTIVITY_DVBT = "org.dtvkit.inputsource.DtvkitDvbtSetup";
-    public static final String KEY_ACTIVITY_DVBS = "org.dtvkit.inputsource.DtvkitDvbsSetup";
-    public static final String KEY_ACTIVITY_ISDBT = "org.dtvkit.inputsource.DtvkitIsdbtSetup";
+    public static final String KEY_PACKAGE_NAME = "com.droidlogic.dtvkit.inputsource";
+    public static final String KEY_ACTIVITY_DVBT = "com.droidlogic.dtvkit.inputsource.DtvkitDvbtSetup";
+    public static final String KEY_ACTIVITY_DVBS = "com.droidlogic.dtvkit.inputsource.DtvkitDvbsSetup";
+    public static final String KEY_ACTIVITY_ISDBT = "com.droidlogic.dtvkit.inputsource.DtvkitIsdbtSetup";
     public static final String KEY_ACTIVITY_SETTINGS = "com.droidlogic.settings.DtvkitDvbSettings";
     public static final int SELECT_DVBC = 0;
     public static final int SELECT_DVBT = 1;

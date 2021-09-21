@@ -18,13 +18,13 @@ import java.util.List;
 import com.droidlogic.readdbfile.Sqlite.SqliteManager;
 import com.droidlogic.readdbfile.Sqlite.TvData;
 
-import org.dtvkit.inputsource.R;
+import com.droidlogic.dtvkit.inputsource.R;
 
 /*
  * add function to insert channels or programs to tv provider, but need copy dtvkit.sqlite3 manually
  * logcat -s ReadDbActivity TvData SqliteManager AndroidRuntime
  * /data/data/com.android.providers.tv/databases/tv.db
- * /data/data/org.dtvkit.inputsource/dtvkit.sqlite3
+ * /data/data/com.droidlogic.dtvkit.inputsource/dtvkit.sqlite3
  */
 
 public class ReadDbActivity extends Activity {

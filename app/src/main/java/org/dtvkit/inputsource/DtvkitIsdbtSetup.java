@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -35,7 +35,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

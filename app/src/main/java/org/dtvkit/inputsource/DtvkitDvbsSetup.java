@@ -1,4 +1,4 @@
-package org.dtvkit.inputsource;
+package com.droidlogic.dtvkit.inputsource;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -31,7 +31,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-import org.dtvkit.companionlibrary.EpgSyncJobService;
+import com.droidlogic.dtvkit.companionlibrary.EpgSyncJobService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -537,7 +537,7 @@ public class DtvkitDvbsSetup extends Activity {
     private void setUp() {
         try {
             Intent intent = new Intent();
-            intent.setClassName("org.dtvkit.inputsource", "com.droidlogic.fragment.ScanMainActivity");
+            intent.setClassName("com.droidlogic.dtvkit.inputsource", "com.droidlogic.fragment.ScanMainActivity");
             String inputId = this.getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
             if (inputId != null) {
                 intent.putExtra(TvInputInfo.EXTRA_INPUT_ID, inputId);
