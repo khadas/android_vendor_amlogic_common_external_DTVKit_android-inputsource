@@ -658,7 +658,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         onChannelsChanged();
         onRecordingsChanged();
         mSystemControlManager = SystemControlManager.getInstance();
-        mSystemControlEvent = SystemControlEvent.getInstance(null);
+        mSystemControlEvent = new SystemControlEvent(this);
         mSystemControlEvent.setDisplayModeListener(this);
         mSystemControlManager.setListener(mSystemControlEvent);
         //DtvkitGlueClient.getInstance().setSystemControlHandler(mSysControlHandler);
