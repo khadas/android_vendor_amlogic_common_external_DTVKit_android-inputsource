@@ -5311,6 +5311,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     break;
                 case MSG_MIX_AD_SET_ASSOCIATE://set Associate Audio by handle
                     result = playersetAudioDescriptionOn(param1 == 1);
+                    result = playerPipsetAudioDescriptionOn(param1 == 1);
                     Log.d(TAG, "setAdFunction MSG_MIX_AD_SET_ASSOCIATE result=" + result
                             + "setAudioDescriptionOn " + (param1 == 1));
                     break;
