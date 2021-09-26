@@ -64,7 +64,7 @@ import java.util.Collections;
 public class TvContractUtils {
     public static final String PREFERENCES_FILE_KEY = "com.droidlogic.dtvkit.companionlibrary";
     private static final String TAG = "TvContractUtils";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final int BATCH_OPERATION_COUNT = 50;
 
     private static final String[] USER_SETTING_FLAG_KEY = {Channel.KEY_SET_FAVOURITE, Channel.KEY_SET_HIDDEN, Channel.KEY_IS_FAVOURITE, Channel.KEY_FAVOURITE_INFO, Channel.KEY_HIDDEN,
@@ -385,7 +385,9 @@ public class TvContractUtils {
                 }
                 child.put(USER_SETTING_FLAG_KEY[i], tempStr);
             } catch (Exception e) {
-                Log.i(TAG, "saveRawUseSettingValuesToMap can't get " + USER_SETTING_FLAG_KEY[i]);
+                if (DEBUG) {
+                    Log.i(TAG, "saveRawUseSettingValuesToMap can't get " + USER_SETTING_FLAG_KEY[i]);
+                }
             }
         }
         map.put(uniqueKey, child);
@@ -412,7 +414,9 @@ public class TvContractUtils {
                 }
                 internalProviderData.put(USER_SETTING_FLAG_KEY[i], tempStr);
             } catch (Exception e) {
-                Log.i(TAG, "restoreRawUseSettingValuesToInternalProviderData can't get " + USER_SETTING_FLAG_KEY[i]);
+                if (DEBUG) {
+                    Log.i(TAG, "restoreRawUseSettingValuesToInternalProviderData can't get " + USER_SETTING_FLAG_KEY[i]);
+                }
             }
         }
     }

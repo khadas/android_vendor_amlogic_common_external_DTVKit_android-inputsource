@@ -157,9 +157,11 @@ public class DtvkitEpgSync extends EpgSyncJobService {
             }
             JSONObject obj = DtvkitGlueClient.getInstance().request(request, new JSONArray());
 
-            Log.i(TAG, "getChannels=" + obj.toString());
+            //Log.i(TAG, "getChannels=" + obj.toString());
 
             JSONArray services = obj.getJSONArray("data");
+
+            Log.i(TAG, "getChannels size=" + services.length());
 
             for (int i = 0; i < services.length(); i++)
             {
@@ -361,7 +363,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
         try {
             String dvbUri = getDtvkitChannelUri(channel);
 
-            Log.i(TAG, String.format("Get channel programs for epg sync. Uri %s", dvbUri));
+            //Log.i(TAG, String.format("Get channel programs for epg sync. Uri %s", dvbUri));
 
             JSONArray args = new JSONArray();
             args.put(dvbUri); // uri
@@ -398,7 +400,9 @@ public class DtvkitEpgSync extends EpgSyncJobService {
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
-        Log.i(TAG, "## programs["+ programs.size() +"] ##");
+        if (programs.size() > 0) {
+            Log.i(TAG, "## programs["+ programs.size() +"] ##, Uri:" + getDtvkitChannelUri(channel));
+        }
 
         return programs;
     }

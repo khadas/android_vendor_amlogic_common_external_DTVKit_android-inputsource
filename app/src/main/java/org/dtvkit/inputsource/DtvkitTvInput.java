@@ -148,7 +148,6 @@ import java.util.Enumeration;
 
 public class DtvkitTvInput extends TvInputService implements SystemControlEvent.DisplayModeListener  {
     private static final String TAG = "DtvkitTvInput";
-    private LongSparseArray<Channel> mChannels;
     private ContentResolver mContentResolver;
 
     protected String mInputId = null;
@@ -467,7 +466,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         initInputThreadHandler();
         mTvInputManager = (TvInputManager)this.getSystemService(Context.TV_INPUT_SERVICE);
         mContentResolver = getContentResolver();
-        mContentResolver.registerContentObserver(TvContract.Channels.CONTENT_URI, true, mContentObserver);
+        //mContentResolver.registerContentObserver(TvContract.Channels.CONTENT_URI, true, mContentObserver);
         mContentResolver.registerContentObserver(TvContract.RecordedPrograms.CONTENT_URI, true, mRecordingsContentObserver);
         mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
@@ -655,7 +654,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         Log.d(TAG, "initDtvkitTvInput start");
         mSysSettingManager = new SysSettingManager(this);
         mDataMananer = new DataMananer(this);
-        onChannelsChanged();
+        //onChannelsChanged();
         onRecordingsChanged();
         mSystemControlManager = SystemControlManager.getInstance();
         mSystemControlEvent = new SystemControlEvent(this);
@@ -876,7 +875,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         if (mAutoTimeManager != null) {
             mAutoTimeManager.release();
         }
-        mContentResolver.unregisterContentObserver(mContentObserver);
+        //mContentResolver.unregisterContentObserver(mContentObserver);
         mContentResolver.unregisterContentObserver(mRecordingsContentObserver);
         DtvkitGlueClient.getInstance().unregisterSignalHandler(mRecordingManagerHandler);
         //DtvkitGlueClient.getInstance().setSystemControlHandler(null);
@@ -1006,14 +1005,26 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
             Log.i(TAG, "onCreateDtvkitOverlayView");
 
+            int subFlg = getSubtitleFlag();
+            boolean enableCC = false;
+            if (subFlg >= SUBCTL_HK_DVBSUB) {
+                if ((subFlg & SUBCTL_HK_CC) == SUBCTL_HK_CC) {
+                    enableCC = true;
+                }
+            }
+
             nativeOverlayView = new NativeOverlayView(getContext());
             ciOverlayView = new CiMenuView(getContext());
             mSubServerView = new SubtitleServerView(getContext(), mainHandler);
-            mCCSubView     = new CCSubtitleView(getContext());
+            if (enableCC) {
+                mCCSubView     = new CCSubtitleView(getContext());
+            }
             mCasOsm = new TextView(getContext());
             this.addView(mSubServerView);
             this.addView(nativeOverlayView);
-            this.addView(mCCSubView);
+            if (enableCC) {
+                this.addView(mCCSubView);
+            }
             this.addView(ciOverlayView);
             initRelativeLayout();
             this.addView(mCasOsm);
@@ -1021,12 +1032,35 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void destroy() {
-            ciOverlayView.destroy();
-            removeView(mSubServerView);
-            removeView(nativeOverlayView);
-            removeView(ciOverlayView);
-            removeView(mRelativeLayout);
-            removeView(mCCSubView);
+            if (mSubServerView != null) {
+                mSubServerView.destroy();
+                removeView(mSubServerView);
+                mSubServerView = null;
+            }
+            if (nativeOverlayView != null) {
+                nativeOverlayView.destroy();
+                removeView(nativeOverlayView);
+                nativeOverlayView = null;
+            }
+            if (ciOverlayView != null) {
+                ciOverlayView.destroy();
+                removeView(ciOverlayView);
+                ciOverlayView = null;
+            }
+            if (mRelativeLayout != null) {
+                removeView(mRelativeLayout);
+                mText = null;
+                mTuningImage = null;
+                mRelativeLayout = null;
+            }
+            if (mCCSubView != null) {
+                removeView(mCCSubView);
+                mCCSubView = null;
+            }
+            if (mCasOsm != null) {
+                removeView(mCasOsm);
+                mCasOsm = null;
+            }
         }
 
         public void hideOverLay() {
@@ -1449,28 +1483,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     class SubtitleServerView extends View {
         Bitmap overlay1 = null;
-        Bitmap overlay2 = null;
-        Bitmap overlay_update = null;
-        Bitmap overlay_draw = null;
-        Bitmap region = null;
-        int region_width = 0;
-        int region_height = 0;
-        int left = 0;
-        int top = 0;
-        int width = 0;
-        int height = 0;
         Rect src, dst;
         private Handler mHandler = null;
 
         int mPauseExDraw = 0;
         boolean mTtxTransparent = false;
-        static final int SUBTITLE_SUB_TYPE_DVB  = 5;
-        static final int SUBTITLE_SUB_TYPE_TTX  = 9;
-        static final int SUBTITLE_SUB_TYPE_CLOSED_CATPTION = 10;
-        static final int SUBTITLE_SUB_TYPE_SCTE = 11;
-        static final int TTX_FIXED_WIDTH = 480;
-        static final int TTX_FIXED_HEIGHT = 525;
 
+        static final int SUBTITLE_SUB_TYPE_TTX  = 9;
         static final int MSG_SUBTITLE_SHOW_CLOSED_CAPTION = 5;
         protected static final int MSG_SET_TELETEXT_MIX_NORMAL = 6;
         protected static final int MSG_SET_TELETEXT_MIX_TRANSPARENT = 7;
@@ -1487,107 +1506,76 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     return;
                 }
 
-                if (overlay1 == null) {
-                    /* TODO The overlay size should come from the tif (and be updated on onOverlayViewSizeChanged) */
-                    /* Create 2 layers for double buffering */
-                    overlay1 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-                    overlay2 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-
-                    overlay_draw = overlay1;
-                    overlay_update = overlay2;
-
-                    /* Clear the overlay that will be drawn initially */
-                    Canvas canvas = new Canvas(overlay_draw);
-                    canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                }
-
                 /* TODO Temporary private usage of API. Add explicit methods if keeping this mechanism */
                 if (src_width == 0 || src_height == 0) {
-                    if (dst_width == 9999) {
+                    if (dst_width == 9999 && overlay1 != null) {
                         /* 9999 dst_width indicates the overlay should be cleared */
-                        Canvas canvas = new Canvas(overlay_update);
-                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                    }
-                    else if (dst_height == 9999) {
-                        /* 9999 dst_height indicates the drawn regions should be displayed on the overlay */
-                        /* The update layer is now ready to be displayed so switch the overlays
-                         * and use the other one for the next update */
                         sem.acquireUninterruptibly();
-                        Bitmap temp = overlay_draw;
-                        overlay_draw = overlay_update;
-                        src = new Rect(0, 0, overlay_draw.getWidth(), overlay_draw.getHeight());
-                        overlay_update = temp;
+                        Canvas canvas = new Canvas(overlay1);
+                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
                         sem.release();
                         postInvalidate();
-                        return;
                     }
-                    else {
-                        /* 0 dst_width and 0 dst_height indicates to add the region to overlay */
-                        if (region != null) {
-                            float scaleX = (float)(overlay_draw.getWidth())/(float)(width);
-                            float scaleY = (float)(overlay_draw.getHeight())/(float)(height);
-                            float ttxScaleVideo = 1.0f;
-                            float ttxScaleDst   = 1.0f;
-                            boolean ttxPageTmpTrans = (dst_x == 1);//ttx not use x,y as coords
-                            Canvas canvas = new Canvas(overlay_update);
-                            Rect src_l = new Rect(0, 0, region_width, region_height);
-                            Rect dst_l;
-                            int l = left;
-                            int t = top;
-                            int w = region_width;
-                            int h = region_height;
-                            if (parserType == SUBTITLE_SUB_TYPE_TTX) {
-                                l = (width - TTX_FIXED_WIDTH)/2;
-                                t = (height - TTX_FIXED_HEIGHT)/2;
-                                w = TTX_FIXED_WIDTH;
-                                h= TTX_FIXED_HEIGHT;
-                                if (playerIsTeletextOn() && !mTtxTransparent && !ttxPageTmpTrans) {
-                                    canvas.drawColor(0xFF000000);
-                                }
-                            }
-                            dst_l = new Rect((int)(l*scaleX), (int)(t*scaleY),
-                                    (int)((w + l)*scaleX),
-                                    (int)((h + t)*scaleY));
-                            Log.d(TAG, "SubtitleServiceDraw: dst_l left=" + dst_l.left + ", top=" + dst_l.top
-                                + ", right=" + dst_l.right + ", bottom=" + dst_l.bottom);
-
-                            Paint paint = new Paint();
-                            paint.setAntiAlias(true);
-                            paint.setFilterBitmap(true);
-                            paint.setDither(true);
-                            canvas.drawBitmap(region, src_l, dst_l, paint);
-                            region.recycle();
-                            region = null;
+                } else {
+                    if (data.length == 0)
+                        return;
+                    /* Build an array of ARGB_8888 pixels as signed ints and add this part to the region */
+                    sem.acquireUninterruptibly();
+                    if (overlay1 == null) {
+                        /* TODO The overlay size should come from the tif (and be updated on onOverlayViewSizeChanged) */
+                        overlay1 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
+                        /* Clear the overlay that will be drawn initially */
+                        //Canvas canvas = new Canvas(overlay1);
+                        //canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                    }
+                    Canvas canvas = new Canvas(overlay1);
+                    boolean ttxPageTmpTrans = (dst_x == 1);//ttx not use x,y as coords
+                    Rect overlay_dst = new Rect(0, 0, overlay1.getWidth(), overlay1.getHeight());
+                    Bitmap region = Bitmap.createBitmap(data, 0, src_width, src_width, src_height, Bitmap.Config.ARGB_8888);
+                    int x = dst_x;
+                    int y = dst_y;
+                    int w = src_width;
+                    int h = src_height;
+                    if (parserType == SUBTITLE_SUB_TYPE_TTX) {
+                        x = 120;//ttx fixed with 480x525 shown in 720x480
+                        y = 0;
+                        w = 480;
+                        h = 525;
+                    }
+                    if ((dst_width == 0)
+                        || (dst_height == 0)
+                        || (dst_width < (w + x))
+                        || (dst_height < (h + y))) {
+                        overlay_dst.left = x;
+                        overlay_dst.top = y;
+                        overlay_dst.right = overlay1.getWidth() - overlay_dst.left;
+                        overlay_dst.bottom = overlay1.getHeight() - overlay_dst.top;
+                    } else {
+                        if (x > 0) {
+                            float scaleX = (float)(overlay1.getWidth())/(float)(dst_width);
+                            overlay_dst.left = (int)(scaleX*x);
+                            overlay_dst.right = (int)(scaleX*(w + x));
+                        }
+                        if (y > 0) {
+                            float scaleY = (float)(overlay1.getHeight())/(float)(dst_height);
+                            overlay_dst.top = (int)(scaleY*y);
+                            overlay_dst.bottom = (int)(scaleY*(h + y));
                         }
                     }
-                    return;
-                }
-
-                int part_bottom = 0;
-                if (region == null) {
-                    /* TODO Create temporary region buffer using region_width and overlay height */
-                    region_width = src_width;
-                    region_height = src_height;
-                    region = Bitmap.createBitmap(region_width, region_height, Bitmap.Config.ARGB_8888);
-                    left = dst_x;
-                    top = dst_y;
-                    width = (dst_width == 0)?region_width:dst_width;
-                    height = (dst_height == 0)?region_height:dst_height;
-                    if (parserType == SUBTITLE_SUB_TYPE_TTX) {
-                        width = 720;
-                        height  =576;
+                    if (playerIsTeletextOn() && !mTtxTransparent && !ttxPageTmpTrans) {
+                        canvas.drawColor(0xFF000000);
+                    } else {
+                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
                     }
+                    Paint paint = new Paint();
+                    paint.setAntiAlias(true);
+                    paint.setFilterBitmap(true);
+                    paint.setDither(true);
+                    canvas.drawBitmap(region, null, overlay_dst, paint);
+                    region.recycle();
+                    sem.release();
+                    postInvalidate();
                 }
-                else {
-                    part_bottom = region_height;
-                    region_height += src_height;
-                }
-
-                /* Build an array of ARGB_8888 pixels as signed ints and add this part to the region */
-                Bitmap part = Bitmap.createBitmap(data, 0, src_width, src_width, src_height, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(region);
-                canvas.drawBitmap(part, 0, 0, null);
-                part.recycle();
             }
 
             @Override
@@ -1653,21 +1641,35 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void clearSubtitle(){
-            Canvas canvas = new Canvas(overlay_draw);
-            canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+            sem.acquireUninterruptibly();
+            if (overlay1 != null) {
+                Canvas canvas = new Canvas(overlay1);
+                canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+            }
+            sem.release();
         }
 
         public void setOverlaySubtitleListener(DtvkitGlueClient.SubtitleListener listener) {
             DtvkitGlueClient.getInstance().setSubtileListener(listener);
         }
 
+        public void destroy() {
+            sem.acquireUninterruptibly();
+            DtvkitGlueClient.getInstance().setSubtileListener(null);
+            if (overlay1 != null) {
+                overlay1.recycle();
+                overlay1 = null;
+            }
+            sem.release();
+        }
+
         @Override
         protected void onDraw(Canvas canvas)
         {
-            super.onDraw(canvas);
             sem.acquireUninterruptibly();
-            if (overlay_draw != null) {
-                canvas.drawBitmap(overlay_draw, src, dst, null);
+            super.onDraw(canvas);
+            if (overlay1 != null) {
+                canvas.drawBitmap(overlay1, src, dst, null);
             }
             sem.release();
         }
@@ -1683,27 +1685,23 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         private final DtvkitGlueClient.OverlayTarget mTarget = new DtvkitGlueClient.OverlayTarget() {
             @Override
             public void draw(int src_width, int src_height, int dst_x, int dst_y, int dst_width, int dst_height, int[] data) {
-                if (overlay1 == null) {
-                    /* TODO The overlay size should come from the tif (and be updated on onOverlayViewSizeChanged) */
-                    overlay1 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
-                    /* Clear the overlay that will be drawn initially */
-                    Canvas canvas = new Canvas(overlay1);
-                    canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                }
-
-                /* TODO Temporary private usage of API. Add explicit methods if keeping this mechanism */
                 if (src_width == 0 || src_height == 0) {
                     if (dst_width == 9999) {
-                        /* 9999 dst_width indicates the overlay should be cleared */
-                        sem.acquireUninterruptibly();
-                        Canvas canvas = new Canvas(overlay1);
-                        canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-                        sem.release();
+                        // 9999 dst_width indicates the overlay should be cleared
+                        //sem.acquireUninterruptibly();
+                        //Canvas canvas = new Canvas(overlay1);
+                        //canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                        //sem.release();
                     }
                 } else {
                     if (data.length == 0)
                         return;
-                    /* Build an array of ARGB_8888 pixels as signed ints and add this part to the region */
+                    sem.acquireUninterruptibly();
+                    if (overlay1 == null) {
+                        overlay1 = Bitmap.createBitmap(1920, 1080, Bitmap.Config.ARGB_8888);
+                        //Canvas canvas = new Canvas(overlay1);
+                        //canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                    }
                     Rect overlay_dst = new Rect(0, 0, overlay1.getWidth(), overlay1.getHeight());
                     Bitmap region = Bitmap.createBitmap(data, 0, src_width, src_width, src_height, Bitmap.Config.ARGB_8888);
                     if ((dst_width == 0)
@@ -1726,12 +1724,11 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                             overlay_dst.bottom = (int)(scaleY*(src_height + dst_y));
                         }
                     }
-                    sem.acquireUninterruptibly();
                     Canvas canvas = new Canvas(overlay1);
                     canvas.drawColor(0, PorterDuff.Mode.CLEAR);
                     canvas.drawBitmap(region, null, overlay_dst, null);
-                    sem.release();
                     region.recycle();
+                    sem.release();
                     postInvalidate();
                 }
             }
@@ -1758,11 +1755,21 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             DtvkitGlueClient.getInstance().setOverlayTarget(target);
         }
 
+        public void destroy() {
+            sem.acquireUninterruptibly();
+            DtvkitGlueClient.getInstance().setOverlayTarget(null);
+            if (overlay1 != null) {
+                overlay1.recycle();
+                overlay1 = null;
+            }
+            sem.release();
+        }
+
         @Override
         protected void onDraw(Canvas canvas)
         {
-            super.onDraw(canvas);
             sem.acquireUninterruptibly();
+            super.onDraw(canvas);
             if (overlay1 != null) {
                 canvas.drawBitmap(overlay1, src, dst, null);
             }
@@ -2843,8 +2850,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     if (mIsPip) {
                         playerPipSetRectangle(0, 0, width, height);
                     } else {
-                        mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                        mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                        //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                        //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                         playerSetRectangle(0, 0, width, height);
                     }
                 }
@@ -2964,8 +2971,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (!mIsPip) {
                 if (supportFullPipFccArchitecture && !mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
-                    mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                    mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                    //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                    //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
                         mHardware.setSurface(mSurface, mConfigs[1]);
                         setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
@@ -4625,14 +4632,10 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                    }
                    Log.i(TAG, "ServiceRetuned " + dvbUri);
                    //find the channel URI that matches the dvb uri of the retune
-                   for (i = 0;i < mChannels.size();i++)
-                   {
-                      channel = mChannels.get(mChannels.keyAt(i));
-                      if (dvbUri.equals(getChannelInternalDvbUri(channel))) {
-                         found = true;
-                         id = mChannels.keyAt(i);
-                         break;
-                      }
+                   channel = getChannelWithDvbUril(dvbUri);
+                   if (channel != null) {
+                       found = true;
+                       id = channel.getId();
                    }
                    if (found)
                    {
@@ -5369,8 +5372,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mTuned = true;
                 if (getFeatureSupportFullPipFccArchitecture() && !mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
-                    mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                    mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                    //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                    //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
                         mHardware.setSurface(mSurface, mConfigs[1]);
                         setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
@@ -5721,6 +5724,90 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 }
             }
         }
+
+        private Channel getChannel(Uri channelUri) {
+            Channel channel = null;
+            Cursor cursor = null;
+            try {
+                if (channelUri != null) {
+                    cursor = mContext.getContentResolver().query(channelUri, Channel.PROJECTION, null, null, null);
+                }
+                while (null != cursor && cursor.moveToNext()) {
+                    channel = Channel.fromCursor(cursor);
+                }
+            } catch (Exception e) {
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+            return channel;
+        }
+
+        private Channel getChannel(long channelId) {
+            return getChannel(TvContract.buildChannelUri(channelId));
+        }
+
+        private Channel getChannelWithDvbUril(String dvbUri) {
+            Channel channel = null;
+            Cursor cursor = null;
+            Uri uri = TvContract.buildChannelsUriForInput(mInputId);
+            if (TextUtils.isEmpty(dvbUri)) {
+                return channel;
+            }
+            try {
+                if (uri != null) {
+                    cursor = mContext.getContentResolver().query(uri, Channel.PROJECTION, null, null, null);
+                }
+                if (cursor == null || cursor.getCount() == 0) {
+                    return null;
+                }
+                while (cursor.moveToNext()) {
+                    Channel nextChannel = Channel.fromCursor(cursor);
+                    if (nextChannel != null) {
+                        if (dvbUri.equals(getChannelInternalDvbUri(nextChannel))) {
+                            channel = nextChannel;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+            return channel;
+        }
+
+        private Channel getFirstChannel() {
+            Channel channel = null;
+            Cursor cursor = null;
+            Uri uri = TvContract.buildChannelsUriForInput(mInputId);
+            String signalType = dvbSourceToChannelTypeString(getCurrentDvbSource());
+            try {
+                if (uri != null) {
+                    cursor = mContext.getContentResolver().query(uri, Channel.PROJECTION, null, null, null);
+                }
+                if (cursor == null || cursor.getCount() == 0) {
+                    return null;
+                }
+                while (cursor.moveToNext()) {
+                    Channel nextChannel = Channel.fromCursor(cursor);
+                    if (nextChannel != null && nextChannel.getType().contains(signalType)) {
+                        channel = nextChannel;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+            return channel;
+        }
+
     }
 
     private boolean resetRecordingPath() {
@@ -5749,39 +5836,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         return changed;
     }
 
-    private void onChannelsChanged() {
-        mChannels = TvContractUtils.buildChannelMap(mContentResolver, mInputId);
-    }
-
-    private Channel getChannel(Uri channelUri) {
-        if (mChannels != null && mChannels.size() > 0) {
-            return mChannels.get(ContentUris.parseId(channelUri));
-        } else {
-            return null;
-        }
-    }
-
-    private Channel getChannel(long channelId) {
-        if (mChannels != null && mChannels.size() > 0) {
-            return mChannels.get(channelId);
-        } else {
-            return null;
-        }
-    }
-
-    private Channel getFirstChannel() {
-        if (mChannels != null && mChannels.size() > 0) {
-            String signalType = dvbSourceToChannelTypeString(getCurrentDvbSource());
-            for (int i = 0; i < mChannels.size(); i++) {
-                Channel channel = (Channel)(mChannels.valueAt(i));
-                if (channel != null && channel.getType().contains(signalType)) {
-                    return channel;
-                }
-            }
-        }
-        return null;
-    }
-
     private String getChannelInternalDvbUri(Channel channel) {
         if (channel == null) {
             return "dvb://0000.0000.0000";
@@ -5798,8 +5852,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         String result = "";
         Channel channel = null;
         try {
-            if (mChannels != null && channelUri != null) {
-                channel = mChannels.get(ContentUris.parseId(channelUri));
+            if (getMainTunerSession() != null) {
+                channel = getMainTunerSession().getChannel(channelUri);
             }
             if (channel != null) {
                 result = channel.getInternalProviderData().get("dvbUri").toString();
@@ -7637,13 +7691,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
         return used;
     }
-
-    private final ContentObserver mContentObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            onChannelsChanged();
-        }
-    };
 
    private boolean recordingAddRecording(String dvbUri, boolean eventTriggered, long duration, StringBuffer response) {
        try {

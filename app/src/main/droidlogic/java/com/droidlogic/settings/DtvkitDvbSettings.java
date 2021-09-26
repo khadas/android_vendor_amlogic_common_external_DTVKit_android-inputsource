@@ -181,7 +181,31 @@ public class DtvkitDvbSettings extends Activity {
         EpgSyncJobService.cancelAllSyncRequests(this);
         String inputId = this.getIntent().getStringExtra(TvInputInfo.EXTRA_INPUT_ID);
         Log.i(TAG, String.format("inputId: %s", inputId));
+        int dvbSource = mParameterMananer.getCurrentDvbSource();
+        EpgSyncJobService.setChannelTypeFilter(dvbSourceToChannelTypeString(dvbSource));
         EpgSyncJobService.requestImmediateSync(this, inputId, true, new ComponentName(this, DtvkitEpgSync.class));
+    }
+
+    private String dvbSourceToChannelTypeString(int source) {
+        String result = "TYPE_DVB_T";
+
+        switch (source) {
+            case ParameterMananer.SIGNAL_COFDM:
+                result = "TYPE_DVB_T";
+                break;
+            case ParameterMananer.SIGNAL_QAM:
+                result = "TYPE_DVB_C";
+                break;
+            case ParameterMananer.SIGNAL_QPSK:
+                result = "TYPE_DVB_S";
+                break;
+            case ParameterMananer.SIGNAL_ISDBT:
+                result = "TYPE_ISDB_T";
+                break;
+            default:
+                break;
+        }
+        return result;
     }
 
     private void checkPassWordInfo() {

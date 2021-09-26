@@ -171,11 +171,11 @@ static void postSubtitleDataEx(int type, int width, int height, int dst_x, int d
                 //ScopedLocalRef<jintArray> array (env, env->NewIntArray(width * height));
                 jintArray array = env->NewIntArray(width * height);
                 env->SetIntArrayRegion(array, 0, width * height, (jint*)data);
-                env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 9999, 0, NULL);
+                //env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 9999, 0, NULL);
                 env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, width, height, dst_x, dst_y,
                    dst_width, dst_height, array);
-                env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 0, NULL);
-                env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 9999, NULL);
+                //env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 0, NULL);
+                //env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, 0, 0, dst_x, dst_y, 0, 9999, NULL);
                 env->DeleteLocalRef(array);
             } else {
                 env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, type, width, height, dst_x, dst_y,
@@ -196,7 +196,7 @@ static void clearSubtitleDataEx()
 
     if (env != NULL) {
         env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, 0, 0, 0, 0, 0, 9999, 0, NULL);
-        env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, 0, 0, 0, 0, 0, 0, 9999, NULL);
+        //env->CallVoidMethod(DtvkitObject, notifySubtitleCallbackEx, 0, 0, 0, 0, 0, 0, 9999, NULL);
     }
     if (attached) {
         DetachJniEnv();
