@@ -6395,6 +6395,18 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD, true);
                     }
                 }
+                bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_SS, false);
+                if (audioStream.getBoolean("ss")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_SS, true);
+                    }
+                }
+                bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD_SS, false);
+                if (audioStream.getBoolean("ad_ss")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    bundle.putBoolean(ConstantManager.KEY_TVINPUTINFO_AUDIO_AD_SS, true);
+                    }
+                }
                 String codes = audioStream.getString("codec");
                 int pid = audioStream.getInt("pid");
                 if (!TextUtils.isEmpty(codes)) {

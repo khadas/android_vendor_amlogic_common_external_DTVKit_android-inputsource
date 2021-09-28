@@ -140,6 +140,7 @@ public class ParameterMananer {
     public static final String KEY_SET_CHANNEL_BLOCKED = "key_set_channel_blocked";
     public static final String KEY_SET_CHANNEL_UNBLOCKED = "key_set_channel_unblocked";
     public static final String KEY_SET_GET_SPOKEN_SUBTITLE_ON = "key_set_get_set_spoken_subtitle_on";
+    public static final String KEY_GET_CURRENT_COUNTRY_NAME = "key_get_country_name";
 
     //default value that is save by index
     public static final int KEY_SATALLITE_DEFAULT_VALUE_INDEX = 0;
@@ -2209,6 +2210,9 @@ public class ParameterMananer {
                 } else {
                     result = "off";
                 }
+                break;
+            case KEY_GET_CURRENT_COUNTRY_NAME:
+                result = getCurrentCountryIso3Name();
                 break;
             default:
                 result = defaultJsonValue;

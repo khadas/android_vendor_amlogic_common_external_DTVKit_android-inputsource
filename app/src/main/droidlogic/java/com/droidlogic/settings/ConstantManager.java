@@ -85,6 +85,8 @@ public class ConstantManager {
     //audio
     public static final String KEY_TVINPUTINFO_AUDIO_INDEX = "audio_index";
     public static final String KEY_TVINPUTINFO_AUDIO_AD = "audio_ad";
+    public static final String KEY_TVINPUTINFO_AUDIO_SS = "audio_ss";
+    public static final String KEY_TVINPUTINFO_AUDIO_AD_SS = "audio_ad_ss";
     public static final String KEY_TVINPUTINFO_AUDIO_CODEC = "audio_codec";
     public static final String KEY_TVINPUTINFO_AUDIO_SAMPLING_RATE = "audio_sampling_rate";
     public static final String KEY_TVINPUTINFO_AUDIO_CHANNEL = "audio_channel";
