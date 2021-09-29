@@ -1272,19 +1272,22 @@ public class DtvkitDvbtSetup extends Activity {
         }
         String signal = (String)map.get("signal");
         JSONObject data = (JSONObject)map.get("data");
+        int sstatus = mParameterMananer.getStrengthStatus();
+        int qstatus = mParameterMananer.getQualityStatus();
         if (signal != null && ((mIsDvbt && signal.equals("DvbtStatusChanged")) || (!mIsDvbt && signal.equals("DvbcStatusChanged")))) {
             int progress = getSearchProcess(data);
             Log.d(TAG, "onSignal progress = " + progress);
             int found = getFoundServiceNumber();
             setSearchProgress(progress);
             setSearchStatus(String.format(Locale.ENGLISH, "Searching (%d%%)", progress), String.format(Locale.ENGLISH, "Found %d services", found));
-            int sstatus = mParameterMananer.getStrengthStatus();
-            int qstatus = mParameterMananer.getQualityStatus();
             setStrengthAndQualityStatus(String.format(Locale.ENGLISH, "Strength: %d%%", sstatus), String.format(Locale.ENGLISH, "Quality: %d%%", qstatus));
             if (progress >= 100) {
                 //onSearchFinished();
                 sendFinishSearch(false);
             }
+        }else if (signal != null && ((mIsDvbt && signal.equals("UpdateMsgStatus")) || (!mIsDvbt && signal.equals("UpdateMsgStatus")))) {
+            Log.d(TAG, "UpdateMsgStatus: sstatus = " + sstatus + "%, qstatus = " + qstatus + "%");
+            setStrengthAndQualityStatus(String.format(Locale.ENGLISH, "Strength: %d%%", sstatus), String.format(Locale.ENGLISH, "Quality: %d%%", qstatus));
         }
     }
 
