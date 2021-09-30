@@ -2850,8 +2850,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     if (mIsPip) {
                         playerPipSetRectangle(0, 0, width, height);
                     } else {
-                        //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                        //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                        mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                        mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                         playerSetRectangle(0, 0, width, height);
                     }
                 }
@@ -2971,8 +2971,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (!mIsPip) {
                 if (supportFullPipFccArchitecture && !mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
-                    //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                    //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                    mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                    mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
                         mHardware.setSurface(mSurface, mConfigs[1]);
                         setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
@@ -5372,8 +5372,8 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mTuned = true;
                 if (getFeatureSupportFullPipFccArchitecture() && !mSurfaceSent && mSurface != null) {
                     mSurfaceSent = true;
-                    //mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
-                    //mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
+                    mView.nativeOverlayView.setOverlayTarge(mView.nativeOverlayView.mTarget);
+                    mView.mSubServerView.setOverlaySubtitleListener(mView.mSubServerView.mSubListener);
                     if (isSdkAfterAndroidQ()) {
                         mHardware.setSurface(mSurface, mConfigs[1]);
                         setSurfaceTunnelId(INDEX_FOR_MAIN, 1);
