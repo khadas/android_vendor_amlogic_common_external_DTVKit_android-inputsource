@@ -1650,12 +1650,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void setOverlaySubtitleListener(DtvkitGlueClient.SubtitleListener listener) {
+            sem.acquireUninterruptibly();
             DtvkitGlueClient.getInstance().setSubtileListener(listener);
+            sem.release();
         }
 
         public void destroy() {
             sem.acquireUninterruptibly();
-            DtvkitGlueClient.getInstance().setSubtileListener(null);
+            //DtvkitGlueClient.getInstance().setSubtileListener(null);
             if (overlay1 != null) {
                 overlay1.recycle();
                 overlay1 = null;
@@ -1752,12 +1754,14 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         }
 
         public void setOverlayTarge(DtvkitGlueClient.OverlayTarget target) {
+            sem.acquireUninterruptibly();
             DtvkitGlueClient.getInstance().setOverlayTarget(target);
+            sem.release();
         }
 
         public void destroy() {
             sem.acquireUninterruptibly();
-            DtvkitGlueClient.getInstance().setOverlayTarget(null);
+            //DtvkitGlueClient.getInstance().setOverlayTarget(null);
             if (overlay1 != null) {
                 overlay1.recycle();
                 overlay1 = null;
@@ -3163,6 +3167,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             Log.i(TAG, "doRelease index = " + mCurrentDtvkitTvInputSessionIndex + ", mIsPip = " + mIsPip + ", keepSession = " + keepSession + ", needUpdate = " + needUpdate);
             if (!keepSession) {
                 removeTunerSession(this);
+                if (getFeatureSupportFullPipFccArchitecture()
+                    && mSurface != null
+                    && mSurfaceSent == true
+                    && mView != null) {
+                    mView.nativeOverlayView.setOverlayTarge(null);
+                    mView.mSubServerView.setOverlaySubtitleListener(null);
+                }
             }
             releaseSignalHandler();
             if (!mIsPip) {
