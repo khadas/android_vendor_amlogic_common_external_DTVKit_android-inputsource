@@ -3522,7 +3522,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         @Override
         public void notifyVideoUnavailable(final int reason) {
             super.notifyVideoUnavailable(reason);
-            if (TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY == reason) {
+            if (TvInputManager.VIDEO_UNAVAILABLE_REASON_AUDIO_ONLY == reason || TvInputManager.VIDEO_UNAVAILABLE_REASON_WEAK_SIGNAL == reason) {
                 if (mMainHandle != null) {
                     mMainHandle.sendEmptyMessage(MSG_HIDE_SCAMBLEDTEXT);
                     mMainHandle.sendEmptyMessage(MSG_HIDE_TUNING_IMAGE);
