@@ -61,6 +61,7 @@ public final class Channel {
     private String mNetworkAffiliation;
     private int mSearchable = 1;//default searchable
     private String mServiceType;
+    private int mIsLocked;
 
     //sync with ChannelInfo in droidlogic-tv.jar
     public static final String KEY_IS_FAVOURITE = "is_favourite";
@@ -273,6 +274,13 @@ public final class Channel {
         return mVideoCodec;
     }
 
+    /**
+     * @return The value of {@link TvContract.Channels#COLUMN_LOCKED} for the channel.
+     */
+    public boolean isLocked() {
+        return (mIsLocked == 1);
+    }
+
     @Override
     public String toString() {
         return "Channel{"
@@ -287,6 +295,7 @@ public final class Channel {
                 + ", channelLogo=" + mChannelLogo
                 + ", videoFormat=" + mVideoFormat
                 + ", mVideoCodec=" + mVideoCodec
+                + ", mIsLocked="   + mIsLocked
                 + ", appLinkText=" + mAppLinkText + "}";
     }
 
@@ -335,6 +344,7 @@ public final class Channel {
         } else {
             values.putNull(TvContract.Channels.COLUMN_VIDEO_FORMAT);
         }
+        values.put(TvContract.Channels.COLUMN_LOCKED, mIsLocked);
         if (mInternalProviderData != null && mInternalProviderData.length > 0) {
             values.put(TvContract.Channels.COLUMN_INTERNAL_PROVIDER_DATA, mInternalProviderData);
         } else {
@@ -400,6 +410,7 @@ public final class Channel {
         mNetworkAffiliation = other.mNetworkAffiliation;
         mSearchable = other.mSearchable;
         mServiceType = other.mServiceType;
+        mIsLocked = other.mIsLocked;
     }
 
     /**
@@ -458,6 +469,9 @@ public final class Channel {
         if (!cursor.isNull(++index)) {
             builder.setVideoFormat(cursor.getString(index));
         }
+        if (!cursor.isNull(++index)) {
+            builder.setLocked(cursor.getInt(index));
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!cursor.isNull(++index)) {
                 builder.setAppLinkColor(cursor.getInt(index));
@@ -502,6 +516,7 @@ public final class Channel {
                 TvContract.Channels.COLUMN_TRANSPORT_STREAM_ID,
                 TvContract.Channels.COLUMN_TYPE,
                 TvContract.Channels.COLUMN_VIDEO_FORMAT,
+                TvContract.Channels.COLUMN_LOCKED,
         };
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] marshmallowColumns = new String[] {
@@ -822,6 +837,18 @@ public final class Channel {
          */
         public Builder setServiceType(String serviceType) {
             mChannel.mServiceType = serviceType;
+            return this;
+        }
+
+        /**
+         * Sets whether this channel is locked.
+         *
+         * @param isLocked The value of
+         * {@link TvContract.Channels#COLUMN_LOCKED} for the channel.
+         * @return This Builder object to allow for chaining of calls to builder methods.
+         */
+        public Builder setLocked(int isLocked) {
+            mChannel.mIsLocked = isLocked;
             return this;
         }
 

@@ -196,9 +196,6 @@ public class TvContractUtils {
         //Map<Uri, String> logos = new HashMap<>();
         for (Channel channel : channels) {
             ContentValues values = new ContentValues();
-            if (isSearched) {
-                values.put(Channels.COLUMN_LOCKED, 0);
-            }
             values.put(Channels.COLUMN_INPUT_ID, inputId);
             values.putAll(channel.toContentValues());
             // If some required fields are not populated, the app may crash, so defaults are used

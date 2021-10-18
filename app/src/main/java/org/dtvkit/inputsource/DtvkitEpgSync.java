@@ -287,6 +287,7 @@ public class DtvkitEpgSync extends EpgSyncJobService {
                         .setTransportStreamId(Integer.parseInt(uri.substring(11, 15), 16))
                         .setServiceId(Integer.parseInt(uri.substring(16, 20), 16))
                         .setInternalProviderData(data)
+                        .setLocked(service.optBoolean("blocked")?1:0)
                         .build());
             }
 
