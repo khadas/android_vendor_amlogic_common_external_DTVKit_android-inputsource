@@ -3178,6 +3178,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 scheduleTimeshiftRecording = false;
                 timeshiftRecorderState = RecorderState.STOPPED;
                 timeshifting = false;
+                mhegStop();
                 synchronized (mTunerSessionLock) {
                     if (sMainTvSession.get() == this
                             || sMainTvSession.get() == null) {
@@ -3185,7 +3186,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                         playerStop();
                     }
                 }
-                mhegStop();
                 playerSetSubtitlesOn(false);
                 playerSetTeletextOn(false, -1);
             } else {
