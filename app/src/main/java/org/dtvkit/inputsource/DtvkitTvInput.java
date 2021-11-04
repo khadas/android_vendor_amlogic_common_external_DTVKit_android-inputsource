@@ -34,6 +34,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.Parcelable;
 
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
@@ -3784,6 +3785,13 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 long channelId = data.getLong("channel_id");
                 requestBlockChannel(channelId, lock);
             } else if ("unblockContent".equals(action)) {
+                long id = data.getLong("channel_id", -1);
+                if (id >= 0) {
+                    Log.w(TAG, "id:" + id + ", " + mTunedChannel);
+                    if (mTunedChannel == null ||  id != mTunedChannel.getId()) {
+                        return;
+                    }
+                }
                 onUnblockContent(TvContentRating.createRating("com.android.tv", "DVB", "DVB_0"));
             }
         }
