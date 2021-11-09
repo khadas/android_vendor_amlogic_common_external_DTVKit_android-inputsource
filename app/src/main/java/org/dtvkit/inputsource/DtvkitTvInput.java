@@ -1423,7 +1423,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 mContentResolver.applyBatch(TvContract.AUTHORITY, ops);
                 //notify it as background process can receive it imediately
                 if (isSdkAfterAndroidQ()) {
-                    getContentResolver().notifyChange(TvContract.RecordedPrograms.CONTENT_URI, null, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
+                    getContentResolver().notifyChange(TvContract.RecordedPrograms.CONTENT_URI, mRecordingsContentObserver, 1 << 15/*ContentResolver.NOTIFY_NO_DELAY*/);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "recordings DB update failed.");
