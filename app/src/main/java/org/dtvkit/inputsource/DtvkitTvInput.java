@@ -171,10 +171,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     protected Hardware mPipHardware;
     private TvInputHardwareInfo mTvInputHardwareInfo = null;
     private TvInputHardwareInfo mPipTvInputHardwareInfo = null;
-
-    private static final WeakReference<DtvkitTvInputSession> NULL_TV_SESSION = new WeakReference<>(null);
-    private static WeakReference<DtvkitTvInputSession> sMainTvSession = NULL_TV_SESSION;
-
     protected TvStreamConfig[] mConfigs;
     protected TvStreamConfig[] mPipConfigs;
     private TvInputManager mTvInputManager;
@@ -223,7 +219,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
     private boolean scheduleTimeshiftRecording = false;
     private Handler scheduleTimeshiftRecordingHandler = null;
     private static long mDtvkitTvInputSessionCount = 0;
-
     private long mDtvkitRecordingSessionCount = 0;
     private DataMananer mDataMananer;
     private ParameterMananer mParameterMananer;
@@ -912,7 +907,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
 
     private void addTunerSession(DtvkitTvInputSession session) {
         synchronized (mTunerSessionLock) {
-            sMainTvSession = new WeakReference<>(session);
             mTunerSessions.put(session.mCurrentDtvkitTvInputSessionIndex, session);
             Log.i(TAG, "addTunerSession index = " + session.mCurrentDtvkitTvInputSessionIndex);
         }
@@ -2665,17 +2659,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
             if (!getFeatureSupportFullPipFccArchitecture()) {
                 if (null != mHardware && mConfigs.length > 0) {
                     if (null == surface) {
-                        {
+                         if (mDtvkitTvInputSessionCount == mCurrentDtvkitTvInputSessionIndex) {
                             //isMain status may be set to true by livetv after switch to luncher
                             //all case use message to release related resource as semaphare has been applied
                             setOverlayViewEnabled(false);
-                            synchronized (mTunerSessionLock) {
-                                if (sMainTvSession.get() == this
-                                        || sMainTvSession.get() == null) {
-                                    mHardware.setSurface(null, null);
-                                    writeSysFs("/sys/class/video/video_inuse", "0");
-                                }
-                            }
+                            mHardware.setSurface(null, null);
+                            writeSysFs("/sys/class/video/video_inuse", "0");
                             if (mSystemControlManager != null) {
                                 mSystemControlManager.SetDtvKitSourceEnable(0);
                                 mSystemControlManager.SetCurrentSourceInfo(SystemControlManager.SourceInput.valueOf(INPUT_MPEG), 0, 0);
@@ -2765,7 +2754,7 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 boolean result = mHandlerThreadHandle.sendMessage(mHandlerThreadHandle.obtainMessage(MSG_SET_SURFACE, surfaceInfo));
                 Log.d(TAG, "sendSetSurfaceMessage status = " + result + ", surface = " + surface + ", config = " + config + ", index = " + mCurrentDtvkitTvInputSessionIndex);
             } else {
-                Log.d(TAG, "sendSetSurfaceMessage null mHandlerThreadHandle");
+                Log.w(TAG, "sendSetSurfaceMessage null mHandlerThreadHandle");
             }
         }
 
@@ -3138,11 +3127,6 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
         public void onRelease() {
             Log.i(TAG, "onRelease index = " + mCurrentDtvkitTvInputSessionIndex + ", mIsPip = " + mIsPip);
             mReleased = true;
-            synchronized (mTunerSessionLock) {
-                if (sMainTvSession.get() == this) {
-                    sMainTvSession = NULL_TV_SESSION;
-                }
-            }
             //must destory mview,!!! we
             //will regist handle to client when
             //creat ciMenuView,so we need destory and
@@ -3180,12 +3164,12 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                 timeshiftRecorderState = RecorderState.STOPPED;
                 timeshifting = false;
                 mhegStop();
-                synchronized (mTunerSessionLock) {
-                    if (sMainTvSession.get() == this
-                            || sMainTvSession.get() == null) {
-                        playerStopTimeshiftRecording(false);
-                        playerStop();
-                    }
+
+                DtvkitTvInputSession pipSession = getPipTunerSession();
+                if (getTunerSession(mCurrentDtvkitTvInputSessionIndex + 1) == null
+                    || (pipSession != null && pipSession.mCurrentDtvkitTvInputSessionIndex == mDtvkitTvInputSessionCount)) {
+                    playerStopTimeshiftRecording(false);
+                    playerStop();
                 }
                 playerSetSubtitlesOn(false);
                 playerSetTeletextOn(false, -1);
