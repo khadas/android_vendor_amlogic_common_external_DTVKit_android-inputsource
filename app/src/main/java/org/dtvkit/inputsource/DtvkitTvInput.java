@@ -1394,11 +1394,16 @@ public class DtvkitTvInput extends TvInputService implements SystemControlEvent.
                     if (data != null) {
                         data.put(RecordedProgram.RECORD_FILE_PATH, mDataMananer.getStringParameters(DataMananer.KEY_PVR_RECORD_PATH));
                     }
+                    String title = recordings.getJSONObject(i).getString("service");
+                    if (TextUtils.isEmpty(title)) {
+                        title = recordings.getJSONObject(i).getString("name");
+                    }
+
                     RecordedProgram recording = new RecordedProgram.Builder()
                         .setInputId(mInputId)
                         .setRecordingDataUri(recordings.getJSONObject(i).getString("uri"))
                         .setRecordingDataBytes(Long.valueOf(recordings.getJSONObject(i).getString("size")))
-                        .setTitle(recordings.getJSONObject(i).getString("service"))
+                        .setTitle(title)
                         .setStartTimeUtcMillis(Long.valueOf(recordings.getJSONObject(i).getString("date"))*1000)
                         .setEndTimeUtcMillis(Long.valueOf(recordings.getJSONObject(i).getString("date"))*1000 + Long.valueOf(recordings.getJSONObject(i).getString("length"))*1000)
                         .setRecordingDurationMillis(Long.valueOf(recordings.getJSONObject(i).getString("length"))*1000)
